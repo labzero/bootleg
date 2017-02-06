@@ -1,7 +1,10 @@
 defmodule Bootleg.Strategies.Build.RemoteSSH do
 
-  def ssh_connect(host, user) do
-    user_dir = Application.get_env(:bootleg, :ssh_user_dir)
+  def init(config) do
+    init_app_remotely(config[:build_host], config[:build_user], config[:build_at], config[:ssh_user_dir])
+  end
+
+  def ssh_connect(host, user, user_dir) do
     :ssh.start
     {:ok, host_ip} = :inet.getaddr(to_charlist(host), :inet)
     case SSHEx.connect( user_dir: to_charlist(user_dir),
@@ -13,9 +16,26 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     end
   end
 
-  def init_app_remotely(conn, hosts, user_host, build_at) do
-    #TODO: run any pre init app remotely hooks
+  def build(conn, config, version) do
+    user_host = "#{config[:build_user]}@#{config[:build_host]}"
+    build_at = config[:build_at]
+    revision = config[:revision]
+    target_mix_env = config[:mix_env] || "prod"
+    app = config[:app]
+    
+    conn
+    |> git_push(user_host)
+    |> git_reset_remote(build_at, revision)
+    |> git_clean_remote(build_at)
+    |> get_and_update_deps(build_at, app, target_mix_env)
+    |> clean_compile(build_at, app, target_mix_env)
+    |> generate_release(build_at, app, target_mix_env)
+  end
 
+  def init_app_remotely(host, user, build_at, user_dir) do
+    #TODO: run any pre init app remotely hooks
+    conn = ssh_connect(host, user, user_dir)
+    user_host = "#{user}@#{host}"
     {git_remote, 0} = System.cmd "git", ["remote", "-v"]
     IO.puts "Ensuring host is ready to accept git pushes"
 
@@ -99,8 +119,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   # clean fetch of dependencies on the remote build host
   def get_and_update_deps(conn, build_at, app, target_mix_env) do
     # TODO: execute pre erlang_get_and_update_deps hooks
-
     IO.puts "Fetching / Updating dependencies"
+
     # TODO: source some environment variables
     {:ok, resp, 0} = SSHEx.run conn,
       '
