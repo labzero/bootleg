@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Bootleg.Deploy do
 
   """
   @spec run(OptionParser.argv) :: :ok
-  def run(args) do
+  def run(_args) do
 
   end
 end
