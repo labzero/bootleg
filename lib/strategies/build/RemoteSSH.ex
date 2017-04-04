@@ -1,4 +1,5 @@
 defmodule Bootleg.Strategies.Build.RemoteSSH do
+  @moduledoc ""
 
   def init(config) do
     init_app_remotely(config[:host], config[:user], config[:identity], config[:workspace])
@@ -34,7 +35,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     IO.puts "user #{user}"
     IO.puts "identity #{identity}"
     IO.puts "workspace #{workspace}"
-    #TODO: run any pre init app remotely hooks
     conn = ssh_connect(host, user, identity)
     user_host = "#{user}@#{host}"
     {git_remote, 0} = System.cmd "git", ["remote", "-v"]
@@ -46,7 +46,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       System.cmd "git", ["remote", "add", user_host, remote_url]
     end
     SSHKit.run conn,
-      '
+      "
       set -e
       if [ ! -d #{workspace} ]
       then
@@ -58,16 +58,14 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         cd #{workspace}
         git config receive.denyCurrentBranch ignore
       fi
-      '
+      "
     conn
-    #TODO: run any post init app remotely hooks
   end
 
 
   def git_push(conn, host) do
-    #TODO: run any pre git_push hooks
-    git_push = Application.get_env(:bootleg, :git_push,"-f")
-    refspec = Application.get_env(:bootleg, :refspec,"master")
+    git_push = Application.get_env(:bootleg, :git_push, "-f")
+    refspec = Application.get_env(:bootleg, :refspec, "master")
 
     IO.puts "Pushing new commits with git to: #{host}"
 
@@ -75,7 +73,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {res, 0} -> IO.puts res
       {res, _} -> IO.puts "ERROR: #{inspect res}"
     end
-    #TODO: run any post git_push hooks
     conn
   end
 
@@ -92,7 +89,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   def git_clean_remote(conn, _workspace) do
     IO.puts "Skipped cleaning generated files from last build"
-    # TODO: migrate this logic to elixir land
 
     # case SSHEx.run conn,
     #   '
@@ -115,10 +111,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   # clean fetch of dependencies on the remote build host
   def get_and_update_deps(conn, workspace, app, target_mix_env) do
-    # TODO: execute pre erlang_get_and_update_deps hooks
     IO.puts "Fetching / Updating dependencies"
 
-    # TODO: source some environment variables
     SSHKit.run conn,
       '
       set -e
@@ -126,15 +120,11 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       APP=#{app} MIX_ENV=#{target_mix_env} mix local.hex --force
       APP=#{app} MIX_ENV=#{target_mix_env} mix deps.get
       '
-    # TODO: execute post erlang_get_and_update_deps hooks
     conn
   end
 
   def clean_compile(conn, workspace, app, target_mix_env) do
     IO.puts "Compiling remote build"
-    # TODO: source some environment variables
-    # TODO: add option for mix-clean
-    # TODO: autoversion
     SSHKit.run conn,
       '
       set -e
@@ -146,8 +136,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   def generate_release(conn, workspace, app, target_mix_env) do
     IO.puts "Generating release"
-    # TODO: source some environment variables
-    # TODO: autoversion
     SSHKit.run conn,
       '
       set -e
