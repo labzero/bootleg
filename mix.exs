@@ -15,7 +15,7 @@ defmodule Bootleg.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger]]
+    [extra_applications: [:logger, :sshkit]]
   end
 
   # Dependencies can be Hex packages:
@@ -29,7 +29,7 @@ defmodule Bootleg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:sshex, "~> 2.1.1"}
+      {:sshkit, github: "labzero/sshkit.ex"}
     ]
   end
 end

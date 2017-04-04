@@ -1,1 +1,1 @@
-%{"sshex": {:hex, :sshex, "2.1.2", "f37167cbef6b33c31754750c30ac281fc7b7f6480f437c7c29708db7ef6ae85f", [:mix], []}}
+%{"sshkit": {:git, "https://github.com/labzero/sshkit.ex.git", "c5aaa4d8a85591f9747067790337ccdb884931a5", []}}
