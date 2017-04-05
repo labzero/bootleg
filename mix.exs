@@ -29,7 +29,8 @@ defmodule Bootleg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:sshkit, github: "labzero/sshkit.ex"}
+      {:sshkit, github: "labzero/sshkit.ex"},
+      {:credo, "~> 0.7", only: [:dev, :test]}
     ]
   end
 end

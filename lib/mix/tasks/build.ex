@@ -21,10 +21,11 @@ defmodule Mix.Tasks.Bootleg.Build do
 
     _mix_env = Application.get_env(:bootleg, :mix_env, "prod")
     version = Mix.Project.config[:version]
-
     config = Application.get_env(:bootleg, :build)
     strategy = config[:strategy]
-    strategy.init(config)
+    
+    config
+    |> strategy.init
     |> strategy.build(config, version)
   end
 
