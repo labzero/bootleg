@@ -2,7 +2,23 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   @moduledoc ""
 
   def init(config) do
-    init_app_remotely(config[:host], config[:user], config[:identity], config[:workspace])
+    with {:ok, remotes} <- parse_git_remotes() do
+      init_app_remotely(config[:host], config[:user], config[:identity], config[:workspace], remotes)
+    else
+      {:error, msg} -> raise "Error: #{msg}"
+    end
+  end
+
+  def parse_git_remotes() do
+    try do
+      case System.cmd("git", ["remote", "-v"], stderr_to_stdout: true) do
+        {remotes, 0} -> {:ok, remotes}
+        {msg, 1} -> {:error, "git: #{msg}"}
+        {_, 128} -> {:error, "Bootleg requires a Git repository."}
+      end
+    rescue
+      ErlangError -> {:error, "Bootleg requires Git to be installed."}
+    end
   end
 
   def ssh_connect(host, user, identity) do
@@ -30,19 +46,19 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     |> download_release_archive(workspace, app, target_mix_env, config)
   end
 
-  def init_app_remotely(host, user, identity, workspace) do
+  def init_app_remotely(host, user, identity, workspace, remotes) do
     IO.puts "host #{host}"
     IO.puts "user #{user}"
     IO.puts "identity #{identity}"
     IO.puts "workspace #{workspace}"
     conn = ssh_connect(host, user, identity)
     user_host = "#{user}@#{host}"
-    {git_remote, 0} = System.cmd "git", ["remote", "-v"]
+    
     IO.puts "Ensuring host is ready to accept git pushes"
 
     remote_url = "#{user_host}:#{workspace}"
-    if !String.contains?(git_remote, "#{user_host}\t#{remote_url}") do
-      if String.contains?(git_remote, user_host), do: System.cmd "git", ["remote", "rm", user_host]
+    if !String.contains?(remotes, "#{user_host}\t#{remote_url}") do
+      if String.contains?(remotes, user_host), do: System.cmd "git", ["remote", "rm", user_host]
       System.cmd "git", ["remote", "add", user_host, remote_url]
     end
     SSHKit.run conn,
