@@ -33,6 +33,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     user_host = "#{config[:user]}@#{config[:host]}"
     workspace = config[:workspace]
     revision = config[:revision]
+    version = config[:version]
     target_mix_env = config[:mix_env] || "prod"
     app = config[:app]
     
@@ -43,14 +44,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     |> get_and_update_deps(workspace, app, target_mix_env)
     |> clean_compile(workspace, app, target_mix_env)
     |> generate_release(workspace, app, target_mix_env)
-    |> download_release_archive(workspace, app, target_mix_env, config)
+    |> download_release_archive(workspace, app, version, target_mix_env, config)
   end
 
   def init_app_remotely(host, user, identity, workspace, remotes) do
-    IO.puts "host #{host}"
-    IO.puts "user #{user}"
-    IO.puts "identity #{identity}"
-    IO.puts "workspace #{workspace}"
     conn = ssh_connect(host, user, identity)
     user_host = "#{user}@#{host}"
     
@@ -161,14 +158,11 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     conn
   end
 
-  def download_release_archive(_conn, workspace, app, target_mix_env, config) do
+  def download_release_archive(_conn, workspace, app, version, target_mix_env, config) do
     cb = SSHKit.SSH.ClientKeyAPI.with_options(identity: File.open!(config[:identity]))
     {:ok, conn} = SSHKit.SSH.connect(config[:host], [key_cb: cb, user: config[:user]])
-    source = "#{workspace}/_build/#{target_mix_env}/rel/clippyx/releases/0.2.0/#{app}.tar.gz"
-    destination = "/Users/brien/dev/labzero/open_source/clippyx/#{app}.tar.gz"
-    IO.puts source
-    IO.puts destination
+    source = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
+    destination = "#{File.cwd!}/#{app}.tar.gz"
     resp = SSHKit.SCP.download(conn, source, destination)
-    IO.puts inspect resp
   end
 end
