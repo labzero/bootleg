@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Bootleg.Build do
     _mix_env = Application.get_env(:bootleg, :mix_env, "prod")
     version = Mix.Project.config[:version]
     config = Application.get_env(:bootleg, :build)
-    strategy = config[:strategy]
+    strategy = config[:strategy] || Bootleg.Strategies.Build.RemoteSSH
     
     config
     |> strategy.init
