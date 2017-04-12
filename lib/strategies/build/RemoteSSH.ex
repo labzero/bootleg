@@ -2,11 +2,27 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   @moduledoc ""
 
   def init(config) do
-    with {:ok, remotes} <- parse_git_remotes() do
+    with {:ok, remotes} <- parse_git_remotes(),
+         {:ok, config} <- check_config(config) do
       init_app_remotely(config[:host], config[:user], config[:identity], config[:workspace], remotes)
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
+  end
+
+  @doc """
+  Insist that the user-defined Bootleg configuration include 
+  all mandatory settings.
+  """
+  def check_config(config) do
+    required_atoms = ~w(host user workspace revision version)a
+    Enum.each(required_atoms, fn required_atom ->
+      if List.keyfind(config, required_atom, 0) == nil do
+        raise "Bootleg requires :#{required_atom} to be set in build configuration"
+      end
+    end)
+
+    {:ok, config}
   end
 
   def parse_git_remotes() do
@@ -23,10 +39,9 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   def ssh_connect(host, user, identity) do
     :ssh.start
-    cb = SSHKit.SSH.ClientKeyAPI.with_options(identity: File.open!(identity, [:read]))
-    host = %SSHKit.Host{name: host, options: [key_cb: cb, user: user]}    
-    context = SSHKit.context(host)
-    context
+    cb = SSHKit.SSH.ClientKeyAPI.with_options(identity: File.open!(identity))
+    {:ok, conn} = SSHKit.SSH.connect(host, [key_cb: cb, user: user])
+    conn
   end
 
   def build(conn, config, _version) do
@@ -36,7 +51,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     version = config[:version]
     target_mix_env = config[:mix_env] || "prod"
     app = config[:app]
-    
+
     conn
     |> git_push(user_host)
     |> git_reset_remote(workspace, revision)
@@ -58,7 +73,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       if String.contains?(remotes, user_host), do: System.cmd "git", ["remote", "rm", user_host]
       System.cmd "git", ["remote", "add", user_host, remote_url]
     end
-    SSHKit.run conn,
+
+    {:ok, _, 0} = SSHKit.SSH.run conn,
       "
       set -e
       if [ ! -d #{workspace} ]
@@ -66,13 +82,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         mkdir -p #{workspace}
         cd #{workspace}
         git init 
-        git config receive.denyCurrentBranch ignore
-      else
-        cd #{workspace}
-        git config receive.denyCurrentBranch ignore
       fi
       "
-    conn
+
+    safe_run conn, workspace, "git config receive.denyCurrentBranch ignore"
   end
 
 
@@ -83,6 +96,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     IO.puts "Pushing new commits with git to: #{host}"
 
     case System.cmd "git", ["push", "--tags", git_push, host, refspec] do
+      {"", 0} -> true
       {res, 0} -> IO.puts res
       {res, _} -> IO.puts "ERROR: #{inspect res}"
     end
@@ -90,13 +104,9 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   end
 
   def git_reset_remote(conn, workspace, revision) do
-    IO.puts "Resetting remote hosts to #{revision}"
-    SSHKit.run conn,
-      '
-      set -e
-      cd #{workspace}
-      git reset --hard #{revision}
-      '
+    IO.puts "Resetting remote hosts to revision \"#{revision}\""
+    safe_run conn, workspace,
+      "git reset --hard #{revision}"
     conn
   end
 
@@ -126,43 +136,83 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   def get_and_update_deps(conn, workspace, app, target_mix_env) do
     IO.puts "Fetching / Updating dependencies"
 
-    SSHKit.run conn,
-      '
-      set -e
-      cd #{workspace}
-      APP=#{app} MIX_ENV=#{target_mix_env} mix local.hex --force
-      APP=#{app} MIX_ENV=#{target_mix_env} mix deps.get
-      '
+    safe_run conn, workspace,
+      [
+        "APP=#{app} MIX_ENV=#{target_mix_env} mix local.rebar --force",
+        "APP=#{app} MIX_ENV=#{target_mix_env} mix local.hex --force",
+        "APP=#{app} MIX_ENV=#{target_mix_env} mix deps.get --only=prod"
+      ]
     conn
   end
 
   def clean_compile(conn, workspace, app, target_mix_env) do
     IO.puts "Compiling remote build"
-    SSHKit.run conn,
-      '
-      set -e
-      cd #{workspace}
-      APP=#{app} MIX_ENV=#{target_mix_env} mix do deps.compile, compile
-      '
+    safe_run conn, workspace,
+      [
+        "APP=#{app} MIX_ENV=#{target_mix_env} mix deps.compile",
+        "APP=#{app} MIX_ENV=#{target_mix_env} mix compile"
+      ]
     conn
   end
 
   def generate_release(conn, workspace, app, target_mix_env) do
     IO.puts "Generating release"
-    SSHKit.run conn,
-      '
-      set -e
-      cd #{workspace}
-      APP=#{app} MIX_ENV=#{target_mix_env} mix release
-      '
+
+    safe_run conn, workspace,
+      "APP=#{app} MIX_ENV=#{target_mix_env} mix release"
+  end
+
+  @doc """
+  Runs several remote commands in sequence, aborting if one
+  returns a non-zero exit status.
+  """
+  def safe_run(conn, working_directory, cmd) when is_list(cmd) do
+    Enum.each(cmd, fn cmd ->
+      safe_run(conn, working_directory, cmd)
+    end)
     conn
   end
 
-  def download_release_archive(_conn, workspace, app, version, target_mix_env, config) do
-    cb = SSHKit.SSH.ClientKeyAPI.with_options(identity: File.open!(config[:identity]))
-    {:ok, conn} = SSHKit.SSH.connect(config[:host], [key_cb: cb, user: config[:user]])
-    source = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
-    destination = "#{File.cwd!}/#{app}.tar.gz"
-    resp = SSHKit.SCP.download(conn, source, destination)
+  @doc """
+  Runs a remote command within the given working directory
+  and raises an error for any non-zero exit status.
+  """
+  def safe_run(conn, working_directory, cmd) when is_binary(cmd) do
+    IO.puts " -> $ #{cmd}"
+    case SSHKit.SSH.run conn,
+        "set -e;cd #{working_directory};#{cmd}" do
+      {:ok, _, 0} -> conn
+      {:ok, output, status} -> raise format_remote_error(cmd, output, status)
+    end
+  end
+
+  defp format_remote_error(cmd, output, status) do
+    "Remote command exited with non-zero status (#{status})
+         cmd: \"#{cmd}\"
+      stderr: #{parse_remote_output(output[:stderr])}
+      stdout: #{parse_remote_output(output[:normal])}
+     "
+  end
+
+  defp parse_remote_output(nil), do: ""
+  defp parse_remote_output(out) do
+    String.trim_trailing(out)
+  end
+
+  def download_release_archive(conn, workspace, app, version, target_mix_env, _) do
+    remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
+    local_archive_folder = "#{File.cwd!}/releases"
+    local_path = Path.join(local_archive_folder, "#{app}-#{version}.tar.gz")
+    
+    IO.puts "Downloading release archive"
+    IO.puts " -> remote: #{remote_path}"
+    IO.puts " <-  local: #{local_path}"
+
+    File.mkdir_p!(local_archive_folder)
+
+    case SSHKit.SCP.download(conn, remote_path, local_path) do
+      :ok -> conn
+      _ -> raise "Error: downloading of release archive failed"
+    end
   end
 end
