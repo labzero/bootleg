@@ -1,14 +1,21 @@
 defmodule Bootleg.Strategies.Build.RemoteSSH do
   @moduledoc ""
 
+  alias SSHKit.SSH
+  alias SSHKit.SSH.ClientKeyAPI
+  alias SSHKit.SCP
+
   def init(config) do
     with {:ok, config} <- check_config(config),
          :ok <- ensure_local_git_remotes(config),
          :ok <- :ssh.start(),
-         cb = SSHKit.SSH.ClientKeyAPI.with_options(identity: File.open!(config[:identity])),
-         {:ok, conn} <- SSHKit.SSH.connect(config[:host], [connect_timeout: 5000, key_cb: cb, user: config[:user]]),
-         {:ok, _, 0} <- SSHKit.SSH.run(conn, workspace_setup_script(config[:workspace]))
-        do
+         {:ok, identity_file} <- File.open(config[:identity]),
+         cb = ClientKeyAPI.with_options(identity: identity_file),
+         {:ok, conn} <- SSH.connect(config[:host], [connect_timeout: 5000,
+                                                    key_cb: cb,
+                                                    user: config[:user]]),
+         {:ok, _, 0} <- SSH.run(conn,
+                                workspace_setup_script(config[:workspace])) do
       safe_run conn, config[:workspace], "git config receive.denyCurrentBranch ignore"
     else
       {:error, msg} -> raise "Error: #{msg}"
@@ -30,7 +37,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     |> get_and_update_deps(workspace, app, target_mix_env)
     |> clean_compile(workspace, app, target_mix_env)
     |> generate_release(workspace, app, target_mix_env)
-    |> download_release_archive(workspace, app, version, target_mix_env, config)
+    |> download_release_archive(workspace, app, version, target_mix_env)
   end
 
   defp workspace_setup_script(workspace) do
@@ -70,27 +77,25 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   end
 
   defp add_local_git_remote(user_host, remote_url) do
-    try do
-      case System.cmd("git", ["remote", "add", user_host, remote_url], stderr_to_stdout: true) do
-        {_, 0} -> :ok
-        {msg, 1} -> {:error, "git: #{msg}"}
-        {_, 128} -> {:error, "Bootleg requires a Git repository."}
-      end
-    rescue
-      ErlangError -> {:error, "Bootleg requires Git to be installed."}
+    case System.cmd("git",
+                    ["remote", "add", user_host, remote_url],
+                    stderr_to_stdout: true) do
+      {_, 0} -> :ok
+      {msg, 1} -> {:error, "git: #{msg}"}
+      {_, 128} -> {:error, "Bootleg requires a Git repository."}
     end
+  catch
+    ErlangError -> {:error, "Bootleg requires Git to be installed."}
   end
 
-  defp parse_local_git_remotes() do
-    try do
-      case System.cmd("git", ["remote", "-v"], stderr_to_stdout: true) do
-        {remotes, 0} -> {:ok, remotes}
-        {msg, 1} -> {:error, "git: #{msg}"}
-        {_, 128} -> {:error, "Bootleg requires a Git repository."}
-      end
-    rescue
-      ErlangError -> {:error, "Bootleg requires Git to be installed."}
+  defp parse_local_git_remotes do
+    case System.cmd("git", ["remote", "-v"], stderr_to_stdout: true) do
+      {remotes, 0} -> {:ok, remotes}
+      {msg, 1} -> {:error, "git: #{msg}"}
+      {_, 128} -> {:error, "Bootleg requires a Git repository."}
     end
+  catch
+    ErlangError -> {:error, "Bootleg requires Git to be installed."}
   end
 
   defp git_push(conn, host) do
@@ -175,7 +180,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   defp safe_run(conn, working_directory, cmd) when is_binary(cmd) do
     IO.puts " -> $ #{cmd}"
-    case SSHKit.SSH.run conn,
+    case SSH.run conn,
         "set -e;cd #{working_directory};#{cmd}" do
       {:ok, _, 0} -> conn
       {:ok, output, status} -> raise format_remote_error(cmd, output, status)
@@ -195,18 +200,18 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     String.trim_trailing(out)
   end
 
-  defp download_release_archive(conn, workspace, app, version, target_mix_env, _) do
+  defp download_release_archive(conn, workspace, app, version, target_mix_env) do
     remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "#{app}-#{version}.tar.gz")
-    
+
     IO.puts "Downloading release archive"
     IO.puts " -> remote: #{remote_path}"
     IO.puts " <-  local: #{local_path}"
 
     File.mkdir_p!(local_archive_folder)
 
-    case SSHKit.SCP.download(conn, remote_path, local_path) do
+    case SCP.download(conn, remote_path, local_path) do
       :ok -> conn
       _ -> raise "Error: downloading of release archive failed"
     end

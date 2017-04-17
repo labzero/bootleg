@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Bootleg.Build do
   use Mix.Task
 
+  alias Mix.Project
+
   @shortdoc "Build a release"
 
   @moduledoc """
@@ -20,10 +22,10 @@ defmodule Mix.Tasks.Bootleg.Build do
   def run(_args) do
 
     _mix_env = Application.get_env(:bootleg, :mix_env, "prod")
-    version = Mix.Project.config[:version]
+    version = Project.config[:version]
     config = Application.get_env(:bootleg, :build)
     strategy = config[:strategy] || Bootleg.Strategies.Build.RemoteSSH
-    
+
     config
     |> strategy.init
     |> strategy.build(config, version)
