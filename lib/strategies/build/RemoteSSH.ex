@@ -64,7 +64,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   end
 
   defp ensure_local_git_remotes(config) do
-    with {:ok, remotes} = parse_local_git_remotes(),
+    with {:ok, remotes} <- parse_local_git_remotes(),
          user_host = "#{config[:user]}@#{config[:host]}",
          remote_url = "#{user_host}:#{config[:workspace]}" do
       IO.puts "Ensuring host is ready push to build server"
@@ -73,6 +73,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         true -> :ok
         false -> add_local_git_remote(user_host, remote_url)
       end
+    else
+      e -> e
     end
   end
 
