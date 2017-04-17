@@ -180,8 +180,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   defp safe_run(conn, working_directory, cmd) when is_binary(cmd) do
     IO.puts " -> $ #{cmd}"
-    case SSH.run conn,
-        "set -e;cd #{working_directory};#{cmd}" do
+    case SSH.run(conn, "set -e;cd #{working_directory};#{cmd}") do
       {:ok, _, 0} -> conn
       {:ok, output, status} -> raise format_remote_error(cmd, output, status)
     end
