@@ -69,9 +69,13 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
          remote_url = "#{user_host}:#{config[:workspace]}" do
       IO.puts "Ensuring host is ready push to build server"
 
-      case String.contains?(remotes, "#{user_host}\t#{remote_url}") do
-        true -> :ok
-        false -> add_local_git_remote(user_host, remote_url)
+      if String.contains?(remotes, "#{user_host}\t#{remote_url}") do
+        :ok
+      else
+        # a named remote pointing to a different remote path will
+        # result in git failure, so check and remove if one exists
+        if String.contains?(remotes, user_host), do: remove_local_git_remote(user_host)
+        add_local_git_remote(user_host, remote_url)
       end
     else
       e -> e
@@ -79,12 +83,24 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   end
 
   defp add_local_git_remote(user_host, remote_url) do
+    IO.puts "Adding git remote"
     case System.cmd("git",
                     ["remote", "add", user_host, remote_url],
                     stderr_to_stdout: true) do
       {_, 0} -> :ok
-      {msg, 1} -> {:error, "git: #{msg}"}
-      {_, 128} -> {:error, "Bootleg requires a Git repository."}
+      {msg, _status} -> {:error, "git: #{msg}"}
+    end
+  catch
+    ErlangError -> {:error, "Bootleg requires Git to be installed."}
+  end
+
+  defp remove_local_git_remote(user_host) do
+    IO.puts "Removing git remote"
+    case System.cmd("git",
+                    ["remote", "remove", user_host],
+                    stderr_to_stdout: true) do
+      {_, 0} -> :ok
+      {msg, _status} -> {:error, "git: #{msg}"}
     end
   catch
     ErlangError -> {:error, "Bootleg requires Git to be installed."}
@@ -93,8 +109,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   defp parse_local_git_remotes do
     case System.cmd("git", ["remote", "-v"], stderr_to_stdout: true) do
       {remotes, 0} -> {:ok, remotes}
-      {msg, 1} -> {:error, "git: #{msg}"}
-      {_, 128} -> {:error, "Bootleg requires a Git repository."}
+      {msg, _status} -> {:error, "git: #{msg}"}
     end
   catch
     ErlangError -> {:error, "Bootleg requires Git to be installed."}
