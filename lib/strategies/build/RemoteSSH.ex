@@ -74,7 +74,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       else
         # a named remote pointing to a different remote path will
         # result in git failure, so check and remove if one exists
-        if String.contains?(remotes, user_host), do: remove_local_git_remote(user_host)
+        if String.contains?(remotes, user_host),
+          do: remove_local_git_remote(user_host)
         add_local_git_remote(user_host, remote_url)
       end
     else
