@@ -9,9 +9,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   #alias SSHKit.SSH.ClientKeyAPI
   #alias SSHKit.SCP
 
+  @config_keys ~w(host user workspace revision)
+
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    IO.inspect(config)
-    with {:ok, config} <- check_config(config),
+    with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
            host 
@@ -23,7 +24,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     end
   end
 
-  def build(%SSH{conn: conn} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
+  def build(%SSH{conn: _} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
     user_host = "#{config.user}@#{config.host}"
     user_identity = config.identity
     workspace = config.workspace
@@ -53,14 +54,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         git init 
       fi
       "
-  end
-
-  defp check_config(%BuildConfig{} = config) do
-    missing =  Enum.filter(~w(host user workspace revision), &(Map.get(config, &1, 0) == nil))
-    if Enum.count(missing) > 0 do
-      raise "RemoteSSH build strategy requires #{inspect Map.keys(missing)} to be set in the build configuration"
-    end
-    {:ok, config}        
   end
 
   defp git_push(host, workspace, identity) do
@@ -178,7 +171,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     File.mkdir_p!(local_archive_folder)
 
     case SSH.download(ssh, remote_path, local_path) do
-      :ok -> ssh
+      :ok -> {:ok, local_path}
       _ -> raise "Error: downloading of release archive failed"
     end
   end
