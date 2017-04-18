@@ -20,11 +20,19 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config
-    strategy = Map.get(config, :strategy) || Bootleg.Strategies.Build.RemoteSSH
-    config
-    |> strategy.init
-    |> strategy.build(config)
+    config = Application.get_env(:bootleg, :build)
+    builder = config[:build_strategy] || Bootleg.Strategies.Build.RemoteSSH
+    archiver = config[:archive_strategy] || Bootleg.Strategies.Archive.LocalDirectory
+
+    build = 
+      config
+      |> builder.init()
+      |> builder.build(config)
+
+    archive =
+      config
+      |> archiver.init()
+      |> archiver.archive(build)
   end
 
 end
