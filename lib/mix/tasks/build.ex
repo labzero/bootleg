@@ -20,15 +20,11 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-
-    _mix_env = Application.get_env(:bootleg, :mix_env, "prod")
-    version = Project.config[:version]
-    config = Application.get_env(:bootleg, :build)
-    strategy = config[:strategy] || Bootleg.Strategies.Build.RemoteSSH
-
+    config = Bootleg.config
+    strategy = Map.get(config, :strategy) || Bootleg.Strategies.Build.RemoteSSH
     config
     |> strategy.init
-    |> strategy.build(config, version)
+    |> strategy.build(config)
   end
 
 end
