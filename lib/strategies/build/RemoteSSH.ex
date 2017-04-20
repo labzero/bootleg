@@ -1,35 +1,42 @@
 defmodule Bootleg.Strategies.Build.RemoteSSH do
   @moduledoc ""
 
+  alias Bootleg.Config
+  alias Bootleg.BuildConfig
   alias SSHKit.SSH
   alias SSHKit.SSH.ClientKeyAPI
   alias SSHKit.SCP
 
-  def init(config) do
+  def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+    IO.inspect(config)
     with {:ok, config} <- check_config(config),
          :ok <- ensure_local_git_remotes(config),
          :ok <- :ssh.start(),
-         {:ok, identity_file} <- File.open(config[:identity]),
+         {:ok, identity_file} <- File.open(identity),
          cb = ClientKeyAPI.with_options(identity: identity_file),
-         {:ok, conn} <- SSH.connect(config[:host], [connect_timeout: 5000,
+         {:ok, conn} <- SSH.connect(host, [connect_timeout: 5000,
                                                     key_cb: cb,
-                                                    user: config[:user]]),
+                                                    user: user]),
          {:ok, _, 0} <- SSH.run(conn,
-                                workspace_setup_script(config[:workspace])) do
-      safe_run conn, config[:workspace], "git config receive.denyCurrentBranch ignore"
+                                workspace_setup_script(workspace)) do
+      safe_run conn, workspace, "git config receive.denyCurrentBranch ignore"      
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
   end
 
-  def build(conn, config, _version) do
-    user_host = "#{config[:user]}@#{config[:host]}"
-    workspace = config[:workspace]
-    revision = config[:revision]
-    version = config[:version]
-    target_mix_env = config[:mix_env] || "prod"
-    app = config[:app]
+  def test_deps(%{ssh: ssh, scp: scp, system: system} = deps \\ @deps) do
+    IO.inspect(ssh)
+  end
+  
 
+  def build(conn, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
+    user_host = "#{config.user}@#{config.host}"
+    workspace = config.workspace
+    revision = config.revision
+    version = version
+    target_mix_env = config.mix_env || "prod"
+    
     conn
     |> git_push(user_host)
     |> git_reset_remote(workspace, revision)
@@ -52,21 +59,18 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       "
   end
 
-  defp check_config(config) do
-    required_atoms = ~w(host user workspace revision version)a
-    Enum.each(required_atoms, fn required_atom ->
-      if List.keyfind(config, required_atom, 0) == nil do
-        raise "Bootleg requires :#{required_atom} to be set in build configuration"
-      end
-    end)
-
-    {:ok, config}
+  defp check_config(%BuildConfig{} = config) do
+    missing =  Enum.filter(~w(host user workspace revision), &(Map.get(config, &1, 0) == nil))
+    if Enum.count(missing) > 0 do
+      raise "RemoteSSH build strategy requires #{inspect Map.keys(missing)} to be set in the build configuration"
+    end
+    {:ok, config}        
   end
 
-  defp ensure_local_git_remotes(config) do
+  defp ensure_local_git_remotes(%BuildConfig{user: user, host: host, workspace: workspace}) do
     with {:ok, remotes} <- parse_local_git_remotes(),
-         user_host = "#{config[:user]}@#{config[:host]}",
-         remote_url = "#{user_host}:#{config[:workspace]}" do
+         user_host = "#{user}@#{host}",
+         remote_url = "#{user_host}:#{workspace}" do
       IO.puts "Ensuring host is ready push to build server"
 
       if String.contains?(remotes, "#{user_host}\t#{remote_url}") do
@@ -74,8 +78,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       else
         # a named remote pointing to a different remote path will
         # result in git failure, so check and remove if one exists
-        if String.contains?(remotes, user_host),
-          do: remove_local_git_remote(user_host)
+        if String.contains?(remotes, user_host), do: remove_local_git_remote(user_host)
         add_local_git_remote(user_host, remote_url)
       end
     else
