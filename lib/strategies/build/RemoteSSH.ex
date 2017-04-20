@@ -3,6 +3,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   alias Bootleg.Config
   alias Bootleg.BuildConfig
+  alias Bootleg.Shell
+
   alias SSHKit.SSH
   alias SSHKit.SSH.ClientKeyAPI
   alias SSHKit.SCP
@@ -88,9 +90,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   defp add_local_git_remote(user_host, remote_url) do
     IO.puts "Adding git remote"
-    case System.cmd("git",
-                    ["remote", "add", user_host, remote_url],
-                    stderr_to_stdout: true) do
+    case Shell.run("git", ["remote", "add", user_host, remote_url]) do
       {_, 0} -> :ok
       {msg, _status} -> {:error, "git: #{msg}"}
     end
@@ -100,9 +100,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   defp remove_local_git_remote(user_host) do
     IO.puts "Removing git remote"
-    case System.cmd("git",
-                    ["remote", "remove", user_host],
-                    stderr_to_stdout: true) do
+    case Shell.run("git", ["remote", "remove", user_host]) do
       {_, 0} -> :ok
       {msg, _status} -> {:error, "git: #{msg}"}
     end
@@ -111,7 +109,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   end
 
   defp parse_local_git_remotes do
-    case System.cmd("git", ["remote", "-v"], stderr_to_stdout: true) do
+    case Shell.run("git", ["remote", "-v"]) do    
       {remotes, 0} -> {:ok, remotes}
       {msg, _status} -> {:error, "git: #{msg}"}
     end
@@ -125,7 +123,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
     IO.puts "Pushing new commits with git to: #{host}"
 
-    case System.cmd "git", ["push", "--tags", git_push, host, refspec] do
+    case Shell.run("git", ["push", "--tags", git_push, host, refspec]) do
       {"", 0} -> true
       {res, 0} -> IO.puts res
       {res, _} -> IO.puts "ERROR: #{inspect res}"
