@@ -26,10 +26,11 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   def build(%SSH{conn: conn} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
     user_host = "#{config.user}@#{config.host}"
+    user_identity = config.identity
     workspace = config.workspace
     revision = config.revision
     target_mix_env = config.mix_env || "prod"
-    git_push(user_host)
+    git_push(user_host, user_identity)
 
     ssh
     |> git_reset_remote(workspace, revision)
@@ -108,13 +109,14 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     ErlangError -> {:error, "Bootleg requires Git to be installed."}
   end
 
-  defp git_push(host) do
+  defp git_push(host, identity) do
     git_push = Application.get_env(:bootleg, :git_push, "-f")
     refspec = Application.get_env(:bootleg, :refspec, "master")
+    git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
 
     IO.puts "Pushing new commits with git to: #{host}"
-
-    case Git.push(["--tags", git_push, host, refspec]) do
+    
+    case Git.push(["--tags", git_push, host, refspec], env: (git_env || [])) do
       {"", 0} -> true
       {res, 0} -> IO.puts res
       {res, _} -> IO.puts "ERROR: #{inspect res}"
