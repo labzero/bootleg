@@ -4,42 +4,34 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   alias Bootleg.Config
   alias Bootleg.BuildConfig
   alias Bootleg.Git
-  alias SSHKit.SSH
-  alias SSHKit.SSH.ClientKeyAPI
-  alias SSHKit.SCP
+  alias Bootleg.SSH
+  #alias SSHKit.SSH
+  #alias SSHKit.SSH.ClientKeyAPI
+  #alias SSHKit.SCP
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     IO.inspect(config)
     with {:ok, config} <- check_config(config),
          :ok <- ensure_local_git_remotes(config),
-         :ok <- :ssh.start(),
-         {:ok, identity_file} <- File.open(identity),
-         cb = ClientKeyAPI.with_options(identity: identity_file),
-         {:ok, conn} <- SSH.connect(host, [connect_timeout: 5000,
-                                                    key_cb: cb,
-                                                    user: user]),
-         {:ok, _, 0} <- SSH.run(conn,
-                                workspace_setup_script(workspace)) do
-      safe_run conn, workspace, "git config receive.denyCurrentBranch ignore"      
+         :ok <- SSH.start(),
+         {:ok, identity_file} <- File.open(identity) do
+           host 
+           |> SSH.connect(user, identity_file)
+           |> SSH.run(workspace_setup_script(workspace))
+           |> SSH.safe_run(workspace, "git config receive.denyCurrentBranch ignore")    
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
   end
 
-  def test_deps(%{ssh: ssh, scp: scp, system: system} = deps \\ @deps) do
-    IO.inspect(ssh)
-  end
-  
-
-  def build(conn, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
+  def build(%SSH{conn: conn} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
     user_host = "#{config.user}@#{config.host}"
     workspace = config.workspace
     revision = config.revision
-    version = version
     target_mix_env = config.mix_env || "prod"
-    
-    conn
-    |> git_push(user_host)
+    git_push(user_host)
+
+    ssh
     |> git_reset_remote(workspace, revision)
     |> git_clean_remote(workspace)
     |> get_and_update_deps(workspace, app, target_mix_env)
@@ -116,7 +108,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     ErlangError -> {:error, "Bootleg requires Git to be installed."}
   end
 
-  defp git_push(conn, host) do
+  defp git_push(host) do
     git_push = Application.get_env(:bootleg, :git_push, "-f")
     refspec = Application.get_env(:bootleg, :refspec, "master")
 
@@ -127,17 +119,17 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {res, 0} -> IO.puts res
       {res, _} -> IO.puts "ERROR: #{inspect res}"
     end
-    conn
   end
 
-  defp git_reset_remote(conn, workspace, revision) do
+  defp git_reset_remote(ssh, workspace, revision) do
     IO.puts "Resetting remote hosts to revision \"#{revision}\""
-    safe_run conn, workspace,
-      "git reset --hard #{revision}"
-    conn
+    SSH.safe_run(ssh, workspace, "git reset --hard #{revision}")
+    #safe_run conn, workspace,
+    #  "git reset --hard #{revision}"
+    #conn
   end
 
-  defp git_clean_remote(conn, _workspace) do
+  defp git_clean_remote(ssh, _workspace) do
     IO.puts "Skipped cleaning generated files from last build"
 
     # case SSHEx.run conn,
@@ -156,37 +148,35 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     #     "
     #   fi
     #   '
-    conn
+    ssh
   end
 
-  defp get_and_update_deps(conn, workspace, app, target_mix_env) do
+  defp get_and_update_deps(ssh, workspace, app, target_mix_env) do
     IO.puts "Fetching / Updating dependencies"
-
+    commands = [
+      "mix local.rebar --force",
+      "mix local.hex --force",
+      "mix deps.get --only=prod"
+    ]
+    commands = Enum.map(commands, &(with_env_vars(app, target_mix_env, &1)))
     # clean fetch of dependencies on the remote build host
-    safe_run conn, workspace,
-      [
-        "APP=#{app} MIX_ENV=#{target_mix_env} mix local.rebar --force",
-        "APP=#{app} MIX_ENV=#{target_mix_env} mix local.hex --force",
-        "APP=#{app} MIX_ENV=#{target_mix_env} mix deps.get --only=prod"
-      ]
-    conn
+    SSH.safe_run(ssh, workspace, commands)    
   end
 
-  defp clean_compile(conn, workspace, app, target_mix_env) do
+  defp clean_compile(ssh, workspace, app, target_mix_env) do
     IO.puts "Compiling remote build"
-    safe_run conn, workspace,
-      [
-        "APP=#{app} MIX_ENV=#{target_mix_env} mix deps.compile",
-        "APP=#{app} MIX_ENV=#{target_mix_env} mix compile"
-      ]
-    conn
+    commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
+    SSH.safe_run(ssh, workspace, commands)      
   end
 
-  defp generate_release(conn, workspace, app, target_mix_env) do
+  defp with_env_vars(app, mix_env, cmd) do
+    "APP=#{app} MIX_ENV=#{mix_env} #{cmd}"    
+  end
+   
+  defp generate_release(ssh, workspace, app, target_mix_env) do
     IO.puts "Generating release"
 
-    safe_run conn, workspace,
-      "APP=#{app} MIX_ENV=#{target_mix_env} mix release"
+    SSH.safe_run(ssh, workspace, with_env_vars(app, target_mix_env, "mix release"))
   end
 
   defp safe_run(conn, working_directory, cmd) when is_list(cmd) do
@@ -217,7 +207,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     String.trim_trailing(out)
   end
 
-  defp download_release_archive(conn, workspace, app, version, target_mix_env) do
+  defp download_release_archive(ssh, workspace, app, version, target_mix_env) do
     remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "#{app}-#{version}.tar.gz")
@@ -228,8 +218,8 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
     File.mkdir_p!(local_archive_folder)
 
-    case SCP.download(conn, remote_path, local_path) do
-      :ok -> conn
+    case SSH.download(ssh, remote_path, local_path) do
+      :ok -> ssh
       _ -> raise "Error: downloading of release archive failed"
     end
   end
