@@ -40,6 +40,18 @@ defmodule Bootleg do
 
   end
 
+  defmodule ArchiveConfig do
+
+    defstruct [:archive_directory, :max_archives]
+
+    def init(config) do
+      %__MODULE__{
+        archive_directory: config[:archive_directory],
+        max_archives: config[:max_archives]
+      }
+    end
+  end
+
   defmodule Config do
 
     defstruct [:app, :version, :build, :deploy, :archive]
