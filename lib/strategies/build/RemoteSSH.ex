@@ -30,7 +30,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     workspace = config.workspace
     revision = config.revision
     target_mix_env = config.mix_env || "prod"
-    git_push(user_host, user_identity)
+    case git_push(user_host, user_identity) do
+      {:ok, _} -> :ok
+      {:error, msg} -> raise "Error: #{msg}"
+    end
 
     ssh
     |> git_reset_remote(workspace, revision)
@@ -117,9 +120,11 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     IO.puts "Pushing new commits with git to: #{host}"
     
     case Git.push(["--tags", git_push, host, refspec], env: (git_env || [])) do
-      {"", 0} -> true
+      {"", 0} -> {:ok, nil}
       {res, 0} -> IO.puts res
+                  {:ok, res}
       {res, _} -> IO.puts "ERROR: #{inspect res}"
+                  {:error, res}
     end
   end
 
