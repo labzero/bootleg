@@ -24,6 +24,10 @@ defmodule Bootleg.SSH do
     SCP.download(conn, remote_path, local_path)    
   end  
 
+  def upload(%__MODULE__{conn: conn}, local_path, remote_path, options \\ []) do
+    SCP.upload(conn, local_path, remote_path, options)    
+  end  
+
   def safe_run(%__MODULE__{} = ssh, working_directory, cmd) when is_list(cmd) do
     Enum.each(cmd, fn cmd ->
       safe_run(ssh, working_directory, cmd)

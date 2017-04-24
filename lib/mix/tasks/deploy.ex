@@ -1,18 +1,20 @@
 defmodule Mix.Tasks.Bootleg.Deploy do
   use Mix.Task
 
-  @shortdoc "Deploy a release from the local store"
+  @shortdoc "Deploy a release from the local cache"
 
   @moduledoc """
-  Build a release
+  Deploy a release
 
   # Usage:
 
-    * mix bootleg.deploy [env] [release] [Options]
+    * mix bootleg.deploy [cluster] [release] [Options]
 
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    :ok
+    config = Bootleg.config
+    strategy = Map.get(config, :strategy) || Bootleg.Strategies.Deploy.RemoteSSH
+    strategy.deploy(config)
   end
 end
