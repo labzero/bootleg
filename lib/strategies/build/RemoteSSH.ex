@@ -9,8 +9,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   #alias SSHKit.SSH.ClientKeyAPI
   #alias SSHKit.SCP
 
+  @config_keys ~w(host user workspace revision)
+
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    with :ok <- check_config(config),
+    with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
            host 
@@ -52,18 +54,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         git init 
       fi
       "
-  end
-
-  defp check_config(%BuildConfig{} = config) do
-    missing = Enum.filter(~w(host user workspace revision)a, 
-                          &(Map.get(config, &1, nil) == nil))
-    if Enum.count(missing) > 0 do
-      missing_quoted = 
-        Enum.map(missing, fn(x) -> "\"#{x}\"" end)
-        |> Enum.join(", ")
-      {:error, "This build strategy requires #{missing_quoted} to be configured"}
-    end
-    :ok
   end
 
   defp git_push(host, workspace, identity) do

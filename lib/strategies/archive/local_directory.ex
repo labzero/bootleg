@@ -4,12 +4,14 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   alias Bootleg.Config
   alias Bootleg.ArchiveConfig
 
+  @config_keys ~w(archive_directory max_archives)
+
   @file_date_fmt "%Y%m%d%H%M%S"
   @file_extension ".tar.gz"
   @file_regexp ~r/^\d{14}\.tar.gz$/
 
   def archive(%Config{archive: %ArchiveConfig{archive_directory: archive_directory, max_archives: max_archives} = config}, build_filename) do
-    with :ok <- check_config(config),
+    with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- check_directory(archive_directory),
          {:ok, datestamp} <- check_build(build_filename),
          :ok <- trim_builds(archive_directory, max_archives),
@@ -18,18 +20,6 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
-  end
-
-  defp check_config(%ArchiveConfig{} = config) do
-    missing = Enum.filter(~w(archive_directory max_archives)a,
-                          &(Map.get(config, &1, nil) == nil))
-    if Enum.count(missing) > 0 do
-      missing_quoted = 
-        Enum.map(missing, fn(x) -> "\"#{x}\"" end)
-        |> Enum.join(", ")
-      {:error, "This archive strategy requires #{missing_quoted} to be configured"}
-    end
-    :ok
   end
 
   defp check_directory(directory) do

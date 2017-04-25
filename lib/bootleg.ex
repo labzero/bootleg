@@ -71,4 +71,23 @@ defmodule Bootleg do
   def config do
     Bootleg.Config.init()
   end
+
+  @doc """
+  Check for the presence and non-nil value of one or more terms in a config.
+  Used by individual strategies to enforce required settings.
+  """
+  @spec check_config(struct(), [String.t]) :: :ok | {:error, String.t}
+  def check_config(config, terms) do
+    missing = Enum.filter(terms, 
+                          &(Map.get(config, String.to_atom(&1), nil) == nil))
+
+    if Enum.count(missing) > 0 do
+      missing_quoted = 
+        Enum.map(missing, fn(x) -> "\"#{x}\"" end)
+        |> Enum.join(", ")
+      {:error, "This strategy requires #{missing_quoted} to be configured"}
+    else
+      :ok
+    end
+  end
 end
