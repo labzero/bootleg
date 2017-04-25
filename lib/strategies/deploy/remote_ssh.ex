@@ -19,7 +19,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
       "
   end
 
-  defp init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
