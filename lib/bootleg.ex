@@ -26,11 +26,11 @@ defmodule Bootleg do
 
   defmodule DeployConfig do
 
-    defstruct [:deploy_to, :identity, :host, :strategy, :user]
+    defstruct [:workspace, :identity, :host, :strategy, :user]
 
     def init(config) do
       %__MODULE__{
-        deploy_to: config[:identity],
+        workspace: config[:workspace],
         identity: config[:identity],
         host: config[:host],
         strategy: config[:strategy],
