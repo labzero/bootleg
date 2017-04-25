@@ -1,3 +1,3 @@
 defmodule Bootleg.Build do
-    defstruct release_file: nil
+    defstruct build_filename: nil
 end

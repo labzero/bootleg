@@ -13,7 +13,7 @@ defmodule Bootleg do
     def init(config) do
       %__MODULE__{
         identity: config[:identity],
-        strategy: config[:strategy],
+        strategy: config[:strategy] || Bootleg.Strategies.Build.RemoteSSH,
         revision: Application.get_env(:bootleg, :revision), # TODO read from args      
         user: config[:user],
         host: config[:host],
@@ -42,10 +42,11 @@ defmodule Bootleg do
 
   defmodule ArchiveConfig do
 
-    defstruct [:archive_directory, :max_archives]
+    defstruct [:strategy, :archive_directory, :max_archives]
 
     def init(config) do
       %__MODULE__{
+        strategy: config[:strategy] || Bootleg.Strategies.Archive.LocalDirectory,
         archive_directory: config[:archive_directory],
         max_archives: config[:max_archives]
       }
@@ -61,7 +62,8 @@ defmodule Bootleg do
         app: Application.get_env(:bootleg, :app),
         version: Project.config[:version],            
         build: Bootleg.BuildConfig.init(Application.get_env(:bootleg, :build)),
-        deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy))
+        deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
+        archive: Bootleg.ArchiveConfig.init(Application.get_env(:bootleg, :archive)),
       }
     end
   end
