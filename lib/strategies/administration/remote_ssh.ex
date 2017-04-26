@@ -6,7 +6,6 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
   alias Bootleg.SSH
 
   def init(%Config{administration: %AdministrationConfig{identity: identity, host: host, user: user} = config}) do
-    IO.inspect(config)
     with {:ok, _} <- check_config(config),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do

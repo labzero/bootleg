@@ -1,4 +1,5 @@
 defmodule Bootleg.Git do
+  @moduledoc "Provides Git related tools for use in `Bootleg.Strategies`."
   
   alias Bootleg.Shell
 
