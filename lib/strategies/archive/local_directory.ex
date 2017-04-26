@@ -83,10 +83,11 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   end
 
   defp check_directory(directory) do
-    with {:ok, %File.Stat{type: :directory}} <- File.stat(directory) do
+    with :ok <- File.mkdir_p(directory) do
       :ok
     else
-      {:error, :enoent} -> {:error, "Archive directory doesn't exist: #{directory}"}
+      {:error, error} -> 
+        {:error, "Archive directory #{directory} couldn't be created: #{error}"}
     end
   end
 
