@@ -22,12 +22,10 @@ config :bootleg, app: "foo"
 config :bootleg, build:
   [
     # common / required
-    app: "foo",
-    revision: "master",
-    version: "0.0.1",
     strategy: Bootleg.Strategies.Build.RemoteSSH,
 
     # build strategy-specific options
+    revision: "master",
     host: "your.build.server.lan",
     user: "jsmith",
     identity: "/Users/jsmith/.ssh/id_rsa",
