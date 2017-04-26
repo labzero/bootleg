@@ -32,7 +32,8 @@ defmodule Bootleg.Mixfile do
     [
       {:sshkit, github: "labzero/sshkit.ex"},
       {:credo, "~> 0.7", only: [:dev, :test]},
-      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false}
+      {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.14", only: :dev, runtime: false}
     ]
   end
 end

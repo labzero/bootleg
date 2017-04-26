@@ -12,7 +12,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     IO.inspect(config)
     with {:ok, config} <- check_config(config),
-         :ok <- ensure_local_git_remotes(config),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
            host 
@@ -30,7 +29,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     workspace = config.workspace
     revision = config.revision
     target_mix_env = config.mix_env || "prod"
-    case git_push(user_host, user_identity) do
+    case git_push(user_host, workspace, user_identity) do
       {:ok, _} -> :ok
       {:error, msg} -> raise "Error: #{msg}"
     end
@@ -64,62 +63,15 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     {:ok, config}        
   end
 
-  defp ensure_local_git_remotes(%BuildConfig{user: user, host: host, workspace: workspace}) do
-    with {:ok, remotes} <- parse_local_git_remotes(),
-         user_host = "#{user}@#{host}",
-         remote_url = "#{user_host}:#{workspace}" do
-      IO.puts "Ensuring host is ready push to build server"
-
-      if String.contains?(remotes, "#{user_host}\t#{remote_url}") do
-        :ok
-      else
-        # a named remote pointing to a different remote path will
-        # result in git failure, so check and remove if one exists
-        if String.contains?(remotes, user_host), do: remove_local_git_remote(user_host)
-        add_local_git_remote(user_host, remote_url)
-      end
-    else
-      e -> e
-    end
-  end
-
-  defp add_local_git_remote(user_host, remote_url) do
-    IO.puts "Adding git remote"
-    case Git.remote(["add", user_host, remote_url]) do
-      {_, 0} -> :ok
-      {msg, _status} -> {:error, "git: #{msg}"}
-    end
-  catch
-    ErlangError -> {:error, "Bootleg requires Git to be installed."}
-  end
-
-  defp remove_local_git_remote(user_host) do
-    IO.puts "Removing git remote"
-    case Git.remote(["remove", user_host]) do
-      {_, 0} -> :ok
-      {msg, _status} -> {:error, "git: #{msg}"}
-    end
-  catch
-    ErlangError -> {:error, "Bootleg requires Git to be installed."}
-  end
-
-  defp parse_local_git_remotes do
-    case Git.remote(["-v"]) do
-      {remotes, 0} -> {:ok, remotes}
-      {msg, _status} -> {:error, "git: #{msg}"}
-    end
-  catch
-    ErlangError -> {:error, "Bootleg requires Git to be installed."}
-  end
-
-  defp git_push(host, identity) do
-    git_push = Application.get_env(:bootleg, :git_push, "-f")
+  defp git_push(host, workspace, identity) do
+    git_push = Application.get_env(:bootleg, :push_options, "-f")
     refspec = Application.get_env(:bootleg, :refspec, "master")
     git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
+    host_url = "#{host}:#{workspace}"
 
     IO.puts "Pushing new commits with git to: #{host}"
     
-    case Git.push(["--tags", git_push, host, refspec], env: (git_env || [])) do
+    case Git.push(["--tags", git_push, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> {:ok, nil}
       {res, 0} -> IO.puts res
                   {:ok, res}
