@@ -106,6 +106,20 @@ defmodule Bootleg do
 
   end
 
+  defmodule AdministrationConfig do
+    defstruct [:workspace, :identity, :host, :strategy, :user]
+
+    def init(config) do
+      %__MODULE__{
+        workspace: config[:workspace],
+        identity: config[:identity],
+        host: config[:host],
+        strategy: config[:strategy],
+        user: config[:user]
+      }      
+    end
+  end
+
   defmodule Config do
     @moduledoc """
     Configuration for bootleg in general.
@@ -144,7 +158,7 @@ defmodule Bootleg do
     """
 
     @doc false
-    defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec]
+    defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec, :administration]
 
     @doc """
     Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -158,8 +172,9 @@ defmodule Bootleg do
         version: Project.config[:version],            
         build: Bootleg.BuildConfig.init(Application.get_env(:bootleg, :build)),
         deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
+        administration: Bootleg.AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
         push_options: Application.get_env(:bootleg, :push_options),
-        refspec: Application.get_env(:bootleg, :refspec),
+        refspec: Application.get_env(:bootleg, :refspec)
       }
     end
   end
