@@ -172,9 +172,9 @@ defmodule Bootleg do
         version: Project.config[:version],            
         build: Bootleg.BuildConfig.init(Application.get_env(:bootleg, :build)),
         deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
-        administration: Bootleg.AdministrationConfig.init(Application.get_env(:bootleg, :administration))
+        administration: Bootleg.AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
         push_options: Application.get_env(:bootleg, :push_options),
-        refspec: Application.get_env(:bootleg, :refspec),
+        refspec: Application.get_env(:bootleg, :refspec)
       }
     end
   end
