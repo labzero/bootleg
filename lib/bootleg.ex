@@ -51,7 +51,7 @@ defmodule Bootleg do
       %__MODULE__{
         identity: config[:identity],
         strategy: config[:strategy],
-        revision: Application.get_env(:bootleg, :revision), # TODO read from args      
+        revision: Application.get_env(:bootleg, :revision),
         user: config[:user],
         host: config[:host],
         workspace: config[:workspace],      
@@ -107,8 +107,37 @@ defmodule Bootleg do
   end
 
   defmodule AdministrationConfig do
+    @moduledoc """
+    Configuration for the administrative tasks.
+
+    ## Fields
+      * `workspace` - Absolute path to the directory where the deploy can be found.
+      * `strategy` - The bootleg strategy to use for administration. Defaults to `Bootleg.Strategies.Administration.RemoteSSH`.
+      * `user` - The username to use when connecting to the deployment host.
+      * `host` - The hostname or IP of the deployment host.
+      * `identity` - Absolute path to a private key used to authenticate with the deployment host. This should be in `PEM` format.
+
+    ## Example
+
+      ```
+      config :bootleg, administration: [
+        strategy: Bootleg.Strategies.Administration.RemoteSSH,
+        host: "build1.example.com",
+        user: "jane",
+        workspace: "/usr/local/my_app/release"
+      ]
+      ```
+    """
+
+    @doc false
     defstruct [:workspace, :identity, :host, :strategy, :user]
 
+    @doc """
+    Creates a `Bootleg.AdministrationConfig` struct.
+
+    The keys in the `Map` should match the fields in the struct.
+    """
+    @spec init(map) :: %Bootleg.AdministrationConfig{}
     def init(config) do
       %__MODULE__{
         workspace: config[:workspace],
@@ -150,7 +179,13 @@ defmodule Bootleg do
       ]
       config :bootleg, deploy: [
         strategy: Bootleg.Strategies.Deploy.RemoteSSH,
-        host: "build1.example.com",
+        host: "deploy1.example.com",
+        user: "jane",
+        workspace: "/usr/local/my_app/release"
+      ]
+      config :bootleg, administration: [
+        strategy: Bootleg.Strategies.Administration.RemoteSSH,
+        host: "deploy1.example.com",
         user: "jane",
         workspace: "/usr/local/my_app/release"
       ]
