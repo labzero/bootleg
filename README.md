@@ -24,6 +24,7 @@ config :bootleg, build:
     # common / required
     app: "foo",
     revision: "master",
+    version: "0.0.1",
     strategy: Bootleg.Strategies.Build.RemoteSSH,
 
     # build strategy-specific options
