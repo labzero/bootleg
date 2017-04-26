@@ -5,6 +5,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   alias Bootleg.DeployConfig
   alias Bootleg.SSH
 
+  @config_keys ~w(host user workspace)
 
   def deploy(%Config{version: version, app: app, deploy: %DeployConfig{workspace: workspace}} = config) do
     conn = init(config)
@@ -19,7 +20,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   end
 
   defp init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    with {:ok, _} <- check_config(config),
+    with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
             host 
@@ -28,14 +29,6 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
-  end
-
-  defp check_config(%DeployConfig{} = config) do
-    missing =  Enum.filter(~w(host user workspace), &(Map.get(config, &1, 0) == nil))
-    if Enum.count(missing) > 0 do
-      raise "RemoteSSH deploy strategy requires #{inspect Map.keys(missing)} to be set in the build configuration"
-    end
-    {:ok, config}        
   end
 
   defp deploy_release_archive(conn, workspace, app, version) do

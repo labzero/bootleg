@@ -5,7 +5,7 @@ defmodule Bootleg.Shell do
   end
 
   defp set_defaults(opts) do
-    Keyword.merge(opts, default_opts)
+    Keyword.merge(opts, default_opts())
   end
 
   defp default_opts, do: [stderr_to_stdout: true]

@@ -13,7 +13,7 @@ defmodule Bootleg do
     def init(config) do
       %__MODULE__{
         identity: config[:identity],
-        strategy: config[:strategy],
+        strategy: config[:strategy] || Bootleg.Strategies.Build.RemoteSSH,
         revision: Application.get_env(:bootleg, :revision), # TODO read from args      
         user: config[:user],
         host: config[:host],
@@ -40,6 +40,19 @@ defmodule Bootleg do
 
   end
 
+  defmodule ArchiveConfig do
+
+    defstruct [:strategy, :archive_directory, :max_archives]
+
+    def init(config) do
+      %__MODULE__{
+        strategy: config[:strategy] || Bootleg.Strategies.Archive.LocalDirectory,
+        archive_directory: config[:archive_directory],
+        max_archives: config[:max_archives]
+      }
+    end
+  end
+
   defmodule Config do
 
     defstruct [:app, :version, :build, :deploy, :archive]
@@ -49,12 +62,32 @@ defmodule Bootleg do
         app: Application.get_env(:bootleg, :app),
         version: Project.config[:version],            
         build: Bootleg.BuildConfig.init(Application.get_env(:bootleg, :build)),
-        deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy))
+        deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
+        archive: Bootleg.ArchiveConfig.init(Application.get_env(:bootleg, :archive)),
       }
     end
   end
 
   def config do
     Bootleg.Config.init()
+  end
+
+  @doc """
+  Check for the presence and non-nil value of one or more terms in a config.
+  Used by individual strategies to enforce required settings.
+  """
+  @spec check_config(struct(), [String.t]) :: :ok | {:error, String.t}
+  def check_config(config, terms) do
+    missing = Enum.filter(terms, 
+                          &(Map.get(config, String.to_atom(&1), nil) == nil))
+
+    if Enum.count(missing) > 0 do
+      missing_quoted = 
+        Enum.map(missing, fn(x) -> "\"#{x}\"" end)
+        |> Enum.join(", ")
+      {:error, "This strategy requires #{missing_quoted} to be configured"}
+    else
+      :ok
+    end
   end
 end

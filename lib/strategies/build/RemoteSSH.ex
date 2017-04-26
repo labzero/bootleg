@@ -9,9 +9,10 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   #alias SSHKit.SSH.ClientKeyAPI
   #alias SSHKit.SCP
 
+  @config_keys ~w(host user workspace revision)
+
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    IO.inspect(config)
-    with {:ok, config} <- check_config(config),
+    with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do
            host 
@@ -23,7 +24,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     end
   end
 
-  def build(%SSH{conn: conn} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
+  def build(%SSH{conn: _} = ssh, %Config{version: version, app: app, build: %BuildConfig{} = config}) do
     user_host = "#{config.user}@#{config.host}"
     user_identity = config.identity
     workspace = config.workspace
@@ -53,14 +54,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
         git init 
       fi
       "
-  end
-
-  defp check_config(%BuildConfig{} = config) do
-    missing =  Enum.filter(~w(host user workspace revision), &(Map.get(config, &1, 0) == nil))
-    if Enum.count(missing) > 0 do
-      raise "RemoteSSH build strategy requires #{inspect Map.keys(missing)} to be set in the build configuration"
-    end
-    {:ok, config}        
   end
 
   defp git_push(host, workspace, identity) do
@@ -138,34 +131,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     SSH.safe_run(ssh, workspace, with_env_vars(app, target_mix_env, "mix release"))
   end
 
-  defp safe_run(conn, working_directory, cmd) when is_list(cmd) do
-    Enum.each(cmd, fn cmd ->
-      safe_run(conn, working_directory, cmd)
-    end)
-    conn
-  end
-
-  defp safe_run(conn, working_directory, cmd) when is_binary(cmd) do
-    IO.puts " -> $ #{cmd}"
-    case SSH.run(conn, "set -e;cd #{working_directory};#{cmd}") do
-      {:ok, _, 0} -> conn
-      {:ok, output, status} -> raise format_remote_error(cmd, output, status)
-    end
-  end
-
-  defp format_remote_error(cmd, output, status) do
-    "Remote command exited with non-zero status (#{status})
-         cmd: \"#{cmd}\"
-      stderr: #{parse_remote_output(output[:stderr])}
-      stdout: #{parse_remote_output(output[:normal])}
-     "
-  end
-
-  defp parse_remote_output(nil), do: ""
-  defp parse_remote_output(out) do
-    String.trim_trailing(out)
-  end
-
   defp download_release_archive(ssh, workspace, app, version, target_mix_env) do
     remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
@@ -178,7 +143,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     File.mkdir_p!(local_archive_folder)
 
     case SSH.download(ssh, remote_path, local_path) do
-      :ok -> ssh
+      :ok -> {:ok, local_path}
       _ -> raise "Error: downloading of release archive failed"
     end
   end
