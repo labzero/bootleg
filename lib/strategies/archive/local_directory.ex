@@ -112,7 +112,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
         {:ok, builds}
       end
     else
-      {:error, _error} -> raise "Error: Can't read files to prune old builds"
+      {:error, error} -> raise "Error: #{error}"
     end
   end
 
@@ -123,7 +123,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
       {:ok, new_path}
     else
       {:error, :eacces} -> {:error, "Access denied to file #{filename}"}
-      {:error, _error} -> {:error, "Could not archive build to #{new_path}"}
+      {:error, error} -> {:error, "Error: #{error}"}
     end
   end
 
