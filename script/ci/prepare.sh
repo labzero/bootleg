@@ -17,8 +17,10 @@ export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
 mkdir -p $INSTALL_PATH
 cd $INSTALL_PATH
 
+export PATH="$INSTALL_PATH/bin:$PATH"
+
 # Install erlang
-if [ ! -e $ERLANG_PATH/bin/erl ]; then
+if [ ! -e $INSTALL_PATH/bin/erl ]; then
   curl -L -O http://www.erlang.org/download/otp_src_$ERLANG_VERSION.tar.gz
   tar xzf otp_src_$ERLANG_VERSION.tar.gz
   cd $ERLANG_PATH
@@ -29,27 +31,18 @@ if [ ! -e $ERLANG_PATH/bin/erl ]; then
               --enable-threads \
               --enable-kernel-poll \
               --disable-hipe \
-              --without-javac
-  sudo make install
-
-  # Symlink to make it easier to setup PATH to run tests
-  ln -sf $ERLANG_PATH $INSTALL_PATH/erlang
+              --without-javac \
+              --prefix=$INSTALL_PATH
+  make install
 fi
 
 # Install elixir
-export PATH="$ERLANG_PATH/bin:$PATH"
-
-if [ ! -e $ELIXIR_PATH/bin/elixir ]; then
+if [ ! -e $INSTALL_PATH/bin/elixir ]; then
   git clone https://github.com/elixir-lang/elixir $ELIXIR_PATH
   cd $ELIXIR_PATH
   git checkout $ELIXIR_VERSION
-  sudo make install
-
-  # Symlink to make it easier to setup PATH to run tests
-  ln -sf $ELIXIR_PATH $INSTALL_PATH/elixir
+  PREFIX=$INSTALL_PATH make install
 fi
-
-export PATH="$ERLANG_PATH/bin:$ELIXIR_PATH/bin:$PATH"
 
 # Install package tools
 if [ ! -e $HOME/.mix/rebar ]; then
@@ -60,4 +53,4 @@ fi
 # Fetch and compile dependencies and application code (and include testing tools)
 export MIX_ENV="test"
 cd $HOME/$CIRCLE_PROJECT_REPONAME
-mix do deps.get, deps.compile, compile
+mix do deps.get, deps.compile, compile, dialyzer --plt
