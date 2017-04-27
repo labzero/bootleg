@@ -34,6 +34,7 @@ Configure Bootleg in your app's `config.exs`:
 ```elixir
 config :bootleg, app: "foo"
 config :bootleg, build: [
+	revision: "master",
 	strategy: Bootleg.Strategies.Build.RemoteSSH,
 	host: "build1.example.com",
 	user: "jane",

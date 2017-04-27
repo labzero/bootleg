@@ -30,6 +30,7 @@ defmodule Bootleg do
 
       ```
       config :bootleg, build: [
+        revision: "master"
         strategy: Bootleg.Strategies.Build.RemoteSSH,
         host: "build1.example.com",
         user: "jane",
