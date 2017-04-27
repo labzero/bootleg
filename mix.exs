@@ -7,6 +7,7 @@ defmodule Bootleg.Mixfile do
      elixir: "~> 1.4",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
+     elixirc_paths: elixirc_paths(Mix.env),
      deps: deps(),
       dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :sshkit]]]
   end
@@ -36,4 +37,8 @@ defmodule Bootleg.Mixfile do
       {:ex_doc, "~> 0.14", only: :dev, runtime: false}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
+  defp elixirc_paths(:dev), do: ["lib", "web", "test/support"]  
+  defp elixirc_paths(_), do: ["lib", "web"]
 end

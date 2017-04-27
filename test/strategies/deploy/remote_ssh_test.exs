@@ -1,37 +1,42 @@
 defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
   use ExUnit.Case, async: false
-  import Mock
 
   doctest Bootleg.Strategies.Deploy.RemoteSSH
 
-  test "init" do
-    with_mocks([
-      {Bootleg.SSH,
-       [],
-       [start: fn() -> :ok end,
-        connect: fn(_h,_u,_i) -> :conn end,
-        run: fn(_con, _cmd) -> :conn end,
-        safe_run: fn(_con, _dir, _cmd) -> :conn end]},
-      {File,
-       [],
-       [open: fn(f) -> {:ok, f} end]}
-    ]) do
-        config = %Bootleg.Config{
-                    app: "bootleg",
-                    deploy: %Bootleg.DeployConfig{
-                      identity: "identity",
-                      workspace: "workspace",
-                      host: "host",
-                      user: "user"}}
-
-      Bootleg.Strategies.Deploy.RemoteSSH.init(config)
-      assert called Bootleg.SSH.start()
-      assert called Bootleg.SSH.connect(config.deploy.host, config.deploy.user, config.deploy.identity)
-      assert called Bootleg.SSH.run(:conn, "
+  setup do
+    deploy_setup =
+      "
       set -e
-      mkdir -p #{config.deploy.workspace}
-      ")
-    end
+      mkdir -p workspace
+      "    
+    %{
+      deploy_setup: deploy_setup,
+      config: %Bootleg.Config{
+                app: "bootleg",
+                version: "1",
+                deploy: %Bootleg.DeployConfig{
+                  identity: "identity",
+                  workspace: "workspace",
+                  host: "host",
+                  user: "user"}
+                }
+    }
+  end
+  
+  test "init", %{config: config, deploy_setup: deploy_setup} do      
+    Bootleg.Strategies.Deploy.RemoteSSH.init(config)
+    assert_received({Bootleg.SSH, :start})
+    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, ^deploy_setup, "."]})
   end
 
+  test "deploy", %{config: config, deploy_setup: deploy_setup} do
+    local_file = "#{File.cwd!}/releases/bootleg-1.tar.gz"
+    Bootleg.Strategies.Deploy.RemoteSSH.deploy(config)  
+    assert_received({Bootleg.SSH, :start})
+    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, ^deploy_setup, "."]})
+    assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "workspace/bootleg.tar.gz", []]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "tar -zxvf workspace/bootleg.tar.gz", "workspace"]})    
+  end
 end
