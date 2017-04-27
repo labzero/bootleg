@@ -1,6 +1,8 @@
 defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   @moduledoc ""
 
+  @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
+
   alias Bootleg.Config
   alias Bootleg.DeployConfig
   alias Bootleg.SSH
@@ -18,13 +20,12 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
       "
   end
 
-  defp init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with {:ok, _} <- check_config(config),
-         :ok <- SSH.start(),
-         {:ok, identity_file} <- File.open(identity) do
-            host 
-            |> SSH.connect(user, identity_file)
-            |> SSH.run(deploy_setup_script(workspace))
+         :ok <- @ssh.start() do       
+          host 
+          |> @ssh.connect(user, identity)
+          |> @ssh.run!(deploy_setup_script(workspace))
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
@@ -47,12 +48,12 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
     IO.puts " <-  local: #{local_path}"
     IO.puts " -> remote: #{remote_path}"
 
-    case SSH.upload(conn, local_path, remote_path) do
+    case @ssh.upload(conn, local_path, remote_path) do
       :ok -> conn
       {:error, msg} -> raise "Error: uploading of release archive failed: #{msg}"
     end
     unpack_cmd = "tar -zxvf #{remote_path}"
-    SSH.safe_run(conn, workspace, unpack_cmd)
+    @ssh.run!(conn, unpack_cmd, workspace)
     IO.puts "Unpacked release archive"
   end
 end
