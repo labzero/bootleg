@@ -30,7 +30,7 @@ if [ ! -e $ERLANG_PATH/bin/erl ]; then
               --enable-kernel-poll \
               --disable-hipe \
               --without-javac
-  make
+  sudo make install
 
   # Symlink to make it easier to setup PATH to run tests
   ln -sf $ERLANG_PATH $INSTALL_PATH/erlang
@@ -43,7 +43,7 @@ if [ ! -e $ELIXIR_PATH/bin/elixir ]; then
   git clone https://github.com/elixir-lang/elixir $ELIXIR_PATH
   cd $ELIXIR_PATH
   git checkout $ELIXIR_VERSION
-  make
+  sudo make install
 
   # Symlink to make it easier to setup PATH to run tests
   ln -sf $ELIXIR_PATH $INSTALL_PATH/elixir

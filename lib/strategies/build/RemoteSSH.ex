@@ -10,7 +10,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   #alias SSHKit.SCP
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    IO.inspect(config)
     with {:ok, config} <- check_config(config),
          :ok <- SSH.start(),
          {:ok, identity_file} <- File.open(identity) do

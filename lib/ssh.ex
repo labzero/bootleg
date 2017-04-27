@@ -1,7 +1,9 @@
 defmodule Bootleg.SSH do
+    @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
   defstruct [:conn]
 
-  alias SSHKit.{SSH.ClientKeyAPI, SCP}
+  alias SSHKit.SSH.ClientKeyAPI
+  alias SSHKit.SCP
   
   def start, do: :ssh.start() # does this belong somewhere else
 
