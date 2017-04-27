@@ -5,7 +5,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   alias Bootleg.DeployConfig
   alias Bootleg.SSH
 
-  @config_keys ~w(host user workspace)
+  @config_keys ~w(host user identity workspace)
 
   def deploy(%Config{version: version, app: app, deploy: %DeployConfig{workspace: workspace}} = config) do
     conn = init(config)
