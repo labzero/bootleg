@@ -150,8 +150,30 @@ defmodule Bootleg do
   end
 
   defmodule ArchiveConfig do
+    @moduledoc """
+    Configuration for the archiving tasks.
 
-    @doc false
+    ## Fields
+      * `archive_directory` - Path to folder where build archives will be stored
+      * `max_archives` - How many builds to keep before pruning
+
+    ## Example
+
+      ```
+      config :bootleg, archive: [
+        strategy: Bootleg.Strategies.Archive.LocalDirectory,
+        archive_directory: "/var/local/my_app/releases",
+        max_archives: 5
+      ]
+      ```
+    """
+
+    @doc """
+    Creates a `Bootleg.ArchiveConfig` struct.
+
+    The keys in the `Map` should match the fields in the struct.
+    """
+    @spec init(map) :: %Bootleg.ArchiveConfig{}
     defstruct [:strategy, :archive_directory, :max_archives]
 
     @doc """

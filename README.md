@@ -15,43 +15,13 @@ end
 
 ## Available Strategies
 
-### Build
+| Stage     | Strategy        | Module                                     |
+|-----------|-----------------|--------------------------------------------|
+| Build     | Remote GIT/SSH  | [Bootleg.Strategies.Build.RemoteSSH](lib/strategies/build/remote_ssh.ex)         |
+| Deploy    | Remote GIT/SSH  | [Bootleg.Strategies.Deploy.RemoteSSH](lib/strategies/deploy/remote_ssh.ex)        |
+| Archive   | Local Directory | [Bootleg.Strategies.Archive.LocalDirectory](lib/strategies/archive/local_directory.ex)  |
+| Admin     | Remote GIT/SSH  | [Bootleg.Strategies.Administration.RemoteSSH](lib/strategies/administration/remote_ssh.ex)|
 
-##### Remote SSH 
-
-`Bootleg.Strategies.Build.RemoteSSH`
-
-Options:
-
-* `revision`
-* `host`
-* `user`
-* `identity`
-* `workspace`
-
-### Deploy
-
-##### Remote SSH
-
-`Bootleg.Strategies.Deploy.RemoteSSH`
-
-Options:
-
-* `host`
-* `user`
-* `identity`
-* `workspace`
-
-### Archive
-
-#### Local Directory
-	
-`Bootleg.Strategies.Archive.LocalDirectory`
-	
-Options:
-	
-* `archive_directory`: Path to folder where build archives will be stored.
-* `max_archives`: How many builds to keep before pruning.
 
 ## Versioning
 
@@ -63,29 +33,29 @@ Configure Bootleg in your app's `config.exs`:
 
 ```elixir
 config :bootleg, app: "foo"
-config :bootleg, build:
-  [
-    strategy: Bootleg.Strategies.Build.RemoteSSH,
-    revision: "master",
-    host: "your.build.server",
-    user: "jsmith",
-    identity: "/Users/jsmith/.ssh/foo-build.pem",
-    workspace: "/tmp/foo/build",
-  ]
-config :bootleg, deploy:
-  [
-    strategy: Bootleg.Strategies.Deploy.RemoteSSH,
-    host: "your.application.server",
-    user: "ubuntu",
-    identity: "/Users/jsmith/.ssh/foo-deploy-ecs.pem",
-    workspace: "/home/web/foo/bootleg",
-  ]
-config :bootleg, archive:
-  [
-    strategy: Bootleg.Strategies.Archive.LocalDirectory,
-    archive_directory: "/Users/jsmith/Documents/foo-releases/",
-    max_archives: 3
-  ]
+config :bootleg, build: [
+	strategy: Bootleg.Strategies.Build.RemoteSSH,
+	host: "build1.example.com",
+	user: "jane",
+	workspace: "/usr/local/my_app/build"
+]
+config :bootleg, deploy: [
+	strategy: Bootleg.Strategies.Deploy.RemoteSSH,
+	host: "build1.example.com",
+	user: "jane",
+	workspace: "/usr/local/my_app/release"
+]
+config :bootleg, administration: [
+	strategy: Bootleg.Strategies.Administration.RemoteSSH,
+	host: "build1.example.com",
+	user: "jane",
+	workspace: "/usr/local/my_app/release"
+]
+config :bootleg, archive: [
+	strategy: Bootleg.Strategies.Archive.LocalDirectory,
+	archive_directory: "/var/local/my_app/releases",
+	max_archives: 5
+]
 ```
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
