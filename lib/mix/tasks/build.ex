@@ -22,9 +22,7 @@ defmodule Mix.Tasks.Bootleg.Build do
   def run(_args) do
     config = Bootleg.config
     strategy = Map.get(config, :strategy) || Bootleg.Strategies.Build.RemoteSSH
-    config
-    |> strategy.init
-    |> strategy.build(config)
+    strategy.build(config)
   end
 
 end
