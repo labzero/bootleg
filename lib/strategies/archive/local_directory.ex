@@ -1,10 +1,10 @@
 defmodule Bootleg.Strategies.Archive.LocalDirectory do
   @moduledoc """
-  Archive strategy for storing builds on the local filesystem
+  Stores builds on the local filesystem.
 
-  Configurable options include:
-  - path to build archive folder
-  - maximum number of archives to store (and automatically prune)
+  Options:
+  - `archive_directory`: path to build archive folder
+  - `max_archives`: maximum number of archives to store before pruning
 
   Archives are named using the release version number, which by design must
   be parseable as an Elixir.Version. Archives are sorted by version with the
@@ -43,10 +43,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     end
   end
 
-  @doc """
-  Given a list of files, filter out any that are improperly named, and then
-  sort them in order of version ascending.
-  """
+  @doc false
   def filter_sort_builds(files) do
     files
     |> Enum.filter(&valid_build_file/1)
@@ -56,11 +53,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     |> Enum.reverse()
   end
 
-  @doc """
-  Check whether an archive is named appropriately to be considered a prior
-  build, including whether its version number is legitimate.
-  In the case of an invalid version exception, `false` is returned.
-  """
+  @doc false
   def valid_build_file(filename) do
     case String.ends_with?(filename, @file_extension) do
       true ->
@@ -86,7 +79,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     with :ok <- File.mkdir_p(directory) do
       :ok
     else
-      {:error, error} -> 
+      {:error, error} ->
         {:error, "Archive directory #{directory} couldn't be created: #{error}"}
     end
   end
@@ -100,31 +93,30 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   end
 
   defp trim_builds(directory, limit) do
-    with {:ok, files} <- File.ls(directory),
-         builds = filter_sort_builds(files) do
-      num_builds = Enum.count(builds)
+    builds =
+      directory
+      |> File.ls!
+      |> filter_sort_builds
+    num_builds = Enum.count(builds)
 
-      if num_builds > limit do
-        IO.puts "Pruning old builds"
-        old = Enum.take(builds, num_builds - limit)
-        delete_files(directory, old)
-        {:ok, builds -- old}
-      else
-        {:ok, builds}
-      end
+    if num_builds > limit do
+      IO.puts "Pruning old builds"
+      old = Enum.take(builds, num_builds - limit)
+      delete_files(directory, old)
+      {:ok, builds -- old}
     else
-      {:error, error} -> raise "Error: #{error}"
+      {:ok, builds}
     end
   end
 
   defp copy_build(directory, filename, version) do
     new_path = Path.join([directory, "#{version}#{@file_extension}"])
     IO.puts "Storing build as #{version}#{@file_extension}"
-    with {:ok, _} <- File.copy(filename, new_path) do
+    with :ok <- File.rename(filename, new_path) do
       {:ok, new_path}
     else
-      {:error, :eacces} -> {:error, "Access denied to file #{filename}"}
-      {:error, error} -> {:error, "Error: #{error}"}
+      {:error, error} ->
+        {:error, "Error storing build as #{new_path}: #{error}"}
     end
   end
 
