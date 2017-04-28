@@ -30,6 +30,7 @@ defmodule Bootleg do
 
       ```
       config :bootleg, build: [
+        revision: "master"
         strategy: Bootleg.Strategies.Build.RemoteSSH,
         host: "build1.example.com",
         user: "jane",
@@ -50,7 +51,7 @@ defmodule Bootleg do
     def init(config) do
       %__MODULE__{
         identity: config[:identity],
-        strategy: config[:strategy],
+        strategy: config[:strategy] || Bootleg.Strategies.Build.RemoteSSH,
         revision: Application.get_env(:bootleg, :revision),
         user: config[:user],
         host: config[:host],
@@ -145,7 +146,45 @@ defmodule Bootleg do
         host: config[:host],
         strategy: config[:strategy],
         user: config[:user]
-      }      
+      }
+    end
+  end
+
+  defmodule ArchiveConfig do
+    @moduledoc """
+    Configuration for the archiving tasks.
+
+    ## Fields
+      * `archive_directory` - Path to folder where build archives will be stored
+      * `max_archives` - How many builds to keep before pruning
+
+    ## Example
+
+      ```
+      config :bootleg, archive: [
+        strategy: Bootleg.Strategies.Archive.LocalDirectory,
+        archive_directory: "/var/local/my_app/releases",
+        max_archives: 5
+      ]
+      ```
+    """
+
+    @doc """
+    Creates a `Bootleg.ArchiveConfig` struct.
+
+    The keys in the `Map` should match the fields in the struct.
+    """
+    @spec init(map) :: %Bootleg.ArchiveConfig{}
+    defstruct [:strategy, :archive_directory, :max_archives]
+
+    @doc """
+    """
+    def init(config) do
+      %__MODULE__{
+        strategy: config[:strategy] || Bootleg.Strategies.Archive.LocalDirectory,
+        archive_directory: config[:archive_directory],
+        max_archives: config[:max_archives]
+      }
     end
   end
 
@@ -200,7 +239,7 @@ defmodule Bootleg do
 
     The keys in the map should match the fields in the struct.
     """
-    @spec init :: %Bootleg.Config{build: %Bootleg.BuildConfig{}, deploy: %Bootleg.DeployConfig{}}
+    @spec init :: %Bootleg.Config{build: %Bootleg.BuildConfig{}, deploy: %Bootleg.DeployConfig{}, archive: %Bootleg.ArchiveConfig{}}
     def init do
       %__MODULE__{
         app: Application.get_env(:bootleg, :app),
@@ -209,7 +248,8 @@ defmodule Bootleg do
         deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
         administration: Bootleg.AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
         push_options: Application.get_env(:bootleg, :push_options),
-        refspec: Application.get_env(:bootleg, :refspec)
+        refspec: Application.get_env(:bootleg, :refspec),
+        archive: Bootleg.ArchiveConfig.init(Application.get_env(:bootleg, :archive))
       }
     end
   end
@@ -218,5 +258,25 @@ defmodule Bootleg do
   @spec config :: %Bootleg.Config{}
   def config do
     Bootleg.Config.init()
+  end
+
+  @doc """
+  Check for the presence and non-nil value of one or more terms in a config.
+  Used by individual strategies to enforce required settings.
+  """
+  @spec check_config(struct(), [String.t]) :: :ok | {:error, String.t}
+  def check_config(config, terms) do
+    missing = Enum.filter(terms,
+                          &(Map.get(config, String.to_atom(&1), nil) == nil))
+
+    if Enum.count(missing) > 0 do
+      missing_quoted =
+        missing
+        |> Enum.map(fn(x) -> "\"#{x}\"" end)
+        |> Enum.join(", ")
+      {:error, "This strategy requires #{missing_quoted} to be configured"}
+    else
+      :ok
+    end
   end
 end
