@@ -1,0 +1,6 @@
+use Mix.Config
+
+# test doubles
+config :bootleg, ssh: Bootleg.Mocks.SSH
+config :bootleg, git: Bootleg.Mocks.Git
+config :bootleg, shell: Bootleg.Mocks.Shell
