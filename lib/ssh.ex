@@ -1,6 +1,5 @@
 defmodule Bootleg.SSH do
     @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
-  defstruct [:conn]
 
   alias SSHKit.SSH.ClientKeyAPI
   alias SSHKit.SCP
@@ -11,32 +10,31 @@ defmodule Bootleg.SSH do
     with {:ok, identity} <- File.open(identity_file),
       cb = ClientKeyAPI.with_options(identity: identity),
       {:ok, conn} <- SSHKit.SSH.connect(host, [connect_timeout: 5000, key_cb: cb, user: user]) do
-      %__MODULE__{conn: conn}
+      conn
     else
       {_, msg} -> raise "Error: #{msg}"
     end
   end
 
-  def run(%__MODULE__{conn: conn} = ssh, cmd, working_directory \\ ".") do
-    IO.puts " -> $ #{cmd}"    
+  def run(conn, cmd, working_directory \\ ".") do
+    IO.puts " -> $ #{cmd}" 
     SSHKit.SSH.run(conn, build_cmd(cmd, working_directory))
   end     
 
-  def run!(ssh, cmd, working_directory \\ ".")
+  def run!(conn, cmd, working_directory \\ ".")
 
-  def run!(ssh, cmd, working_directory) when is_list(cmd) do
-    Enum.each(cmd, fn c -> run!(ssh, c, working_directory) end)
-    ssh    
+  def run!(conn, cmd, working_directory) when is_list(cmd) do
+    Enum.map(cmd, fn c -> run!(conn, c, working_directory) end)        
   end
 
-  def run!(ssh, cmd, working_directory) do
-    case run(ssh, build_cmd(cmd, working_directory)) do      
-      {:ok, _, 0} -> ssh
-      {:ok, output, status} -> raise format_error(cmd, output, status)      
+  def run!(conn, cmd, working_directory) do
+    case run(conn, build_cmd(cmd, working_directory)) do      
+      {:ok, output, 0} -> {:ok, output}
+      {:ok, output, status} -> raise format_error(cmd, output, status)  
     end
   end
 
-  def download(%__MODULE__{conn: conn} = ssh, remote_path, local_path) do
+  def download(conn, remote_path, local_path) do
     IO.puts " -> downloading #{remote_path} --> #{local_path}"
     case SCP.download(conn, remote_path, local_path) do
       :ok -> :ok
@@ -44,7 +42,7 @@ defmodule Bootleg.SSH do
     end
   end  
 
-  def upload(%__MODULE__{conn: conn}, local_path, remote_path, options \\ []) do
+  def upload(conn, local_path, remote_path, options \\ []) do
     IO.puts " -> uploading #{local_path} --> #{remote_path}"
     case SCP.upload(conn, remote_path, local_path) do
       :ok -> :ok
