@@ -13,11 +13,11 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
-         :ok <- @ssh.start() do
-           host 
-           |> @ssh.connect(user, identity)
-           |> @ssh.run!(workspace_setup_script(workspace))
-           |> @ssh.run!("git config receive.denyCurrentBranch ignore", workspace)    
+         :ok <- @ssh.start(),
+         conn <- @ssh.connect(host, user, identity) do                      
+           @ssh.run!(conn, workspace_setup_script(workspace))
+           @ssh.run!(conn, "git config receive.denyCurrentBranch ignore", workspace)    
+           conn
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
@@ -36,13 +36,12 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {:error, msg} -> raise "Error: #{msg}"
     end
     
-    conn
-    |> git_reset_remote(workspace, revision)
-    |> git_clean_remote(workspace)
-    |> get_and_update_deps(workspace, app, target_mix_env)
-    |> clean_compile(workspace, app, target_mix_env)
-    |> generate_release(workspace, app, target_mix_env)
-    |> download_release_archive(workspace, app, version, target_mix_env)
+    git_reset_remote(conn, workspace, revision)
+    git_clean_remote(conn, workspace)
+    get_and_update_deps(conn, workspace, app, target_mix_env)
+    clean_compile(conn, workspace, app, target_mix_env)
+    generate_release(conn, workspace, app, target_mix_env)
+    download_release_archive(conn, workspace, app, version, target_mix_env)
   end
 
   defp workspace_setup_script(workspace) do
