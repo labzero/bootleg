@@ -28,7 +28,7 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
   end
 
   def restart(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    SSH.safe_run(conn, workspace, "bin/#{app} restart")
+    @ssh.run!(conn, workspace, "bin/#{app} restart")
     IO.puts "#{app} restarted"
     {:ok, conn}
   end
