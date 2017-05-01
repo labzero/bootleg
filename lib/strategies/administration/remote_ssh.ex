@@ -16,13 +16,13 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
   end
 
   def start(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    @ssh.safe_run(conn, workspace, "bin/#{app} start")
+    @ssh.run!(conn, workspace, "bin/#{app} start")
     IO.puts "#{app} started"
     {:ok, conn}
   end
 
   def stop(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    SSH.safe_run(conn, workspace, "bin/#{app} stop")
+    @ssh.run!(conn, workspace, "bin/#{app} stop")
     IO.puts "#{app} stopped"
     {:ok, conn}
   end
