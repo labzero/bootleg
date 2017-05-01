@@ -1,10 +1,13 @@
 defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   @moduledoc ""
 
+  @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
+
   alias Bootleg.Config
   alias Bootleg.DeployConfig
   alias Bootleg.SSH
 
+  @config_keys ~w(host user identity workspace)
 
   def deploy(%Config{version: version, app: app, deploy: %DeployConfig{workspace: workspace}} = config) do
     conn = init(config)
@@ -18,24 +21,14 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
       "
   end
 
-  defp init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    with {:ok, _} <- check_config(config),
-         :ok <- SSH.start(),
-         {:ok, identity_file} <- File.open(identity) do
-            host 
-            |> SSH.connect(user, identity_file)
-            |> SSH.run(deploy_setup_script(workspace))
+  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+    with :ok <- Bootleg.check_config(config, @config_keys),
+         :ok <- @ssh.start(),
+         conn <- @ssh.connect(host, user, identity) do       
+           @ssh.run!(conn, deploy_setup_script(workspace))
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
-  end
-
-  defp check_config(%DeployConfig{} = config) do
-    missing =  Enum.filter(~w(host user workspace), &(Map.get(config, &1, 0) == nil))
-    if Enum.count(missing) > 0 do
-      raise "RemoteSSH deploy strategy requires #{inspect Map.keys(missing)} to be set in the build configuration"
-    end
-    {:ok, config}        
   end
 
   defp deploy_release_archive(conn, workspace, app, version) do
@@ -47,12 +40,12 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
     IO.puts " <-  local: #{local_path}"
     IO.puts " -> remote: #{remote_path}"
 
-    case SSH.upload(conn, local_path, remote_path) do
+    case @ssh.upload(conn, local_path, remote_path) do
       :ok -> conn
       {:error, msg} -> raise "Error: uploading of release archive failed: #{msg}"
     end
     unpack_cmd = "tar -zxvf #{remote_path}"
-    SSH.safe_run(conn, workspace, unpack_cmd)
+    @ssh.run!(conn, unpack_cmd, workspace)
     IO.puts "Unpacked release archive"
   end
 end
