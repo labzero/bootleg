@@ -8,29 +8,29 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
 
   @config_keys ~w(host user workspace)
 
-  def init(%Config{administration: %AdministrationConfig{identity: identity, host: host, user: user} = config}) do
+  def init(%Config{administration: %AdministrationConfig{identity: identity, host: host, user: user, workspace: workspace} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start() do
-           @ssh.connect(host, user, identity)  
+           @ssh.connect(host, user, identity, workspace)  
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
   end
 
-  def start(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    @ssh.run!(conn, "bin/#{app} start", workspace)
+  def start(conn, %Config{app: app}) do
+    @ssh.run!(conn, "bin/#{app} start")
     IO.puts "#{app} started"
     {:ok, conn}
   end
 
-  def stop(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    @ssh.run!(conn, "bin/#{app} stop", workspace)
+  def stop(conn, %Config{app: app}) do
+    @ssh.run!(conn, "bin/#{app} stop")
     IO.puts "#{app} stopped"
     {:ok, conn}
   end
 
-  def restart(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
-    @ssh.run!(conn, "bin/#{app} restart", workspace)
+  def restart(conn, %Config{app: app}) do
+    @ssh.run!(conn, "bin/#{app} restart")
     IO.puts "#{app} restarted"
     {:ok, conn}
   end

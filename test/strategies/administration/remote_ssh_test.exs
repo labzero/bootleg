@@ -23,21 +23,21 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
   test "init", %{config: config} do
     Bootleg.Strategies.Administration.RemoteSSH.init(config)
     assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
+    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity", "."]})
   end
 
   test "start", %{config: %{app: app} = config} do
     Bootleg.Strategies.Administration.RemoteSSH.start(:conn, config)
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg start", "."]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg start", nil]})
   end
 
   test "stop", %{config: %{app: app} = config} do
     Bootleg.Strategies.Administration.RemoteSSH.stop(:conn, config)
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg stop", "."]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg stop", nil]})
   end
 
   test "restart", %{config: %{app: app} = config} do
     Bootleg.Strategies.Administration.RemoteSSH.restart(:conn, config)
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg restart", "."]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg restart", nil]})
   end
 end

@@ -2,50 +2,50 @@ defmodule Bootleg.SSH do
     @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.SSH.ClientKeyAPI
-  alias SSHKit.SCP
   
   def start, do: :ssh.start()
-  
-  def connect(host, user, identity_file \\ nil) do
-    case SSHKit.SSH.connect(host, ssh_opts(user, identity_file)) do
-      {:ok, conn} -> conn
-      {_, msg} -> raise "Error: #{msg}"
-    end
+
+  def connect(hosts, user, identity_file \\ nil, workspace \\ ".") do
+      hosts
+      |> List.wrap
+      |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, identity_file)} end)
+      |> SSHKit.context
+      |> SSHKit.pwd(workspace)
   end
 
-  def run(conn, cmd, working_directory \\ ".") do
+  def run(conn, cmd, working_directory \\ nil) do
     IO.puts " -> $ #{cmd}" 
-    SSHKit.SSH.run(conn, build_cmd(cmd, working_directory))
+    SSHKit.run(conn, build_cmd(cmd, working_directory))
   end     
 
-  def run!(conn, cmd, working_directory \\ ".")
+  def run!(conn, cmd, working_directory \\ nil)
 
   def run!(conn, cmd, working_directory) when is_list(cmd) do
-    Enum.map(cmd, fn c -> run!(conn, c, working_directory) end)        
+    Enum.map(cmd, fn c -> run!(conn, c, working_directory) end)
   end
 
   def run!(conn, cmd, working_directory) do
-    case run(conn, build_cmd(cmd, working_directory)) do      
-      {:ok, output, 0} -> {:ok, output}
-      {:ok, output, status} -> raise format_error(cmd, output, status)
+    case run(conn, build_cmd(cmd, working_directory)) do
+      [{:ok, output, 0}|_] = result -> result
+      [{:ok, output, status}|_] -> raise format_error(cmd, output, status)
     end
   end
 
   def download(conn, remote_path, local_path) do
     IO.puts " -> downloading #{remote_path} --> #{local_path}"
-    case SCP.download(conn, remote_path, local_path) do
-      :ok -> :ok
-      {_, msg} -> raise "SCP download error: #{inspect msg}"
+    case SSHKit.download(conn, remote_path, as: local_path) do
+      [:ok|_] -> :ok
+      [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
     end
-  end  
+  end
 
-  def upload(conn, local_path, remote_path, options \\ []) do
+  def upload(conn, local_path, remote_path) do
     IO.puts " -> uploading #{local_path} --> #{remote_path}"
-    case SCP.upload(conn, remote_path, local_path) do
-      :ok -> :ok
-      {_, msg} -> raise "SCP upload error #{inspect msg}"
+    case SSHKit.upload(conn, local_path, as: remote_path) do
+      [:ok|_] -> :ok
+      [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
     end
-  end  
+  end
 
   defp build_cmd(cmd, working_directory), do: "set -e;cd #{working_directory};#{cmd}"
 

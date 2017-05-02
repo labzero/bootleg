@@ -14,9 +14,9 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, identity) do                      
-           @ssh.run!(conn, workspace_setup_script(workspace))
-           @ssh.run!(conn, "git config receive.denyCurrentBranch ignore", workspace)    
+         conn <- @ssh.connect(host, user, identity, workspace) do                      
+           @ssh.run!(conn, "git init")
+           @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn
     else
       {:error, msg} -> raise "Error: #{msg}"
@@ -36,24 +36,12 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {:error, msg} -> raise "Error: #{msg}"
     end
     
-    git_reset_remote(conn, workspace, revision)
+    git_reset_remote(conn, revision)
     git_clean_remote(conn, workspace)
-    get_and_update_deps(conn, workspace, app, target_mix_env)
-    clean_compile(conn, workspace, app, target_mix_env)
-    generate_release(conn, workspace, app, target_mix_env)
-    download_release_archive(conn, workspace, app, version, target_mix_env)
-  end
-
-  defp workspace_setup_script(workspace) do
-      "
-      set -e
-      if [ ! -d #{workspace} ]
-      then
-        mkdir -p #{workspace}
-        cd #{workspace}
-        git init 
-      fi
-      "
+    get_and_update_deps(conn, app, target_mix_env)
+    clean_compile(conn, app, target_mix_env)
+    generate_release(conn, app, target_mix_env)
+    download_release_archive(conn, app, version, target_mix_env)
   end
 
   defp git_push(host, workspace, identity) do
@@ -73,9 +61,9 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     end
   end
 
-  defp git_reset_remote(ssh, workspace, revision) do
+  defp git_reset_remote(ssh, revision) do
     IO.puts "Resetting remote hosts to revision \"#{revision}\""
-    @ssh.run!(ssh, "git reset --hard #{revision}", workspace)
+    @ssh.run!(ssh, "git reset --hard #{revision}")
   end
 
   defp git_clean_remote(ssh, _workspace) do
@@ -100,7 +88,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     ssh
   end
 
-  defp get_and_update_deps(ssh, workspace, app, target_mix_env) do
+  defp get_and_update_deps(ssh, app, target_mix_env) do
     IO.puts "Fetching / Updating dependencies"
     commands = [
       "mix local.rebar --force",
@@ -109,26 +97,26 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     ]
     commands = Enum.map(commands, &(with_env_vars(app, target_mix_env, &1)))
     # clean fetch of dependencies on the remote build host
-    @ssh.run!(ssh, commands, workspace)    
+    @ssh.run!(ssh, commands)    
   end
 
-  defp clean_compile(ssh, workspace, app, target_mix_env) do
+  defp clean_compile(ssh, app, target_mix_env) do
     IO.puts "Compiling remote build"
     commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
-    @ssh.run!(ssh, commands, workspace)      
+    @ssh.run!(ssh, commands)      
   end
 
   defp with_env_vars(app, mix_env, cmd) do
     "APP=#{app} MIX_ENV=#{mix_env} #{cmd}"    
   end
    
-  defp generate_release(ssh, workspace, app, target_mix_env) do
+  defp generate_release(ssh, app, target_mix_env) do
     IO.puts "Generating release"
-    @ssh.run!(ssh, with_env_vars(app, target_mix_env, "mix release"), workspace)
+    @ssh.run!(ssh, with_env_vars(app, target_mix_env, "mix release"))
   end
 
-  defp download_release_archive(conn, workspace, app, version, target_mix_env) do
-    remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
+  defp download_release_archive(conn, app, version, target_mix_env) do
+    remote_path = "_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "build.tar.gz")
 
