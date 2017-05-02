@@ -12,6 +12,6 @@ test:
     - script/ci/run-mix.sh dialyzer
     - script/ci/run-mix.sh credo
     - script/ci/run-mix.sh test
-    - script/ci/run-mix.sh coveralls
+    - script/ci/run-mix.sh coveralls.html
   post:
     - cp -r cover/ $CIRCLE_ARTIFACTS/
