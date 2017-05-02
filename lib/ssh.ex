@@ -29,7 +29,6 @@ end
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.SSH
   alias SSHKit.SSH.ClientKeyAPI
 
   def start, do: :ssh.start()
@@ -47,7 +46,7 @@ defmodule Bootleg.SSH do
 
   def run(conn, cmd, working_directory \\ nil) do
     IO.puts " -> $ #{cmd}"
-    SSH.run(conn, build_cmd(cmd, working_directory))
+    SSHKit.run(conn, build_cmd(cmd, working_directory))
   end
 
   def run!(conn, cmd, working_directory \\ nil)
