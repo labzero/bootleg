@@ -13,7 +13,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
       deploy_setup: deploy_setup,
       config: %Bootleg.Config{
                 app: "bootleg",
-                version: "1",
+                version: "1.0.0",
                 deploy: %Bootleg.DeployConfig{
                   identity: "identity",
                   workspace: "workspace",
@@ -31,7 +31,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
   end
 
   test "deploy", %{config: config, deploy_setup: deploy_setup} do
-    local_file = "#{File.cwd!}/releases/bootleg-1.tar.gz"
+    local_file = "#{File.cwd!}/releases/1.0.0.tar.gz"
     Bootleg.Strategies.Deploy.RemoteSSH.deploy(config)  
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})

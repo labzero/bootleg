@@ -18,7 +18,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
       workspace_setup: workspace_setup,
       config: %Bootleg.Config{
                 app: "bootleg",
-                version: "1",
+                version: "1.0.0",
                 build: %Bootleg.BuildConfig{
                   identity: "identity",
                   workspace: "workspace",
@@ -39,7 +39,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
   end
 
   test "build", %{config: config, workspace_setup: workspace_setup} do
-    local_file = "#{File.cwd!}/releases/bootleg-1.tar.gz"
+    local_file = "#{File.cwd!}/releases/build.tar.gz"
     Bootleg.Strategies.Build.RemoteSSH.build(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
@@ -50,6 +50,6 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
     assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix local.rebar --force", "APP=bootleg MIX_ENV=test mix local.hex --force", "APP=bootleg MIX_ENV=test mix deps.get --only=prod"], "workspace"]})
     assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix deps.compile", "APP=bootleg MIX_ENV=test mix compile"], "workspace"]})
     assert_received({Bootleg.SSH, :run!, [:conn, "APP=bootleg MIX_ENV=test mix release", "workspace"]})
-    assert_received({Bootleg.SSH, :download, [:conn, "workspace/_build/test/rel/bootleg/releases/1/bootleg.tar.gz", ^local_file, []]})
+    assert_received({Bootleg.SSH, :download, [:conn, "workspace/_build/test/rel/bootleg/releases/1.0.0/bootleg.tar.gz", ^local_file, []]})
   end
 end

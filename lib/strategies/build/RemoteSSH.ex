@@ -130,7 +130,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   defp download_release_archive(conn, workspace, app, version, target_mix_env) do
     remote_path = "#{workspace}/_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "#{app}-#{version}.tar.gz")
+    local_path = Path.join(local_archive_folder, "build.tar.gz")
 
     IO.puts "Downloading release archive"
     IO.puts " -> remote: #{remote_path}"
