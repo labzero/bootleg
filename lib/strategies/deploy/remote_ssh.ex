@@ -11,28 +11,22 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
 
   def deploy(%Config{version: version, app: app, deploy: %DeployConfig{workspace: workspace}} = config) do
     conn = init(config)
-    deploy_release_archive(conn, workspace, app, version)
-  end
-
-  defp deploy_setup_script(workspace) do
-      "
-      set -e
-      mkdir -p #{workspace}
-      "
+    deploy_release_archive(conn, app, version)
   end
 
   def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, identity) do       
-           @ssh.run!(conn, deploy_setup_script(workspace))
+         conn <- @ssh.connect(host, user, identity, workspace) do       
+           @ssh.run!(conn, "mkdir -p #{workspace}")
+           conn
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
   end
 
-  defp deploy_release_archive(conn, workspace, app, version) do
-    remote_path = "#{workspace}/#{app}.tar.gz"
+  defp deploy_release_archive(conn, app, version) do
+    remote_path = "#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "#{version}.tar.gz")
 
@@ -40,12 +34,10 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
     IO.puts " <-  local: #{local_path}"
     IO.puts " -> remote: #{remote_path}"
 
-    case @ssh.upload(conn, local_path, remote_path) do
-      :ok -> conn
-      {:error, msg} -> raise "Error: uploading of release archive failed: #{msg}"
-    end
+    @ssh.upload(conn, local_path, remote_path)
+
     unpack_cmd = "tar -zxvf #{remote_path}"
-    @ssh.run!(conn, unpack_cmd, workspace)
+    @ssh.run!(conn, unpack_cmd)
     IO.puts "Unpacked release archive"
   end
 end

@@ -3,14 +3,8 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
 
   doctest Bootleg.Strategies.Deploy.RemoteSSH
 
-  setup do
-    deploy_setup =
-      "
-      set -e
-      mkdir -p workspace
-      "    
+  setup do  
     %{
-      deploy_setup: deploy_setup,
       config: %Bootleg.Config{
                 app: "bootleg",
                 version: "1.0.0",
@@ -23,20 +17,18 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
     }
   end
   
-  test "init", %{config: config, deploy_setup: deploy_setup} do      
+  test "init", %{config: config} do      
     Bootleg.Strategies.Deploy.RemoteSSH.init(config)
     assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, ^deploy_setup, "."]})
+    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity", "workspace"]})
   end
 
-  test "deploy", %{config: config, deploy_setup: deploy_setup} do
+  test "deploy", %{config: config} do
     local_file = "#{File.cwd!}/releases/1.0.0.tar.gz"
     Bootleg.Strategies.Deploy.RemoteSSH.deploy(config)  
     assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity"]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, ^deploy_setup, "."]})
-    assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "workspace/bootleg.tar.gz", []]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "tar -zxvf workspace/bootleg.tar.gz", "workspace"]})    
+    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity", "workspace"]})
+    assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "bootleg.tar.gz", []]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "tar -zxvf bootleg.tar.gz", nil]})    
   end
 end

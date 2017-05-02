@@ -8,17 +8,17 @@ defmodule Bootleg.Mocks do
       :ok
     end  
 
-    def connect(host, user, identity) do 
-      send(self(), {@mocks, :connect, [host, user, identity]})
+    def connect(host, user, identity \\ nil, workspace \\ ".") do 
+      send(self(), {@mocks, :connect, [host, user, identity, workspace]})
       :conn
     end    
 
-    def run(conn, cmd, wd \\ ".") do 
+    def run(conn, cmd, wd \\ nil) do 
       send(self(), {@mocks, :run, [conn, cmd, wd]})
       :conn
     end
     
-    def run!(conn, cmd, wd \\ ".") do
+    def run!(conn, cmd, wd \\ nil) do
       send(self(), {@mocks, :"run!", [conn, cmd, wd]})
       :conn
     end
