@@ -34,7 +34,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   defp deploy_release_archive(conn, workspace, app, version) do
     remote_path = "#{workspace}/#{app}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "#{app}-#{version}.tar.gz")
+    local_path = Path.join(local_archive_folder, "#{version}.tar.gz")
 
     IO.puts "Uploading release archive"
     IO.puts " <-  local: #{local_path}"
