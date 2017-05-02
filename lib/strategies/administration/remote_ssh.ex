@@ -34,4 +34,11 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
     IO.puts "#{app} restarted"
     {:ok, conn}
   end
+
+  def ping(conn, %Config{app: app, administration: %AdministrationConfig{workspace: workspace}}) do
+    IO.puts " -> #{app} ping"
+    {:ok, _} = @ssh.run!(conn, "bin/#{app} ping", workspace)
+    IO.puts " <- #{app} pong!"
+    {:ok, conn}
+  end
 end

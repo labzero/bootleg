@@ -1,22 +1,54 @@
-defmodule Bootleg.SSH do
-    @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
+defmodule RemoteCommandError do
+  defexception [:message, :status, :output]
 
+  def exception([cmd, output, status] = a) do
+    msg = "Command exited with non-zero status (#{status})\n"
+      <> format("cmd", cmd)
+      <> cond_format("stdout", :normal, output)
+      <> cond_format("stderr", :stderr, output)
+
+    %RemoteCommandError{message: msg, status: status, output: output}
+  end
+
+  @padding 8
+  defp format(key, value) do
+    String.pad_leading(key, @padding)
+      <> ": "
+      <> String.trim_trailing(value)
+      <> "\n"
+  end
+
+  defp cond_format(key, atom, output) do
+    case List.keymember?(output, atom, 0) do
+      true -> format(key, output[atom])
+      _ -> ""
+    end
+  end
+end
+
+defmodule Bootleg.SSH do
+  @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
+
+  alias SSHKit.SSH
   alias SSHKit.SSH.ClientKeyAPI
-  
+
   def start, do: :ssh.start()
 
   def connect(hosts, user, identity_file \\ nil, workspace \\ ".") do
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, identity_file)} end)
+      |> Enum.map(
+        fn(host) ->
+          %SSHKit.Host{name: host, options: ssh_opts(user, identity_file)}
+        end)
       |> SSHKit.context
       |> SSHKit.pwd(workspace)
   end
 
   def run(conn, cmd, working_directory \\ nil) do
-    IO.puts " -> $ #{cmd}" 
-    SSHKit.run(conn, build_cmd(cmd, working_directory))
-  end     
+    IO.puts " -> $ #{cmd}"
+    SSH.run(conn, build_cmd(cmd, working_directory))
+  end
 
   def run!(conn, cmd, working_directory \\ nil)
 
@@ -27,7 +59,8 @@ defmodule Bootleg.SSH do
   def run!(conn, cmd, working_directory) do
     case run(conn, build_cmd(cmd, working_directory)) do
       [{:ok, output, 0}|_] = result -> result
-      [{:ok, output, status}|_] -> raise format_error(cmd, output, status)
+      [{:ok, output, status}|_] ->
+        raise RemoteCommandError, [cmd, output, status]
     end
   end
 
@@ -47,35 +80,23 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp build_cmd(cmd, working_directory), do: "set -e;cd #{working_directory};#{cmd}"
-
-  defp format_error(cmd, output, status) do
-    "Remote command exited with non-zero status (#{status})
-         cmd: \"#{cmd}\"
-      stderr: #{parse_output(output[:stderr])}
-      stdout: #{parse_output(output[:normal])}
-     "
-  end
-
-  defp parse_output(nil), do: ""
-  defp parse_output(out) do
-    String.trim_trailing(out)
-  end  
-
   defp ssh_opts(user, nil), do: Keyword.merge(default_opts(), [user: user])
-  
+
   defp ssh_opts(user, identity_file) do
     case File.open(identity_file) do
       {:ok, identity} ->
-        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)  
+        key_cb = ClientKeyAPI.with_options(identity: identity,
+                                           accept_hosts: true)
         Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
       {_, msg} -> raise "Error: #{msg}"
     end
-  end  
+  end
+
+  defp build_cmd(cmd, working_directory), do: "set -e;cd #{working_directory};#{cmd}"
 
   defp default_opts do
-    [ 
-      connect_timeout: 5000,       
+    [
+      connect_timeout: 5000,
     ]
   end
 end
