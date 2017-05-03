@@ -14,7 +14,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, identity, workspace) do                      
+         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do                      
            @ssh.run!(conn, "git init")
            @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn

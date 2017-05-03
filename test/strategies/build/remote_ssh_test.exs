@@ -22,21 +22,21 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
   test "init", %{config: config} do
     Bootleg.Strategies.Build.RemoteSSH.init(config)
     assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity", "workspace"]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore", nil]})        
+    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})        
   end
 
   test "build", %{config: config} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
     Bootleg.Strategies.Build.RemoteSSH.build(config)
     assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", "identity", "workspace"]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore", nil]})
+    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
     assert_received({Bootleg.Git, :push,  [["--tags", "-f", "user@host:workspace", "master"], [env: [{"GIT_SSH_COMMAND", "ssh -i 'identity'"}]]]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git reset --hard 1", nil]})
-    assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix local.rebar --force", "APP=bootleg MIX_ENV=test mix local.hex --force", "APP=bootleg MIX_ENV=test mix deps.get --only=prod"], nil]})
-    assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix deps.compile", "APP=bootleg MIX_ENV=test mix compile"], nil]})
-    assert_received({Bootleg.SSH, :run!, [:conn, "APP=bootleg MIX_ENV=test mix release", nil]})
+    assert_received({Bootleg.SSH, :"run!", [:conn, "git reset --hard 1"]})
+    assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix local.rebar --force", "APP=bootleg MIX_ENV=test mix local.hex --force", "APP=bootleg MIX_ENV=test mix deps.get --only=prod"]]})
+    assert_received({Bootleg.SSH, :run!, [:conn, ["APP=bootleg MIX_ENV=test mix deps.compile", "APP=bootleg MIX_ENV=test mix compile"]]})
+    assert_received({Bootleg.SSH, :run!, [:conn, "APP=bootleg MIX_ENV=test mix release"]})
     assert_received({Bootleg.SSH, :download, [:conn, "_build/test/rel/bootleg/releases/1.0.0/bootleg.tar.gz", ^local_file, []]})
   end
 end

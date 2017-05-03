@@ -17,9 +17,8 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, identity, workspace) do       
-           @ssh.run!(conn, "mkdir -p #{workspace}")
-           conn
+         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do       
+      conn
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
