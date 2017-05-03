@@ -3,9 +3,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
 
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
 
-  alias Bootleg.Config
-  alias Bootleg.DeployConfig
-  alias Bootleg.SSH
+  alias Bootleg.{Config, DeployConfig, SSH}
 
   @config_keys ~w(host user identity workspace)
 
@@ -17,7 +15,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
   def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do       
+         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do
       conn
     else
       {:error, msg} -> raise "Error: #{msg}"

@@ -8,7 +8,7 @@ defmodule Bootleg do
   """
 
   alias Mix.Project
-  
+
   defmodule BuildConfig do
     @moduledoc """
     Configuration for the build tasks.
@@ -55,10 +55,10 @@ defmodule Bootleg do
         revision: Application.get_env(:bootleg, :revision),
         user: config[:user],
         host: config[:host],
-        workspace: config[:workspace],      
-        revision: config[:revision],        
-        mix_env: Application.get_env(:bootleg, :mix_env, "prod")      
-      }      
+        workspace: config[:workspace],
+        revision: config[:revision],
+        mix_env: Application.get_env(:bootleg, :mix_env, "prod")
+      }
     end
   end
 
@@ -102,7 +102,7 @@ defmodule Bootleg do
         host: config[:host],
         strategy: config[:strategy],
         user: config[:user]
-      }      
+      }
     end
 
   end
@@ -199,9 +199,9 @@ defmodule Bootleg do
     ## Fields
     * `app` - The name of the app being managed by `Bootleg`.
     * `version` - The version of the app. Defaults to the `Mix.Project` version.
-    * `build` - Configuration for the build tasks. This should be a `Map` in `Mix.Config`, and will 
+    * `build` - Configuration for the build tasks. This should be a `Map` in `Mix.Config`, and will
         be converted to a `Bootleg.BuildConfig` using `Bootleg.BuildConfig.init/1`.
-    * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will 
+    * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will
         be converted to a `Bootleg.DeployConfig` using `Bootleg.DeployConfig.init/1`.
     * `push_options` - Any extra options to use for `git push`, defaults to `-f` (force push).
     * `refspec` - Which git [refspec](https://git-scm.com/book/id/v2/Git-Internals-The-Refspec) to use when pushing, defaults to `master`.
@@ -230,7 +230,7 @@ defmodule Bootleg do
       ]
       ```
     """
-
+    alias Bootleg.{Config, DeployConfig, BuildConfig, AdministrationConfig, ArchiveConfig}
     @doc false
     defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec, :administration]
 
@@ -239,17 +239,19 @@ defmodule Bootleg do
 
     The keys in the map should match the fields in the struct.
     """
-    @spec init :: %Bootleg.Config{build: %Bootleg.BuildConfig{}, deploy: %Bootleg.DeployConfig{}, archive: %Bootleg.ArchiveConfig{}}
+    @spec init :: %Bootleg.Config{build: %Bootleg.BuildConfig{},
+                                  deploy: %Bootleg.DeployConfig{},
+                                  archive: %Bootleg.ArchiveConfig{}}
     def init do
       %__MODULE__{
         app: Application.get_env(:bootleg, :app),
-        version: Project.config[:version],            
-        build: Bootleg.BuildConfig.init(Application.get_env(:bootleg, :build)),
-        deploy: Bootleg.DeployConfig.init(Application.get_env(:bootleg, :deploy)),
-        administration: Bootleg.AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
+        version: Project.config[:version],
+        build: BuildConfig.init(Application.get_env(:bootleg, :build)),
+        deploy: DeployConfig.init(Application.get_env(:bootleg, :deploy)),
+        administration: AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
         push_options: Application.get_env(:bootleg, :push_options),
         refspec: Application.get_env(:bootleg, :refspec),
-        archive: Bootleg.ArchiveConfig.init(Application.get_env(:bootleg, :archive))
+        archive: ArchiveConfig.init(Application.get_env(:bootleg, :archive))
       }
     end
   end
@@ -257,7 +259,7 @@ defmodule Bootleg do
   @doc "Alias for `Bootleg.Config.init/0`."
   @spec config :: %Bootleg.Config{}
   def config do
-    Bootleg.Config.init()
+    Config.init()
   end
 
   @doc """
