@@ -11,7 +11,7 @@ defmodule Bootleg.Strategies.Administration.RemoteSSH do
   def init(%Config{administration: %AdministrationConfig{identity: identity, host: host, user: user, workspace: workspace} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start() do
-           @ssh.connect(host, user, identity, workspace)  
+           @ssh.connect(host, user, [identity: identity, workspace: workspace])  
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
