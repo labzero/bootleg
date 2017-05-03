@@ -2,7 +2,7 @@ defmodule LocalDirectoryTest do
   use ExUnit.Case, async: true
   doctest Bootleg
 
-  import Bootleg.Strategies.Archive.LocalDirectory, 
+  import Bootleg.Strategies.Archive.LocalDirectory,
     only: [valid_build_file: 1, filter_sort_builds: 1]
 
   test "valid_build_file" do
@@ -25,9 +25,9 @@ defmodule LocalDirectoryTest do
       "1.2.tar.gz",
       "1.0.0.tgz",
       "1.0.5.bz2",
-      "0.0.1-rc1.tar.gz", 
-      "0.0.1.tar.gz", 
-      "0.0.1-alpha.tar.gz", 
+      "0.0.1-rc1.tar.gz",
+      "0.0.1.tar.gz",
+      "0.0.1-alpha.tar.gz",
       "4.0.4",
       "1.1.0-rc0.tar.gz",
       "1.0.1.tar.gz",

@@ -6,15 +6,14 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
   @shell Application.get_env(:bootleg, :shell) || Bootleg.Shell
   @git Application.get_env(:bootleg, :git) || Bootleg.Git
 
-  alias Bootleg.Config
-  alias Bootleg.BuildConfig
+  alias Bootleg.{Config, BuildConfig}
 
   @config_keys ~w(host user workspace revision)
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do                      
+         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do
            @ssh.run!(conn, "git init")
            @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn
@@ -22,7 +21,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {:error, msg} -> raise "Error: #{msg}"
     end
   end
-  
+
   def build(%Config{version: version, app: app, build: %BuildConfig{} = build_config} = config) do
     conn = init(config)
     user_host = "#{build_config.user}@#{build_config.host}"
@@ -35,7 +34,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
       {:ok, _} -> :ok
       {:error, msg} -> raise "Error: #{msg}"
     end
-    
+
     git_reset_remote(conn, revision)
     git_clean_remote(conn, workspace)
     get_and_update_deps(conn, app, target_mix_env)
@@ -51,7 +50,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     host_url = "#{host}:#{workspace}"
 
     IO.puts "Pushing new commits with git to: #{host}"
-    
+
     case @git.push(["--tags", git_push, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> {:ok, nil}
       {res, 0} -> IO.puts res
@@ -97,19 +96,19 @@ defmodule Bootleg.Strategies.Build.RemoteSSH do
     ]
     commands = Enum.map(commands, &(with_env_vars(app, target_mix_env, &1)))
     # clean fetch of dependencies on the remote build host
-    @ssh.run!(ssh, commands)    
+    @ssh.run!(ssh, commands)
   end
 
   defp clean_compile(ssh, app, target_mix_env) do
     IO.puts "Compiling remote build"
     commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
-    @ssh.run!(ssh, commands)      
+    @ssh.run!(ssh, commands)
   end
 
   defp with_env_vars(app, mix_env, cmd) do
-    "APP=#{app} MIX_ENV=#{mix_env} #{cmd}"    
+    "APP=#{app} MIX_ENV=#{mix_env} #{cmd}"
   end
-   
+
   defp generate_release(ssh, app, target_mix_env) do
     IO.puts "Generating release"
     @ssh.run!(ssh, with_env_vars(app, target_mix_env, "mix release"))

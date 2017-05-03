@@ -2,7 +2,7 @@ defmodule Bootleg.SSH do
     @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.SSH.ClientKeyAPI
-  
+
   def start, do: :ssh.start()
 
   def connect(hosts, user, options \\ []) do
@@ -17,9 +17,9 @@ defmodule Bootleg.SSH do
   end
 
   def run(conn, cmd, working_directory \\ nil) do
-    IO.puts " -> $ #{cmd}" 
+    IO.puts " -> $ #{cmd}"
     SSHKit.run(conn, cmd)
-  end     
+  end
 
   def run!(conn, cmd, working_directory \\ nil)
 
@@ -61,23 +61,23 @@ defmodule Bootleg.SSH do
   defp parse_output(nil), do: ""
   defp parse_output(out) do
     String.trim_trailing(out)
-  end  
-  
+  end
+
   defp ssh_opts(user, options) when is_list(options) do
     identity_file = Keyword.get(options, :identity, nil)
     case File.open(identity_file) do
       {:ok, identity} ->
-        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)  
+        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
         Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
       {_, msg} -> raise "Error: #{msg}"
     end
-  end  
+  end
 
   defp ssh_opts(user, _), do: Keyword.merge(default_opts(), [user: user])
 
   defp default_opts do
-    [ 
-      connect_timeout: 5000,       
+    [
+      connect_timeout: 5000,
     ]
   end
 end

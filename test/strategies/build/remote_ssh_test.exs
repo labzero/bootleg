@@ -1,9 +1,10 @@
 defmodule Bootleg.Strategies.Build.RemoteSSHTest do
   use ExUnit.Case, async: false
+  alias Bootleg.Strategies.Build.RemoteSSH
 
-  doctest Bootleg.Strategies.Build.RemoteSSH
+  doctest RemoteSSH
 
-  setup do   
+  setup do
     %{
       config: %Bootleg.Config{
                 app: "bootleg",
@@ -18,17 +19,17 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
                 }
     }
   end
-  
+
   test "init", %{config: config} do
-    Bootleg.Strategies.Build.RemoteSSH.init(config)
+    RemoteSSH.init(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})        
+    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
   end
 
   test "build", %{config: config} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
-    Bootleg.Strategies.Build.RemoteSSH.build(config)
+    RemoteSSH.build(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})

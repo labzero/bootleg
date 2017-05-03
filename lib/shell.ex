@@ -11,6 +11,3 @@ defmodule Bootleg.Shell do
 
   defp default_opts, do: [stderr_to_stdout: true]
 end
-
-
-
