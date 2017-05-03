@@ -3,6 +3,8 @@ defmodule Bootleg.SSH do
 
   alias SSHKit.SSH.ClientKeyAPI
 
+  @runner Application.get_env(:bootleg, :sshkit) || SSHKit
+
   def start, do: :ssh.start()
 
   def connect(hosts, user, options \\ []) do
@@ -17,7 +19,7 @@ defmodule Bootleg.SSH do
 
   def run(conn, cmd, working_directory \\ nil) do
     IO.puts " -> $ #{cmd}"
-    SSHKit.run(conn, cmd)
+    @runner.run(conn, cmd)
   end
 
   def run!(conn, cmd, working_directory \\ nil)
@@ -35,7 +37,7 @@ defmodule Bootleg.SSH do
 
   def download(conn, remote_path, local_path) do
     IO.puts " -> downloading #{remote_path} --> #{local_path}"
-    case SSHKit.download(conn, remote_path, as: local_path) do
+    case @runner.download(conn, remote_path, as: local_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
     end
@@ -43,7 +45,7 @@ defmodule Bootleg.SSH do
 
   def upload(conn, local_path, remote_path) do
     IO.puts " -> uploading #{local_path} --> #{remote_path}"
-    case SSHKit.upload(conn, local_path, as: remote_path) do
+    case @runner.upload(conn, local_path, as: remote_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
     end

@@ -37,6 +37,36 @@ defmodule Bootleg.Mocks do
 
   end
 
+  defmodule SSHKit do
+    @moduledoc false
+    @mocks SSHKit
+
+    def run(_conn, "nonexistant_command") do
+      [{:ok, [normal: "File not found"], 1}]
+    end
+
+    def run(_conn, _cmd) do
+      [{:ok, [normal: "Badgers"], 0}]
+    end
+
+    def download(_conn, "nonexistant_file", _options) do
+      [{:error, "cant open remote file"}]
+    end
+
+    def download(_conn, _remote_path, _options) do
+      [:ok]
+    end
+
+    def upload(_conn, "nonexistant_file", _options) do
+      [{:error, "cant open local file"}]
+    end
+
+    def upload(_conn, _local_path, _options) do
+      [:ok]
+    end
+
+  end
+
   defmodule Git do
     @moduledoc false
     @mocks Bootleg.Git
