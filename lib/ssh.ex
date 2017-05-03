@@ -1,12 +1,11 @@
 defmodule Bootleg.SSH do
-    @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
+  @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.SSH.ClientKeyAPI
 
   def start, do: :ssh.start()
 
   def connect(hosts, user, options \\ []) do
-
       workspace = Keyword.get(options, :workspace, ".")
       IO.puts "Creating remote context at '#{workspace}'"
       hosts
@@ -30,7 +29,7 @@ defmodule Bootleg.SSH do
   def run!(conn, cmd, working_directory) do
     case run(conn, cmd) do
       [{:ok, output, 0}|_] = result -> result
-      [{:ok, output, status}|_] -> raise format_error(cmd, output, status)
+      [{:ok, output, status}|_] -> raise SSHError, [cmd, output, status]
     end
   end
 
@@ -48,19 +47,6 @@ defmodule Bootleg.SSH do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
     end
-  end
-
-  defp format_error(cmd, output, status) do
-    "Remote command exited with non-zero status (#{status})
-         cmd: \"#{cmd}\"
-      stderr: #{parse_output(output[:stderr])}
-      stdout: #{parse_output(output[:normal])}
-     "
-  end
-
-  defp parse_output(nil), do: ""
-  defp parse_output(out) do
-    String.trim_trailing(out)
   end
 
   defp ssh_opts(user, options) when is_list(options) do
