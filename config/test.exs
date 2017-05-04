@@ -4,3 +4,4 @@ use Mix.Config
 config :bootleg, ssh: Bootleg.Mocks.SSH
 config :bootleg, git: Bootleg.Mocks.Git
 config :bootleg, shell: Bootleg.Mocks.Shell
+config :bootleg, sshkit: Bootleg.Mocks.SSHKit

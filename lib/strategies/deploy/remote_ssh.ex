@@ -3,11 +3,11 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
 
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
 
-  alias Bootleg.{Config, DeployConfig, SSH}
+  alias Bootleg.{Config, DeployConfig}
 
   @config_keys ~w(host user identity workspace)
 
-  def deploy(%Config{version: version, app: app, deploy: %DeployConfig{workspace: workspace}} = config) do
+  def deploy(%Config{version: version, app: app, deploy: %DeployConfig{}} = config) do
     conn = init(config)
     deploy_release_archive(conn, app, version)
   end
