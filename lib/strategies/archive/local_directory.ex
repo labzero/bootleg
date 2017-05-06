@@ -15,6 +15,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
 
   @file_extension ".tar.gz"
   @config_keys ~w(archive_directory max_archives)
+  @file_reader Application.get_env(:bootleg, :file_reader, File)
 
   @doc """
   Archive the build filename passed to us
@@ -75,7 +76,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   end
 
   defp check_directory(directory) do
-    with :ok <- File.mkdir_p(directory) do
+    with :ok <- @file_reader.mkdir_p(directory) do
       :ok
     else
       {:error, error} ->
@@ -84,7 +85,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   end
 
   defp check_build(filename) do
-    case File.exists?(filename) do
+    case @file_reader.exists?(filename) do
       true -> IO.puts "Build located at #{filename}"
               :ok
       false -> {:error, "Build file not found: #{filename}"}
@@ -94,7 +95,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   defp trim_builds(directory, limit) do
     builds =
       directory
-      |> File.ls!
+      |> @file_reader.ls!
       |> filter_sort_builds
     num_builds = Enum.count(builds)
 
@@ -111,7 +112,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   defp copy_build(directory, filename, version) do
     new_path = Path.join([directory, "#{version}#{@file_extension}"])
     IO.puts "Storing build as #{version}#{@file_extension}"
-    with :ok <- File.rename(filename, new_path) do
+    with :ok <- @file_reader.rename(filename, new_path) do
       {:ok, new_path}
     else
       {:error, error} ->
@@ -122,7 +123,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   defp delete_files(directory, old_files) do
     Enum.each(old_files, fn(filename) ->
       IO.puts("-x- " <> String.trim_trailing(filename, @file_extension))
-      File.rm(Path.join(directory, filename))
+      @file_reader.rm(Path.join(directory, filename))
     end)
   end
 end
