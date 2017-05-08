@@ -65,6 +65,19 @@ defmodule Bootleg.Mocks do
       [:ok]
     end
 
+    defmodule SSH do
+      @moduledoc false
+      @mocks SSHKit.SSH
+
+      def connect(name, options) do
+        send(self(), {@mocks, :connect, [name, options]})
+        {:ok, :conn}
+      end
+
+      def run(conn, command, options) do
+        {:ok, [normal: "Badgers"], 0}
+      end
+    end
   end
 
   defmodule Git do
