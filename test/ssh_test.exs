@@ -2,20 +2,22 @@ defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
 
   alias Bootleg.SSH
+  alias SSHKit.Context
 
   doctest SSH
 
-  test "connect" do
-    conn = SSH.connect("localhost", "jimbo", [identity: "/dev/null"])
-    assert %SSHKit.Context{} = conn, "Connection isn't a context"
+  setup do
+    %{
+      conn: %Context{hosts: [%{name: "localhost", options: []}]}
+    }
   end
 
-  test "run!" do
-    assert_raise SSHError, fn ->
-      SSH.run!(:conn, "nonexistant_command", :existing_remote_path)
-    end
+  test "connect", %{conn: conn} do
+    assert %Context{} = conn, "Connection isn't a context"
+  end
 
-    assert [{:ok, _, 0}] = SSH.run!(:conn, "ls", "/")
+  test "run!", %{conn: conn} do
+    assert [{:ok, _, 0}] = SSH.run!(conn, "ls", "/")
   end
 
   test "upload" do
