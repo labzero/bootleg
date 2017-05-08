@@ -1,7 +1,7 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.SSH.ClientKeyAPI
+  alias SSHKit.{Context, SSH.ClientKeyAPI}
 
   @runner Application.get_env(:bootleg, :sshkit) || SSHKit
 
@@ -19,7 +19,29 @@ defmodule Bootleg.SSH do
 
   def run(conn, cmd, working_directory \\ nil) do
     IO.puts " -> $ #{cmd}"
-    @runner.run(conn, cmd)
+
+    cmd = Context.build(conn, cmd)
+
+    run = fn host ->
+      {:ok, conn} = @runner.SSH.connect(host.name, host.options)
+      @runner.SSH.run(conn, cmd, fun: &capture(&1, &2, host))
+    end
+
+    Enum.map(conn.hosts, run)
+  end
+
+  defp capture(message, state = {buffer, status}, host) do
+    next = case message do
+      {:data, _, 0, data} ->
+        IO.puts "#{host.name} <- #{String.trim_trailing(data)}"
+        {[{:normal, data} | buffer], status}
+      {:data, _, 1, data} -> {[{:stderr, data} | buffer], status}
+      {:exit_status, _, code} -> {buffer, code}
+      {:closed, _} -> {:ok, Enum.reverse(buffer), status}
+      _ -> state
+    end
+
+    {:cont, next}
   end
 
   def run!(conn, cmd, working_directory \\ nil)
