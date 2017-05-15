@@ -92,4 +92,20 @@ defmodule Bootleg.Mocks do
     end
   end
 
+  defmodule FileReader do
+    @moduledoc false
+
+    def mkdir_p("404"), do: {:error, :enoent}
+    def mkdir_p(_), do: :ok
+    def exists?("404.tar.gz"), do: false
+    def exists?(_), do: true
+    def rename(_, "read_only_folder/1.0.0.tar.gz"), do: {:error, :enoent}
+    def rename(_, _), do: :ok
+    def ls!("releases"), do: ["1.0.0.tar.gz", "1.0.1.tar.gz"]
+    def ls!("big_release_folder") do
+      ["1.0.0.tar.gz", "1.0.1.tar.gz", "1.0.2.tar.gz", "1.0.3.tar.gz", "1.04.tar.gz"]
+    end
+    def ls!(_), do: []
+    def rm(_), do: :ok
+  end
 end

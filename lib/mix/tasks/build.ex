@@ -29,7 +29,6 @@ defmodule Mix.Tasks.Bootleg.Build do
 
     {:ok, build_filename} = builder.build(config)
 
-    # build_filename = "bttn-0.0.1.tar.gz"
     unless archiver == false do
       archiver.archive(config, build_filename)
     end
