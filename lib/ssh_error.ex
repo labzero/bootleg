@@ -4,8 +4,7 @@ defmodule SSHError do
   def exception([cmd, output, status]) do
     msg = "Command exited with non-zero status (#{status})\n"
       <> format("cmd", cmd)
-      <> cond_format("stdout", :normal, output)
-      <> cond_format("stderr", :stderr, output)
+      <> output_format(output)
 
     %SSHError{message: msg, status: status, output: output}
   end
@@ -14,14 +13,17 @@ defmodule SSHError do
   defp format(key, value) do
     String.pad_leading(key, @padding)
       <> ": "
-      <> String.trim_trailing(value)
+      <> indent(String.trim_trailing(value))
       <> "\n"
   end
 
-  defp cond_format(key, atom, output) do
-    case List.keymember?(output, atom, 0) do
-      true -> format(key, output[atom])
-      _ -> ""
-    end
+  defp indent(str) do
+    String.replace(str, "\n", "\n" <> String.duplicate(" ", @padding + 2))
+  end
+
+  defp output_format(output) do
+    output
+    |> Enum.map(fn({type, msg}) -> format(Atom.to_string(type), msg) end)
+    |> Enum.join()
   end
 end
