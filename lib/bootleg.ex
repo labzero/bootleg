@@ -79,7 +79,7 @@ defmodule Bootleg do
       ```
       config :bootleg, deploy: [
         strategy: Bootleg.Strategies.Deploy.RemoteSSH,
-        host: "build1.example.com",
+        hosts: ["deploy1.example.com","deploy2.example.com"]
         user: "jane",
         workspace: "/usr/local/my_app/release"
       ]
@@ -87,7 +87,7 @@ defmodule Bootleg do
     """
 
     @doc false
-    defstruct [:workspace, :identity, :host, :strategy, :user]
+    defstruct [:workspace, :identity, :hosts, :strategy, :user]
 
     @doc """
     Creates a `Bootleg.DeployConfig` struct.
@@ -99,7 +99,7 @@ defmodule Bootleg do
       %__MODULE__{
         workspace: config[:workspace],
         identity: config[:identity],
-        host: config[:host],
+        hosts: config[:hosts],
         strategy: config[:strategy],
         user: config[:user]
       }
@@ -115,7 +115,7 @@ defmodule Bootleg do
       * `workspace` - Absolute path to the directory where the deploy can be found.
       * `strategy` - The bootleg strategy to use for administration. Defaults to `Bootleg.Strategies.Administration.RemoteSSH`.
       * `user` - The username to use when connecting to the deployment host.
-      * `host` - The hostname or IP of the deployment host.
+      * `hosts` - The hostname(s) or IP(s) of the deployment host(s).
       * `identity` - Absolute path to a private key used to authenticate with the deployment host. This should be in `PEM` format.
 
     ## Example
@@ -123,7 +123,7 @@ defmodule Bootleg do
       ```
       config :bootleg, administration: [
         strategy: Bootleg.Strategies.Administration.RemoteSSH,
-        host: "build1.example.com",
+        hosts: ["prod1.example.com","prod2.example.com"],
         user: "jane",
         workspace: "/usr/local/my_app/release"
       ]
@@ -131,7 +131,7 @@ defmodule Bootleg do
     """
 
     @doc false
-    defstruct [:workspace, :identity, :host, :strategy, :user]
+    defstruct [:workspace, :identity, :hosts, :strategy, :user]
 
     @doc """
     Creates a `Bootleg.AdministrationConfig` struct.
@@ -143,7 +143,7 @@ defmodule Bootleg do
       %__MODULE__{
         workspace: config[:workspace],
         identity: config[:identity],
-        host: config[:host],
+        hosts: config[:hosts],
         strategy: config[:strategy],
         user: config[:user]
       }
