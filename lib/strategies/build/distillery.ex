@@ -1,4 +1,4 @@
-defmodule Bootleg.Strategies.Build.RemoteSSH do
+defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
 

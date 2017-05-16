@@ -17,7 +17,7 @@ end
 
 | Stage     | Strategy        | Module                                     |
 |-----------|-----------------|--------------------------------------------|
-| Build     | Remote GIT/SSH  | [Bootleg.Strategies.Build.RemoteSSH](lib/strategies/build/remote_ssh.ex)         |
+| Build     | Remote GIT/SSH  | [Bootleg.Strategies.Build.Distillery](lib/strategies/build/distillery.ex)         |
 | Deploy    | Remote GIT/SSH  | [Bootleg.Strategies.Deploy.RemoteSSH](lib/strategies/deploy/remote_ssh.ex)        |
 | Archive   | Local Directory | [Bootleg.Strategies.Archive.LocalDirectory](lib/strategies/archive/local_directory.ex)  |
 | Admin     | Remote GIT/SSH  | [Bootleg.Strategies.Manage.RemoteSSH](lib/strategies/manage/remote_ssh.ex)|

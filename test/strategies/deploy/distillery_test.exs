@@ -1,8 +1,8 @@
-defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
+defmodule Bootleg.Strategies.Deploy.DistilleryTest do
   use ExUnit.Case, async: false
-  alias Bootleg.Strategies.Deploy.RemoteSSH
+  alias Bootleg.Strategies.Deploy.Distillery
 
-  doctest RemoteSSH
+  doctest Distillery
 
   setup do
     %{
@@ -19,14 +19,14 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
   end
 
   test "init", %{config: config} do
-    RemoteSSH.init(config)
+    Distillery.init(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
   end
 
   test "deploy", %{config: config} do
     local_file = "#{File.cwd!}/releases/1.0.0.tar.gz"
-    RemoteSSH.deploy(config)
+    Distillery.deploy(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
     assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "bootleg.tar.gz", []]})

@@ -1,4 +1,4 @@
-defmodule Bootleg.Strategies.Manage.RemoteSSH do
+defmodule Bootleg.Strategies.Manage.Distillery do
   @moduledoc ""
 
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
