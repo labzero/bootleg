@@ -9,7 +9,7 @@ by adding `bootleg` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:bootleg, "~> 0.1.0"}]
+	[{:bootleg, "~> 0.1.0"}]
 end
 ```
 
@@ -20,7 +20,7 @@ end
 | Build     | Remote GIT/SSH  | [Bootleg.Strategies.Build.RemoteSSH](lib/strategies/build/remote_ssh.ex)         |
 | Deploy    | Remote GIT/SSH  | [Bootleg.Strategies.Deploy.RemoteSSH](lib/strategies/deploy/remote_ssh.ex)        |
 | Archive   | Local Directory | [Bootleg.Strategies.Archive.LocalDirectory](lib/strategies/archive/local_directory.ex)  |
-| Admin     | Remote GIT/SSH  | [Bootleg.Strategies.Administration.RemoteSSH](lib/strategies/administration/remote_ssh.ex)|
+| Admin     | Remote GIT/SSH  | [Bootleg.Strategies.Manage.RemoteSSH](lib/strategies/manage/remote_ssh.ex)|
 
 
 ## Versioning
@@ -46,8 +46,8 @@ config :bootleg, deploy: [
 	user: "jane",
 	workspace: "/usr/local/my_app/release"
 ]
-config :bootleg, administration: [
-	strategy: Bootleg.Strategies.Administration.RemoteSSH,
+config :bootleg, manage: [
+	strategy: Bootleg.Strategies.Manage.RemoteSSH,
 	host: "build1.example.com",
 	user: "jane",
 	workspace: "/usr/local/my_app/release"
