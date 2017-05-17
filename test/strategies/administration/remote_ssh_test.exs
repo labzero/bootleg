@@ -14,7 +14,7 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
             %Bootleg.AdministrationConfig{
               identity: "identity",
               workspace: ".",
-              host: "host",
+              hosts: "host",
               user: "user"
             }
         },
@@ -26,7 +26,7 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
             %Bootleg.AdministrationConfig{
               identity: nil,
               "workspace": "what",
-              host: nil
+              hosts: nil
             }
           }
     }
@@ -39,7 +39,7 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
   end
 
   test "init bad", %{bad_config: config} do
-    assert_raise RuntimeError, ~r/This strategy requires "host", "user" to be configured/, fn ->
+    assert_raise RuntimeError, ~r/This strategy requires "hosts", "user" to be configured/, fn ->
       RemoteSSH.init(config)
     end
   end

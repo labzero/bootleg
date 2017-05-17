@@ -12,7 +12,7 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSHTest do
                 deploy: %Bootleg.DeployConfig{
                   identity: "identity",
                   workspace: "workspace",
-                  host: "host",
+                  hosts: "host",
                   user: "user"}
                 }
     }

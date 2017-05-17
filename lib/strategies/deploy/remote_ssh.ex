@@ -5,17 +5,17 @@ defmodule Bootleg.Strategies.Deploy.RemoteSSH do
 
   alias Bootleg.{Config, DeployConfig}
 
-  @config_keys ~w(host user identity workspace)
+  @config_keys ~w(hosts user identity workspace)
 
   def deploy(%Config{version: version, app: app, deploy: %DeployConfig{}} = config) do
     conn = init(config)
     deploy_release_archive(conn, app, version)
   end
 
-  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, hosts: hosts, user: user} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do
+         conn <- @ssh.connect(hosts, user, [identity: identity, workspace: workspace]) do
       conn
     else
       {:error, msg} -> raise "Error: #{msg}"
