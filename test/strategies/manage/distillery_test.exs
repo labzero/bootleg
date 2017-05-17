@@ -44,22 +44,22 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
     end
   end
 
-  test "start", %{config: %{app: app} = config} do
+  test "start", %{config: config} do
     Distillery.start(:conn, config)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg start"]})
   end
 
-  test "stop", %{config: %{app: app} = config} do
+  test "stop", %{config: config} do
     Distillery.stop(:conn, config)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg stop"]})
   end
 
-  test "restart", %{config: %{app: app} = config} do
+  test "restart", %{config: config} do
     Distillery.restart(:conn, config)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg restart"]})
   end
 
-  test "ping", %{config: %{app: app} = config} do
+  test "ping", %{config: config} do
     Distillery.ping(:conn, config)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg ping"]})
   end
