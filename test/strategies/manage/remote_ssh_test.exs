@@ -1,6 +1,6 @@
-defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
+defmodule Bootleg.Strategies.Manage.RemoteSSHTest do
   use ExUnit.Case, async: false
-  alias Bootleg.Strategies.Administration.RemoteSSH
+  alias Bootleg.Strategies.Manage.RemoteSSH
 
   doctest RemoteSSH
 
@@ -10,8 +10,8 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
         %Bootleg.Config{
           app: "bootleg",
           version: "1.0.0",
-          administration:
-            %Bootleg.AdministrationConfig{
+          manage:
+            %Bootleg.ManageConfig{
               identity: "identity",
               workspace: ".",
               hosts: "host",
@@ -22,8 +22,8 @@ defmodule Bootleg.Strategies.Administration.RemoteSSHTest do
         %Bootleg.Config{
           app: "Funky Monkey",
           version: "1.0.0",
-          administration:
-            %Bootleg.AdministrationConfig{
+          manage:
+            %Bootleg.ManageConfig{
               identity: nil,
               "workspace": "what",
               hosts: nil

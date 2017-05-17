@@ -107,13 +107,13 @@ defmodule Bootleg do
 
   end
 
-  defmodule AdministrationConfig do
+  defmodule ManageConfig do
     @moduledoc """
     Configuration for the administrative tasks.
 
     ## Fields
       * `workspace` - Absolute path to the directory where the deploy can be found.
-      * `strategy` - The bootleg strategy to use for administration. Defaults to `Bootleg.Strategies.Administration.RemoteSSH`.
+      * `strategy` - The bootleg strategy to use for manage. Defaults to `Bootleg.Strategies.Manage.RemoteSSH`.
       * `user` - The username to use when connecting to the deployment host.
       * `hosts` - The hostname(s) or IP(s) of the deployment host(s).
       * `identity` - Absolute path to a private key used to authenticate with the deployment host. This should be in `PEM` format.
@@ -121,8 +121,8 @@ defmodule Bootleg do
     ## Example
 
       ```
-      config :bootleg, administration: [
-        strategy: Bootleg.Strategies.Administration.RemoteSSH,
+      config :bootleg, manage: [
+        strategy: Bootleg.Strategies.Manage.RemoteSSH,
         hosts: ["prod1.example.com","prod2.example.com"],
         user: "jane",
         workspace: "/usr/local/my_app/release"
@@ -134,11 +134,11 @@ defmodule Bootleg do
     defstruct [:workspace, :identity, :hosts, :strategy, :user]
 
     @doc """
-    Creates a `Bootleg.AdministrationConfig` struct.
+    Creates a `Bootleg.ManageConfig` struct.
 
     The keys in the `Map` should match the fields in the struct.
     """
-    @spec init(map) :: %Bootleg.AdministrationConfig{}
+    @spec init(map) :: %Bootleg.ManageConfig{}
     def init(config) do
       %__MODULE__{
         workspace: config[:workspace],
@@ -222,17 +222,17 @@ defmodule Bootleg do
         user: "jane",
         workspace: "/usr/local/my_app/release"
       ]
-      config :bootleg, administration: [
-        strategy: Bootleg.Strategies.Administration.RemoteSSH,
+      config :bootleg, manage: [
+        strategy: Bootleg.Strategies.Manage.RemoteSSH,
         host: "deploy1.example.com",
         user: "jane",
         workspace: "/usr/local/my_app/release"
       ]
       ```
     """
-    alias Bootleg.{Config, DeployConfig, BuildConfig, AdministrationConfig, ArchiveConfig}
+    alias Bootleg.{Config, DeployConfig, BuildConfig, ManageConfig, ArchiveConfig}
     @doc false
-    defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec, :administration]
+    defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec, :manage]
 
     @doc """
     Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -248,7 +248,7 @@ defmodule Bootleg do
         version: Project.config[:version],
         build: BuildConfig.init(Application.get_env(:bootleg, :build)),
         deploy: DeployConfig.init(Application.get_env(:bootleg, :deploy)),
-        administration: AdministrationConfig.init(Application.get_env(:bootleg, :administration)),
+        manage: ManageConfig.init(Application.get_env(:bootleg, :manage)),
         push_options: Application.get_env(:bootleg, :push_options),
         refspec: Application.get_env(:bootleg, :refspec),
         archive: ArchiveConfig.init(Application.get_env(:bootleg, :archive))
