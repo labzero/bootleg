@@ -1,8 +1,8 @@
-defmodule Bootleg.Strategies.Build.RemoteSSHTest do
+defmodule Bootleg.Strategies.Build.DistilleryTest do
   use ExUnit.Case, async: false
-  alias Bootleg.Strategies.Build.RemoteSSH
+  alias Bootleg.Strategies.Build.Distillery
 
-  doctest RemoteSSH
+  doctest Distillery
 
   setup do
     %{
@@ -21,7 +21,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
   end
 
   test "init", %{config: config} do
-    RemoteSSH.init(config)
+    Distillery.init(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
@@ -29,7 +29,7 @@ defmodule Bootleg.Strategies.Build.RemoteSSHTest do
 
   test "build", %{config: config} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
-    RemoteSSH.build(config)
+    Distillery.build(config)
     assert_received({Bootleg.SSH, :start})
     assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
