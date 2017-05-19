@@ -1,6 +1,6 @@
 # Bootleg
 
-Simple Elixir deployment.
+Simple deployment for Elixir, written in Elixir.
 
 **bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
