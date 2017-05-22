@@ -46,7 +46,7 @@ defmodule Bootleg.Mocks do
     end
 
     def run(_conn, _cmd) do
-      [{:ok, [normal: "Badgers"], 0}]
+      [{:ok, [normal: "Badgers"], 0, %{name: "localhost"}}]
     end
 
     def download(_conn, "nonexistant_file", _options) do
@@ -63,6 +63,10 @@ defmodule Bootleg.Mocks do
 
     def upload(_conn, _local_path, _options) do
       [:ok]
+    end
+
+    defmodule Host do
+      defstruct [:name, :options]
     end
 
     defmodule SSH do

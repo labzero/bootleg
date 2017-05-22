@@ -2,13 +2,14 @@ defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
 
   alias Bootleg.SSH
-  alias SSHKit.Context
+  alias SSHKit.{Context, Host}
 
   doctest SSH
 
   setup do
     %{
-      conn: %Context{hosts: [%{name: "localhost", options: []}]}
+      conn: %Context{hosts: [%Host{name: "localhost.1", options: []},
+                             %Host{name: "localhost.2", options: []}]}
     }
   end
 
@@ -17,7 +18,9 @@ defmodule Bootleg.SSHTest do
   end
 
   test "run!", %{conn: conn} do
-    assert [{:ok, _, 0}] = SSH.run!(conn, "ls", "/")
+    IO.inspect SSH.run!(conn, "ls", "/")
+    assert [{:ok, _, 0, %{name: "localhost.1"}},
+            {:ok, _, 0, %{name: "localhost.2"}}] = SSH.run!(conn, "ls", "/")
   end
 
   test "upload" do

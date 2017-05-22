@@ -1,12 +1,12 @@
 defmodule SSHError do
-  defexception [:message, :status, :output]
+  defexception [:message, :status, :output, :host]
 
-  def exception([cmd, output, status]) do
-    msg = "Command exited with non-zero status (#{status})\n"
+  def exception([cmd, output, status, host]) do
+    msg = "Command exited on #{host.name} with non-zero status (#{status})\n"
       <> format("cmd", cmd)
       <> output_format(output)
 
-    %SSHError{message: msg, status: status, output: output}
+    %SSHError{message: msg, status: status, output: output, host: host}
   end
 
   @padding 8
