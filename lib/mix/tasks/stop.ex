@@ -3,6 +3,8 @@ defmodule Mix.Tasks.Bootleg.Stop do
 
   @shortdoc "Stops a deployed release."
 
+  alias Bootleg.{Config, ManageConfig}
+
   @moduledoc """
   Stops a deployed release using the `Distillery` helper.
 
@@ -14,10 +16,14 @@ defmodule Mix.Tasks.Bootleg.Stop do
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
     config = Bootleg.config
-    strategy = Map.get(config, :strategy) || Bootleg.Strategies.Administration.RemoteSSH
+
+    %Config{
+      manage: %ManageConfig{strategy: manager}
+    } = config
+
     config
-    |> strategy.init
-    |> strategy.stop(config)
+    |> manager.init
+    |> manager.stop(config)
     :ok
   end
 end
