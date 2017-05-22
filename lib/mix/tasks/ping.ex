@@ -3,6 +3,8 @@ defmodule Mix.Tasks.Bootleg.Ping do
 
   @shortdoc "Pings an app."
 
+  alias Bootleg.{Config, ManageConfig}
+
   @moduledoc """
   Pings a deployed release using the `Distillery` helper.
 
@@ -14,10 +16,14 @@ defmodule Mix.Tasks.Bootleg.Ping do
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
     config = Bootleg.config
-    strategy = Map.get(config, :strategy) || Bootleg.Strategies.Administration.RemoteSSH
+
+    %Config{
+      manage: %ManageConfig{strategy: manager}
+    } = config
+
     config
-    |> strategy.init
-    |> strategy.ping(config)
+    |> manager.init
+    |> manager.ping(config)
     :ok
   end
 end
