@@ -18,7 +18,6 @@ defmodule Bootleg.SSHTest do
   end
 
   test "run!", %{conn: conn} do
-    IO.inspect SSH.run!(conn, "ls", "/")
     assert [{:ok, _, 0, %{name: "localhost.1"}},
             {:ok, _, 0, %{name: "localhost.2"}}] = SSH.run!(conn, "ls", "/")
   end

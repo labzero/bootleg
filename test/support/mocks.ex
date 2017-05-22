@@ -66,6 +66,9 @@ defmodule Bootleg.Mocks do
     end
 
     defmodule Host do
+      @moduledoc false
+      @mocks SSHKit.Host
+
       defstruct [:name, :options]
     end
 

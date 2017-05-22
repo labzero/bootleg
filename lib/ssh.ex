@@ -23,7 +23,8 @@ defmodule Bootleg.SSH do
     run = fn host ->
       IO.puts "#{host.name} -> $ #{cmd}"
       {:ok, conn} = @runner.SSH.connect(host.name, host.options)
-      @runner.SSH.run(conn, cmd, fun: &capture(&1, &2, host))
+      conn
+      |> @runner.SSH.run(cmd, fun: &capture(&1, &2, host))
       |> Tuple.append(host)
     end
 
