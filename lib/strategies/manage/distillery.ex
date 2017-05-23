@@ -38,4 +38,12 @@ defmodule Bootleg.Strategies.Manage.Distillery do
     @ssh.run!(conn, "bin/#{app} ping")
     {:ok, conn}
   end
+
+  def migrate(conn, %Config{app: app, manage: %ManageConfig{migration_module: mod, migration_function: fun}} = config) do
+    case Bootleg.check_config(config.manage, ~w(migration_module)) do
+       :ok -> @ssh.run!(conn, "bin/#{app} rpcterms Elixir.#{mod} #{fun || :migrate} '#{app}.'")
+       {:error, msg} -> raise "Error: #{msg}"
+    end
+    IO.puts "#{app} migrated"
+  end
 end
