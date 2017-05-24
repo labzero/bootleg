@@ -107,6 +107,10 @@ config :bootleg, archive: [
 
 Bootleg uses the application version as defined in `mix.exs`. Whether your application version is set here or comes from another source (e.g. [a VERSION file](https://gist.github.com/jeffweiss/9df547a4e472e3cf5bd3)), Bootleg requires it to be a parseable [Elixir.Version](https://hexdocs.pm/elixir/Version.html).
 
+## [Usage](USAGE.md)
+
+See [usage guide](USAGE.md) for runtime configuration and Phoenix-specific notes.
+
 ## Admin Commands
 
 bootleg has a set of commands to check up on your running nodes:
