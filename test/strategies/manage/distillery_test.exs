@@ -15,7 +15,8 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
               identity: "identity",
               workspace: ".",
               hosts: "host",
-              user: "user"
+              user: "user",
+              migration_module: "MyApp.Module"
             }
         },
       bad_config:
@@ -28,7 +29,33 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
               "workspace": "what",
               hosts: nil
             }
-          }
+        },
+      bad_migrate_config:
+        %Bootleg.Config{
+          app: "bootleg",
+          version: "1.0.0",
+          manage:
+            %Bootleg.ManageConfig{
+              identity: "identity",
+              workspace: ".",
+              hosts: "host",
+              user: "user"
+            }
+        },
+      migration_function_config:
+        %Bootleg.Config{
+          app: "bootleg",
+          version: "1.0.0",
+          manage:
+            %Bootleg.ManageConfig{
+              identity: "identity",
+              workspace: ".",
+              hosts: "host",
+              user: "user",
+              migration_module: "MyApp.Module",
+              migration_function: "a_function"
+            }
+        }
     }
   end
 
@@ -62,5 +89,21 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
   test "ping", %{config: config} do
     Distillery.ping(:conn, config)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg ping"]})
+  end
+
+  test "migrate with 'migration_function' uses the configured function", %{migration_function_config: config} do
+    IO.puts config.manage.migration_module
+    Distillery.migrate(:conn, config)
+    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module a_function 'bootleg.'"]})
+  end
+
+  test "migrate without 'migration_function' uses 'migrate/0'", %{config: config} do
+    IO.puts config.manage.migration_module
+    Distillery.migrate(:conn, config)
+    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module migrate 'bootleg.'"]})
+  end
+
+  test "migrate required configuration", %{bad_migrate_config: config} do
+    assert catch_error(Distillery.migrate(:conn, config)) == %RuntimeError{message: "Error: This strategy requires \"migration_module\" to be configured"}
   end
 end
