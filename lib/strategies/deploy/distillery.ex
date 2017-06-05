@@ -13,10 +13,8 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
   end
 
   def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, hosts: hosts, user: user} = config}) do
-    with :ok <- Bootleg.check_config(config, @config_keys),
-         :ok <- @ssh.start(),
-         conn <- @ssh.connect(hosts, user, [identity: identity, workspace: workspace]) do
-      conn
+    with :ok <- Bootleg.check_config(config, @config_keys) do
+      @ssh.init(hosts, user, [identity: identity, workspace: workspace], create_workspace: true)
     else
       {:error, msg} -> raise "Error: #{msg}"
     end
