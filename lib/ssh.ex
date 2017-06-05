@@ -4,17 +4,21 @@ defmodule Bootleg.SSH do
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
 
   @runner Application.get_env(:bootleg, :sshkit) || SSHKit
+  @local_options ~w(create_workspace)a
 
-  def start, do: :ssh.start()
-
-  def connect(hosts, user, options \\ []) do
+  def init(hosts, user, options \\ []) do
       workspace = Keyword.get(options, :workspace, ".")
+      create_workspace = Keyword.get(options, :create_workspace, false)
       IO.puts "Creating remote context at '#{workspace}'"
+
+      options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
+      :ssh.start()
+
       hosts
       |> List.wrap
       |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, options)} end)
       |> SSHKit.context
-      |> SSHKit.pwd(workspace)
+      |> validate_workspace(workspace, create_workspace)
   end
 
   def run(context, cmd, working_directory \\ nil) do
@@ -31,11 +35,21 @@ defmodule Bootleg.SSH do
     Enum.map(context.hosts, run)
   end
 
+  defp validate_workspace(context, workspace, create_workspace)
+  defp validate_workspace(context, workspace, false) do
+    run!(context, "test -d #{workspace}")
+    SSHKit.pwd context, workspace
+  end
+  defp validate_workspace(context, workspace, true) do
+    run!(context, "mkdir -p #{workspace}")
+    SSHKit.pwd context, workspace
+  end
+
   defp capture(message, state = {buffer, status}, host) do
     next = case message do
       {:data, _, 0, data} ->
         IO.puts "#{host.name} <- #{String.trim_trailing(data)}"
-        {[{:normal, data} | buffer], status}
+        {[{:stdout, data} | buffer], status}
       {:data, _, 1, data} -> {[{:stderr, data} | buffer], status}
       {:exit_status, _, code} -> {buffer, code}
       {:closed, _} -> {:ok, Enum.reverse(buffer), status}
@@ -52,10 +66,14 @@ defmodule Bootleg.SSH do
   end
 
   def run!(conn, cmd, working_directory) do
-    case run(conn, cmd) do
-      [{:ok, output, 0, %Host{} = host}|_] = result -> result
-      [{:ok, output, status, %Host{} = host}|_] -> raise SSHError, [cmd, output, status, host]
-    end
+    conn
+    |> run(cmd)
+    |> Enum.map(&run_result(&1, cmd))
+  end
+
+  defp run_result({:ok, _, 0, _} = result, _), do: result
+  defp run_result({:ok, output, status, host}, command) do
+    raise SSHError, [command, output, status, host]
   end
 
   def download(conn, remote_path, local_path) do

@@ -20,15 +20,21 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
 
   test "init", %{config: config} do
     Distillery.init(config)
-    assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({
+      Bootleg.SSH,
+      :init,
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+    })
   end
 
   test "deploy", %{config: config} do
     local_file = "#{File.cwd!}/releases/1.0.0.tar.gz"
     Distillery.deploy(config)
-    assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({
+      Bootleg.SSH,
+      :init,
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+    })
     assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "bootleg.tar.gz", []]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "tar -zxvf bootleg.tar.gz"]})
   end

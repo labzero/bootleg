@@ -5,13 +5,8 @@ defmodule Bootleg.Mocks do
     @moduledoc false
     @mocks Bootleg.SSH
 
-    def start do
-      send(self(), {@mocks, :start})
-      :ok
-    end
-
-    def connect(host, user, options) do
-      send(self(), {@mocks, :connect, [host, user, options]})
+    def init(hosts, user, options \\ []) do
+      send(self(), {@mocks, :init, [hosts, user, options]})
       :conn
     end
 

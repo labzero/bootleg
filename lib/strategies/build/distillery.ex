@@ -10,9 +10,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
   @config_keys ~w(host user workspace revision)
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
+    ssh_options = [identity: identity, workspace: workspace, create_workspace: true]
     with :ok <- Bootleg.check_config(config, @config_keys),
-         :ok <- @ssh.start(),
-         conn <- @ssh.connect(host, user, [identity: identity, workspace: workspace]) do
+         conn <- @ssh.init(host, user, ssh_options) do
            @ssh.run!(conn, "git init")
            @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn

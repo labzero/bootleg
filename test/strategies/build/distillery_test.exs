@@ -22,16 +22,22 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
 
   test "init", %{config: config} do
     Distillery.init(config)
-    assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({
+      Bootleg.SSH,
+      :init,
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+    })
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
   end
 
   test "build", %{config: config} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
     Distillery.build(config)
-    assert_received({Bootleg.SSH, :start})
-    assert_received({Bootleg.SSH, :connect, ["host", "user", [identity: "identity", workspace: "workspace"]]})
+    assert_received({
+      Bootleg.SSH,
+      :init,
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+    })
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
     assert_received({Bootleg.Git, :push,  [["--tags", "-f", "user@host:workspace", "master"], [env: [{"GIT_SSH_COMMAND", "ssh -i 'identity'"}]]]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "git reset --hard 1"]})
