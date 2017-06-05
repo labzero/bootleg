@@ -4,16 +4,19 @@ defmodule Bootleg.SSH do
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
 
   @runner Application.get_env(:bootleg, :sshkit) || SSHKit
+  @local_options ~w(create_workspace)a
 
-  def init(hosts, user, host_opts \\ [], init_opts \\ []) do
-      workspace = Keyword.get(host_opts, :workspace, ".")
-      create_workspace = Keyword.get(init_opts, :create_workspace, false)
+  def init(hosts, user, options \\ []) do
+      workspace = Keyword.get(options, :workspace, ".")
+      create_workspace = Keyword.get(options, :create_workspace, false)
       IO.puts "Creating remote context at '#{workspace}'"
+
+      options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
       :ssh.start()
 
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, host_opts)} end)
+      |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, options)} end)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end

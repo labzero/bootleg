@@ -25,7 +25,7 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
     assert_received({
       Bootleg.SSH,
       :init,
-      ["host", "user", [identity: "identity", workspace: "workspace"], [create_workspace: true]]
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
     })
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
   end
@@ -36,7 +36,7 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
     assert_received({
       Bootleg.SSH,
       :init,
-      ["host", "user", [identity: "identity", workspace: "workspace"], [create_workspace: true]]
+      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
     })
     assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
     assert_received({Bootleg.Git, :push,  [["--tags", "-f", "user@host:workspace", "master"], [env: [{"GIT_SSH_COMMAND", "ssh -i 'identity'"}]]]})
