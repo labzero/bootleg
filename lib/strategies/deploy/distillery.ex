@@ -26,9 +26,6 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
     local_path = Path.join(local_archive_folder, "#{version}.tar.gz")
 
     IO.puts "Uploading release archive"
-    IO.puts " <-  local: #{local_path}"
-    IO.puts " -> remote: #{remote_path}"
-
     @ssh.upload(conn, local_path, remote_path)
 
     unpack_cmd = "tar -zxvf #{remote_path}"

@@ -36,7 +36,8 @@ defmodule Bootleg.Mixfile do
       {:credo, "~> 0.7", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.6", only: :test}
+      {:excoveralls, "~> 0.6", only: :test},
+      {:bunt, "~> 0.2.0"}
     ]
   end
 

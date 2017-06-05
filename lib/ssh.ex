@@ -2,6 +2,7 @@ defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
+  alias Bootleg.UI
 
   @runner Application.get_env(:bootleg, :sshkit) || SSHKit
   @local_options ~w(create_workspace)a
@@ -9,7 +10,7 @@ defmodule Bootleg.SSH do
   def init(hosts, user, options \\ []) do
       workspace = Keyword.get(options, :workspace, ".")
       create_workspace = Keyword.get(options, :create_workspace, false)
-      IO.puts "Creating remote context at '#{workspace}'"
+      UI.puts "Creating remote context at '#{workspace}'"
 
       options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
       :ssh.start()
@@ -21,11 +22,11 @@ defmodule Bootleg.SSH do
       |> validate_workspace(workspace, create_workspace)
   end
 
-  def run(context, cmd, working_directory \\ nil) do
+  def run(context, cmd, _working_directory \\ nil) do
     cmd = Context.build(context, cmd)
 
     run = fn host ->
-      IO.puts "#{host.name} -> $ #{cmd}"
+      UI.puts_send host, cmd
       {:ok, conn} = @runner.SSH.connect(host.name, host.options)
       conn
       |> @runner.SSH.run(cmd, fun: &capture(&1, &2, host))
@@ -48,7 +49,7 @@ defmodule Bootleg.SSH do
   defp capture(message, state = {buffer, status}, host) do
     next = case message do
       {:data, _, 0, data} ->
-        IO.puts "#{host.name} <- #{String.trim_trailing(data)}"
+        UI.puts_recv host, String.trim_trailing(data)
         {[{:stdout, data} | buffer], status}
       {:data, _, 1, data} -> {[{:stderr, data} | buffer], status}
       {:exit_status, _, code} -> {buffer, code}
@@ -65,7 +66,7 @@ defmodule Bootleg.SSH do
     Enum.map(cmd, fn c -> run!(conn, c, working_directory) end)
   end
 
-  def run!(conn, cmd, working_directory) do
+  def run!(conn, cmd, _working_directory) do
     conn
     |> run(cmd)
     |> Enum.map(&run_result(&1, cmd))
@@ -77,7 +78,7 @@ defmodule Bootleg.SSH do
   end
 
   def download(conn, remote_path, local_path) do
-    IO.puts " -> downloading #{remote_path} --> #{local_path}"
+    UI.puts_download conn, remote_path, local_path
     case @runner.download(conn, remote_path, as: local_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
@@ -85,7 +86,7 @@ defmodule Bootleg.SSH do
   end
 
   def upload(conn, local_path, remote_path) do
-    IO.puts " -> uploading #{local_path} --> #{remote_path}"
+    UI.puts_upload conn, local_path, remote_path
     case @runner.upload(conn, local_path, as: remote_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"

@@ -15,9 +15,9 @@ defmodule Bootleg.Mocks do
       :conn
     end
 
-    def run!(conn, cmd) do
-      send(self(), {@mocks, :"run!", [conn, cmd]})
-      :conn
+    def run!(:conn, cmd) do
+      send(self(), {@mocks, :"run!", [:conn, cmd]})
+      [{:ok, [normal: "stdout"], 0, %SSHKit.Host{name: "localhost"}}]
     end
 
     def upload(conn, local, remote, options \\ []) do
@@ -76,7 +76,7 @@ defmodule Bootleg.Mocks do
         {:ok, :conn}
       end
 
-      def run(conn, command, options) do
+      def run(_conn, _command, _options) do
         {:ok, [normal: "Badgers"], 0}
       end
     end
