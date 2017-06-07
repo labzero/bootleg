@@ -3,7 +3,7 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
 
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
 
-  alias Bootleg.{Config, DeployConfig}
+  alias Bootleg.{Config, DeployConfig, UI}
 
   @config_keys ~w(hosts user identity workspace)
 
@@ -25,14 +25,11 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "#{version}.tar.gz")
 
-    IO.puts "Uploading release archive"
-    IO.puts " <-  local: #{local_path}"
-    IO.puts " -> remote: #{remote_path}"
-
+    UI.info "Uploading release archive"
     @ssh.upload(conn, local_path, remote_path)
 
     unpack_cmd = "tar -zxvf #{remote_path}"
     @ssh.run!(conn, unpack_cmd)
-    IO.puts "Unpacked release archive"
+    UI.info "Unpacked release archive"
   end
 end

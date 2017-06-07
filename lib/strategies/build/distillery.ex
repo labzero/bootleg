@@ -5,7 +5,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
   @git Application.get_env(:bootleg, :git) || Bootleg.Git
 
-  alias Bootleg.{Config, BuildConfig}
+  alias Bootleg.{Config, BuildConfig, UI}
 
   @config_keys ~w(host user workspace revision)
 
@@ -23,17 +23,12 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   def build(%Config{version: version, app: app, build: %BuildConfig{} = build_config} = config) do
     conn = init(config)
-    user_host = "#{build_config.user}@#{build_config.host}"
-    user_identity = build_config.identity
+
     workspace = build_config.workspace
     revision = build_config.revision
     target_mix_env = build_config.mix_env || "prod"
 
-    case git_push(user_host, workspace, user_identity) do
-      {:ok, _} -> :ok
-      {:error, msg} -> raise "Error: #{msg}"
-    end
-
+    git_push! conn, build_config
     git_reset_remote(conn, revision)
     git_clean_remote(conn, workspace)
     get_and_update_deps(conn, app, target_mix_env)
@@ -42,30 +37,41 @@ defmodule Bootleg.Strategies.Build.Distillery do
     download_release_archive(conn, app, version, target_mix_env)
   end
 
-  defp git_push(host, workspace, identity) do
+  defp git_push!(conn, build_config) do
+    user_host = "#{build_config.user}@#{build_config.host}"
+    user_identity = build_config.identity
+    case git_push(conn, user_host, build_config.workspace, user_identity) do
+      {:ok, _} -> :ok
+      {:error, msg} -> raise "Error: #{msg}"
+    end
+  end
+
+  defp git_push(conn, host, workspace, identity) do
     git_push = Application.get_env(:bootleg, :push_options, "-f")
     refspec = Application.get_env(:bootleg, :refspec, "master")
     git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
     host_url = "#{host}:#{workspace}"
 
-    IO.puts "Pushing new commits with git to: #{host}"
+    UI.info "Pushing new commits with git to: #{host}"
 
     case @git.push(["--tags", git_push, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> {:ok, nil}
-      {res, 0} -> IO.puts res
+      {res, 0} -> UI.puts_recv conn, res
                   {:ok, res}
-      {res, _} -> IO.puts "ERROR: #{inspect res}"
+      {res, _} -> UI.puts "ERROR: #{inspect res}"
                   {:error, res}
     end
   end
 
   defp git_reset_remote(ssh, revision) do
-    IO.puts "Resetting remote hosts to revision \"#{revision}\""
-    @ssh.run!(ssh, "git reset --hard #{revision}")
+    UI.info "Resetting remote hosts to revision \"#{revision}\""
+    ssh
+    |> @ssh.run!("git reset --hard #{revision}")
+    |> UI.puts_recv()
   end
 
   defp git_clean_remote(ssh, _workspace) do
-    IO.puts "Skipped cleaning generated files from last build"
+    UI.info "Skipped cleaning generated files from last build"
 
     # case SSHEx.run conn,
     #   '
@@ -87,7 +93,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp get_and_update_deps(ssh, app, target_mix_env) do
-    IO.puts "Fetching / Updating dependencies"
+    UI.info "Fetching / Updating dependencies"
     commands = [
       "mix local.rebar --force",
       "mix local.hex --force",
@@ -99,7 +105,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp clean_compile(ssh, app, target_mix_env) do
-    IO.puts "Compiling remote build"
+    UI.info "Compiling remote build"
     commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
     @ssh.run!(ssh, commands)
   end
@@ -109,7 +115,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp generate_release(ssh, app, target_mix_env) do
-    IO.puts "Generating release"
+    UI.info "Generating release"
 
     # build assets for phoenix apps
     @ssh.run!(ssh, "[ -f package.json ] && npm install")
@@ -124,10 +130,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "build.tar.gz")
 
-    IO.puts "Downloading release archive"
-    IO.puts " -> remote: #{remote_path}"
-    IO.puts " <-  local: #{local_path}"
-
+    UI.info "Downloading release archive"
     File.mkdir_p!(local_archive_folder)
 
     case @ssh.download(conn, remote_path, local_path) do
