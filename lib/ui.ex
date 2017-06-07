@@ -9,15 +9,70 @@ defmodule Bootleg.UI do
   end
 
   @doc """
-  Allow specifying detail level of output for later use.
+  Allow specifying verbosity level of output
   """
-  def puts(:debug, _text), do: nil
-  def puts(_level, text), do: puts(text)
+  def puts(level, output) do
+    case verbosity_includes(verbosity(), level) do
+      true -> puts output
+      false -> nil
+    end
+  end
+
+  @doc """
+  Convenience methods
+  """
+  def debug(output) do
+    puts(:debug, output)
+  end
+
+  def warn(output) do
+    puts(:warn, output)
+  end
+
+  def info(output) do
+    puts(:info, output)
+  end
+
+  defp format(level, output) do
+    level_str =
+      level
+      |> Atom.to_string()
+      |> String.upcase()
+      |> String.pad_leading(6)
+      |> String.pad_trailing(7)
+
+    prefix = "[" <> level_str <> "] "
+    Bunt.puts [:bright, :blue, prefix, :reset, output]
+  end
+
+  @doc """
+  Get configured output verbosity and sanitize it for our uses.
+  Defaults to :info
+  """
+  def verbosity do
+    validate_verbosity Application.get_env(:bootleg, :verbosity, :info)
+  end
+
+  defp validate_verbosity(verbosity)
+  defp validate_verbosity(:warning), do: :warning
+  defp validate_verbosity(:debug), do: :debug
+  defp validate_verbosity(_), do: :info
+
+  defp verbosity_includes(setting, level)
+  defp verbosity_includes(:info, :info), do: true
+  defp verbosity_includes(:warning, :info), do: true
+  defp verbosity_includes(:warning, :warning), do: true
+  defp verbosity_includes(:debug, :info), do: true
+  defp verbosity_includes(:debug, :warning), do: true
+  defp verbosity_includes(:debug, :debug), do: true
+  defp verbosity_includes(_, _), do: false
+
+  ### SSH formatting functions
 
   @doc """
   Output an impending upload operation.
   """
-  def puts_upload(context, local_path, remote_path) do
+  def puts_upload(%SSHKit.Context{} = context, local_path, remote_path) do
     Enum.each(context.hosts, fn(host) ->
       [:bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
@@ -32,7 +87,7 @@ defmodule Bootleg.UI do
   @doc """
   Output an impending download operation.
   """
-  def puts_download(context, remote_path, local_path) do
+  def puts_download(%SSHKit.Context{} = context, remote_path, local_path) do
     Enum.each(context.hosts, fn(host) ->
       [:bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
@@ -80,7 +135,7 @@ defmodule Bootleg.UI do
 
   @doc """
   Convenience function when wanting to output as if we'd received something
-  from a particular set of hosts, e.g. a git+ssh output.
+  from a particular set of hosts, e.g. git+ssh output.
   """
   def puts_recv(%SSHKit.Context{} = context, output) when is_binary(output) do
     Enum.each(context.hosts, &puts_recv(&1, output))
@@ -88,7 +143,7 @@ defmodule Bootleg.UI do
 
   @doc """
   Convenience function when wanting to output as if we'd received something
-  from a particular host, e.g. a git+ssh output.
+  from a particular host, e.g. git+ssh output.
   """
   def puts_recv(%SSHKit.Host{} = host, output) when is_binary(output) do
     split_received_lines(host, output)
