@@ -20,17 +20,17 @@ defmodule Bootleg do
     * `strategy` - The bootleg strategy to use for builds. Defaults to `Bootleg.Strategies.Build.RemoteSSH`.
     * `workspace` - Absolute path to a directory on the build host where the build will occur. This directory
         will be created if its not already.
-    * `revision` - The revision to build.
     * `user` - The username to use when connecting to the build host.
     * `host` - The hostname or IP of the build host.
     * `mix_env` - What `MIX_ENV` to use for the build.
     * `identity` - Absolute path to a private key used to authenticate with the build host. This should be in `PEM` format.
+    * `push_options` - Any extra options to use for `git push`, defaults to `-f` (force push).
+    * `refspec` - Which git [refspec](https://git-scm.com/book/id/v2/Git-Internals-The-Refspec) to use when pushing, defaults to `master`.
 
     ## Example
 
       ```
       config :bootleg, build: [
-        revision: "master"
         strategy: Bootleg.Strategies.Build.RemoteSSH,
         host: "build1.example.com",
         user: "jane",
@@ -40,7 +40,8 @@ defmodule Bootleg do
     """
 
     @doc false
-    defstruct [:identity, :host, :mix_env, :revision, :strategy, :user, :workspace]
+    #@enforce_keys [:host, :strategy, :workspace, :refspec]
+    defstruct [:identity, :host, :mix_env, :strategy, :user, :workspace, :push_options, :refspec]
 
     @doc """
     Creates a `Bootleg.BuildConfig`.
@@ -52,12 +53,12 @@ defmodule Bootleg do
       %__MODULE__{
         identity: config[:identity],
         strategy: config[:strategy] || Bootleg.Strategies.Build.RemoteSSH,
-        revision: Application.get_env(:bootleg, :revision),
         user: config[:user],
         host: config[:host],
         workspace: config[:workspace],
-        revision: config[:revision],
-        mix_env: Application.get_env(:bootleg, :mix_env, "prod")
+        mix_env: config[:mix_env] || "prod",
+        refspec: config[:refspec],
+        push_options: config[:push_options] || "-f"
       }
     end
   end
@@ -209,8 +210,6 @@ defmodule Bootleg do
         be converted to a `Bootleg.BuildConfig` using `Bootleg.BuildConfig.init/1`.
     * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will
         be converted to a `Bootleg.DeployConfig` using `Bootleg.DeployConfig.init/1`.
-    * `push_options` - Any extra options to use for `git push`, defaults to `-f` (force push).
-    * `refspec` - Which git [refspec](https://git-scm.com/book/id/v2/Git-Internals-The-Refspec) to use when pushing, defaults to `master`.
 
     ## Example
 
@@ -238,7 +237,8 @@ defmodule Bootleg do
     """
     alias Bootleg.{Config, DeployConfig, BuildConfig, ManageConfig, ArchiveConfig}
     @doc false
-    defstruct [:app, :version, :build, :deploy, :archive, :push_options, :refspec, :manage]
+    @enforce_keys [:app, :version]
+    defstruct [:app, :version, :build, :deploy, :archive, :manage]
 
     @doc """
     Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -250,13 +250,11 @@ defmodule Bootleg do
                                   archive: %Bootleg.ArchiveConfig{}}
     def init do
       %__MODULE__{
-        app: Application.get_env(:bootleg, :app),
+        app: Project.config[:app],
         version: Project.config[:version],
         build: BuildConfig.init(Application.get_env(:bootleg, :build)),
         deploy: DeployConfig.init(Application.get_env(:bootleg, :deploy)),
         manage: ManageConfig.init(Application.get_env(:bootleg, :manage)),
-        push_options: Application.get_env(:bootleg, :push_options),
-        refspec: Application.get_env(:bootleg, :refspec),
         archive: ArchiveConfig.init(Application.get_env(:bootleg, :archive))
       }
     end

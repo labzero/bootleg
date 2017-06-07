@@ -1,7 +1,7 @@
 defmodule Bootleg.Strategies.Manage.Distillery do
   @moduledoc ""
 
-  @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
+  @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
 
   alias Bootleg.{Config, ManageConfig, UI}
 

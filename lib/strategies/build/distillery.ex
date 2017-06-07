@@ -2,12 +2,12 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
 
-  @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
-  @git Application.get_env(:bootleg, :git) || Bootleg.Git
+  @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
+  @git Application.get_env(:bootleg, :git, Bootleg.Git)
 
   alias Bootleg.{Config, BuildConfig, UI}
 
-  @config_keys ~w(host user workspace revision)
+  @config_keys ~w(host user workspace refspec)
 
   def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
     ssh_options = [identity: identity, workspace: workspace, create_workspace: true]
@@ -24,53 +24,44 @@ defmodule Bootleg.Strategies.Build.Distillery do
   def build(%Config{version: version, app: app, build: %BuildConfig{} = build_config} = config) do
     conn = init(config)
 
-    workspace = build_config.workspace
-    revision = build_config.revision
     target_mix_env = build_config.mix_env || "prod"
 
-    git_push! conn, build_config
-    git_reset_remote(conn, revision)
-    git_clean_remote(conn, workspace)
+    :ok = git_push conn, build_config
+    git_reset_remote(conn, build_config.refspec)
+    git_clean_remote(conn)
     get_and_update_deps(conn, app, target_mix_env)
     clean_compile(conn, app, target_mix_env)
     generate_release(conn, app, target_mix_env)
     download_release_archive(conn, app, version, target_mix_env)
   end
 
-  defp git_push!(conn, build_config) do
-    user_host = "#{build_config.user}@#{build_config.host}"
-    user_identity = build_config.identity
-    case git_push(conn, user_host, build_config.workspace, user_identity) do
-      {:ok, _} -> :ok
-      {:error, msg} -> raise "Error: #{msg}"
+  defp git_push(conn, %BuildConfig{user: user, host: host, workspace: workspace, push_options: push_options, refspec: refspec} = build_config) do
+    user_host = "#{user}@#{host}"
+    host_url = "#{user_host}:#{workspace}"
+    git_env = if build_config.identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{build_config.identity}'"}]
+
+    UI.info "Pushing new commits with git to: #{user_host}"
+
+    case @git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
+      {"", 0} -> :ok
+      {result, 0} ->
+        UI.puts_recv conn, result
+        :ok
+      {result, status} ->
+        UI.puts_recv conn, result
+        {:error, status}
     end
+
   end
 
-  defp git_push(conn, host, workspace, identity) do
-    git_push = Application.get_env(:bootleg, :push_options, "-f")
-    refspec = Application.get_env(:bootleg, :refspec, "master")
-    git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
-    host_url = "#{host}:#{workspace}"
-
-    UI.info "Pushing new commits with git to: #{host}"
-
-    case @git.push(["--tags", git_push, host_url, refspec], env: (git_env || [])) do
-      {"", 0} -> {:ok, nil}
-      {res, 0} -> UI.puts_recv conn, res
-                  {:ok, res}
-      {res, _} -> UI.puts "ERROR: #{inspect res}"
-                  {:error, res}
-    end
-  end
-
-  defp git_reset_remote(ssh, revision) do
-    UI.info "Resetting remote hosts to revision \"#{revision}\""
+  defp git_reset_remote(ssh, refspec) do
+    UI.info "Resetting remote hosts to refspec \"#{refspec}\""
     ssh
-    |> @ssh.run!("git reset --hard #{revision}")
+    |> @ssh.run!("git reset --hard #{refspec}")
     |> UI.puts_recv()
   end
 
-  defp git_clean_remote(ssh, _workspace) do
+  defp git_clean_remote(ssh) do
     UI.info "Skipped cleaning generated files from last build"
 
     # case SSHEx.run conn,

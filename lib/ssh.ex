@@ -4,7 +4,7 @@ defmodule Bootleg.SSH do
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
   alias Bootleg.UI
 
-  @runner Application.get_env(:bootleg, :sshkit) || SSHKit
+  @runner Application.get_env(:bootleg, :sshkit, SSHKit)
   @local_options ~w(create_workspace)a
 
   def init(hosts, user, options \\ []) do
@@ -17,7 +17,7 @@ defmodule Bootleg.SSH do
 
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %SSHKit.Host{name: host, options: ssh_opts(user, options)} end)
+      |> Enum.map(fn(host) -> %Host{name: host, options: ssh_opts(user, options)} end)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end
