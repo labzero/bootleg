@@ -1,18 +1,22 @@
 defmodule Bootleg.UI do
-  @moduledoc ""
+  @moduledoc """
+  Functions for capturing application and server output and filtering against
+  a configured verbosity level.
+  """
 
   @doc """
   Simple wrapper around IO.puts
   """
+  def puts(""), do: :ok
   def puts(text) do
     IO.puts text
   end
 
   @doc """
-  Allow specifying verbosity level of output
+  Allow specifying output verbosity level
   """
-  def puts(level, output) do
-    case verbosity_includes(verbosity(), level) do
+  def puts(level, output, setting \\ nil) do
+    case verbosity_includes(setting || verbosity(), level) do
       true -> puts output
       false -> nil
     end
@@ -21,16 +25,16 @@ defmodule Bootleg.UI do
   @doc """
   Convenience methods
   """
-  def debug(output) do
-    puts(:debug, output)
+  def debug(output, setting \\ nil) do
+    puts(:debug, output, setting)
   end
 
-  def warn(output) do
-    puts(:warn, output)
+  def warn(output, setting \\ nil) do
+    puts(:warning, output, setting)
   end
 
-  def info(output) do
-    puts(:info, output)
+  def info(output, setting \\ nil) do
+    puts(:info, output, setting)
   end
 
   defp format(level, output) do
@@ -49,8 +53,8 @@ defmodule Bootleg.UI do
   Get configured output verbosity and sanitize it for our uses.
   Defaults to :info
   """
-  def verbosity do
-    validate_verbosity Application.get_env(:bootleg, :verbosity, :info)
+  def verbosity(setting \\ nil) do
+    validate_verbosity setting || Application.get_env(:bootleg, :verbosity, :info)
   end
 
   defp validate_verbosity(verbosity)
