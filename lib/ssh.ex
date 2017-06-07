@@ -22,7 +22,7 @@ defmodule Bootleg.SSH do
       |> validate_workspace(workspace, create_workspace)
   end
 
-  def run(context, cmd, _working_directory \\ nil) do
+  def run(context, cmd) do
     cmd = Context.build(context, cmd)
 
     run = fn host ->
@@ -60,16 +60,16 @@ defmodule Bootleg.SSH do
     {:cont, next}
   end
 
-  def run!(conn, cmd, working_directory \\ nil)
+  def run!(conn, command)
 
-  def run!(conn, cmd, working_directory) when is_list(cmd) do
-    Enum.map(cmd, fn c -> run!(conn, c, working_directory) end)
+  def run!(conn, commands) when is_list(commands) do
+    Enum.map(commands, fn c -> run!(conn, c) end)
   end
 
-  def run!(conn, cmd, _working_directory) do
+  def run!(conn, command) do
     conn
-    |> run(cmd)
-    |> Enum.map(&run_result(&1, cmd))
+    |> run(command)
+    |> Enum.map(&run_result(&1, command))
   end
 
   defp run_result({:ok, _, 0, _} = result, _), do: result
