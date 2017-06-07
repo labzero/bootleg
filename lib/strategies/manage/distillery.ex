@@ -3,7 +3,7 @@ defmodule Bootleg.Strategies.Manage.Distillery do
 
   @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
 
-  alias Bootleg.{Config, ManageConfig}
+  alias Bootleg.{Config, ManageConfig, UI}
 
   @config_keys ~w(hosts user workspace)
 
@@ -17,19 +17,19 @@ defmodule Bootleg.Strategies.Manage.Distillery do
 
   def start(conn, %Config{app: app}) do
     @ssh.run!(conn, "bin/#{app} start")
-    IO.puts "#{app} started"
+    UI.info "#{app} started"
     {:ok, conn}
   end
 
   def stop(conn, %Config{app: app}) do
     @ssh.run!(conn, "bin/#{app} stop")
-    IO.puts "#{app} stopped"
+    UI.info "#{app} stopped"
     {:ok, conn}
   end
 
   def restart(conn, %Config{app: app}) do
     @ssh.run!(conn, "bin/#{app} restart")
-    IO.puts "#{app} restarted"
+    UI.info "#{app} restarted"
     {:ok, conn}
   end
 
@@ -43,6 +43,6 @@ defmodule Bootleg.Strategies.Manage.Distillery do
        :ok -> @ssh.run!(conn, "bin/#{app} rpcterms Elixir.#{mod} #{fun || :migrate} '#{app}.'")
        {:error, msg} -> raise "Error: #{msg}"
     end
-    IO.puts "#{app} migrated"
+    UI.info "#{app} migrated"
   end
 end

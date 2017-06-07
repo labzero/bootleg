@@ -28,16 +28,16 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
          {:ok, builds} <- trim_builds(directory, max_archives) do
 
       archive_filename = Path.basename(archive_path)
-      UI.puts :debug, "Build archives:"
+      UI.debug "Build archives:"
       Enum.each(builds, fn(filename) ->
         out = case archive_filename == filename do
           true -> "--> "
           false -> "... "
         end
-        UI.puts :debug, out <> String.trim_trailing(filename, @file_extension)
+        UI.debug out <> String.trim_trailing(filename, @file_extension)
       end)
 
-      UI.puts "Archival complete: #{archive_path}"
+      UI.info "Archival complete: #{archive_path}"
       {:ok, archive_filename}
     else
       {:error, msg} -> raise "Error: #{msg}"
@@ -100,7 +100,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     num_builds = Enum.count(builds)
 
     if num_builds > limit do
-      UI.puts "Pruning old builds"
+      UI.info "Pruning old builds"
       old = Enum.take(builds, num_builds - limit)
       delete_files(directory, old)
       {:ok, builds -- old}
@@ -111,7 +111,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
 
   defp copy_build(directory, filename, version) do
     new_path = Path.join([directory, "#{version}#{@file_extension}"])
-    UI.puts "Storing build as #{version}#{@file_extension}"
+    UI.info "Storing build as #{version}#{@file_extension}"
     with :ok <- @file_reader.rename(filename, new_path) do
       {:ok, new_path}
     else
@@ -122,7 +122,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
 
   defp delete_files(directory, old_files) do
     Enum.each(old_files, fn(filename) ->
-      IO.puts("-x- " <> String.trim_trailing(filename, @file_extension))
+      UI.debug("-x- " <> String.trim_trailing(filename, @file_extension))
       @file_reader.rm(Path.join(directory, filename))
     end)
   end

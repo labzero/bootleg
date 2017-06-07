@@ -52,7 +52,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
     host_url = "#{host}:#{workspace}"
 
-    UI.puts "Pushing new commits with git to: #{host}"
+    UI.info "Pushing new commits with git to: #{host}"
 
     case @git.push(["--tags", git_push, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> {:ok, nil}
@@ -64,14 +64,14 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp git_reset_remote(ssh, revision) do
-    UI.puts "Resetting remote hosts to revision \"#{revision}\""
+    UI.info "Resetting remote hosts to revision \"#{revision}\""
     ssh
     |> @ssh.run!("git reset --hard #{revision}")
     |> UI.puts_recv()
   end
 
   defp git_clean_remote(ssh, _workspace) do
-    UI.puts "Skipped cleaning generated files from last build"
+    UI.info "Skipped cleaning generated files from last build"
 
     # case SSHEx.run conn,
     #   '
@@ -93,7 +93,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp get_and_update_deps(ssh, app, target_mix_env) do
-    UI.puts "Fetching / Updating dependencies"
+    UI.info "Fetching / Updating dependencies"
     commands = [
       "mix local.rebar --force",
       "mix local.hex --force",
@@ -105,7 +105,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp clean_compile(ssh, app, target_mix_env) do
-    UI.puts "Compiling remote build"
+    UI.info "Compiling remote build"
     commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
     @ssh.run!(ssh, commands)
   end
@@ -115,7 +115,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   defp generate_release(ssh, app, target_mix_env) do
-    UI.puts "Generating release"
+    UI.info "Generating release"
 
     # build assets for phoenix apps
     @ssh.run!(ssh, "[ -f package.json ] && npm install")
@@ -130,7 +130,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "build.tar.gz")
 
-    UI.puts "Downloading release archive"
+    UI.info "Downloading release archive"
     File.mkdir_p!(local_archive_folder)
 
     case @ssh.download(conn, remote_path, local_path) do
