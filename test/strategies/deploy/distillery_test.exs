@@ -9,7 +9,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
       config: %Bootleg.Config{
                 app: "bootleg",
                 version: "1.0.0",
-                deploy: %Bootleg.DeployConfig{
+                deploy: %Bootleg.Config.DeployConfig{
                   identity: "identity",
                   workspace: "workspace",
                   hosts: "host",

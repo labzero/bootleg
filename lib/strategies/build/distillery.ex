@@ -5,7 +5,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
   @git Application.get_env(:bootleg, :git, Bootleg.Git)
 
-  alias Bootleg.{Config, BuildConfig, UI}
+  alias Bootleg.{Config, Config.BuildConfig, UI}
 
   @config_keys ~w(host user workspace refspec)
 

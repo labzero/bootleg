@@ -11,7 +11,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
           app: "bootleg",
           version: "1.0.0",
           manage:
-            %Bootleg.ManageConfig{
+            %Bootleg.Config.ManageConfig{
               identity: "identity",
               workspace: ".",
               hosts: "host",
@@ -24,7 +24,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
           app: "Funky Monkey",
           version: "1.0.0",
           manage:
-            %Bootleg.ManageConfig{
+            %Bootleg.Config.ManageConfig{
               identity: nil,
               "workspace": "what",
               hosts: nil
@@ -35,7 +35,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
           app: "bootleg",
           version: "1.0.0",
           manage:
-            %Bootleg.ManageConfig{
+            %Bootleg.Config.ManageConfig{
               identity: "identity",
               workspace: ".",
               hosts: "host",
@@ -47,7 +47,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
           app: "bootleg",
           version: "1.0.0",
           manage:
-            %Bootleg.ManageConfig{
+            %Bootleg.Config.ManageConfig{
               identity: "identity",
               workspace: ".",
               hosts: "host",
