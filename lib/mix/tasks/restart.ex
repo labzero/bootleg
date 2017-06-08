@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Restart do
 
   @shortdoc "Restarts a deployed release."
 
-  alias Bootleg.{Config, ManageConfig}
+  alias Bootleg.Config
 
   @moduledoc """
   Restarts a deployed release using the `Distillery` helper.
@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Bootleg.Restart do
     config = Bootleg.config
 
     %Config{
-      manage: %ManageConfig{strategy: manager}
+      manage: %Config.ManageConfig{strategy: manager}
     } = config
 
     config

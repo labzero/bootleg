@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Stop do
 
   @shortdoc "Stops a deployed release."
 
-  alias Bootleg.{Config, ManageConfig}
+  alias Bootleg.{Config, Config.ManageConfig}
 
   @moduledoc """
   Stops a deployed release using the `Distillery` helper.

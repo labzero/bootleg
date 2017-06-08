@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Ping do
 
   @shortdoc "Pings an app."
 
-  alias Bootleg.{Config, ManageConfig}
+  alias Bootleg.{Config, Config.ManageConfig}
 
   @moduledoc """
   Pings a deployed release using the `Distillery` helper.

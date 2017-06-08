@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Deploy do
 
   @shortdoc "Deploy a release from the local cache"
 
-  alias Bootleg.{Config, DeployConfig}
+  alias Bootleg.{Config, Config.DeployConfig}
 
   @moduledoc """
   Deploy a release

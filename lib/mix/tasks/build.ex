@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   @shortdoc "Build a release"
 
-  alias Bootleg.{Config, BuildConfig, ArchiveConfig}
+  alias Bootleg.{Config, Config.BuildConfig, Config.ArchiveConfig}
 
   @moduledoc """
   Build a release

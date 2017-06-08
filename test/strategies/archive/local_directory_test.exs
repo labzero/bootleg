@@ -12,7 +12,7 @@ defmodule LocalDirectoryTest do
           app: "bootleg",
           version: "1.0.0",
           archive:
-            %Bootleg.ArchiveConfig{
+            %Bootleg.Config.ArchiveConfig{
               max_archives: 5,
               archive_directory: "releases",
             }
@@ -22,7 +22,7 @@ defmodule LocalDirectoryTest do
           app: "Funky Monkey",
           version: "1.0.0",
           archive:
-            %Bootleg.ArchiveConfig{
+            %Bootleg.Config.ArchiveConfig{
               max_archives: 1,
               archive_directory: nil,
             }
@@ -82,7 +82,7 @@ defmodule LocalDirectoryTest do
   end
 
   test "archive to invalid directory", %{config: config} do
-    invalid_config = %Bootleg.ArchiveConfig{
+    invalid_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "404",
     }
@@ -98,7 +98,7 @@ defmodule LocalDirectoryTest do
   end
 
   test "archive when folder full of releases", %{config: config} do
-    strategy_config = %Bootleg.ArchiveConfig{
+    strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "big_release_folder",
     }
@@ -106,7 +106,7 @@ defmodule LocalDirectoryTest do
   end
 
   test "archive to read-only folder", %{config: config} do
-    strategy_config = %Bootleg.ArchiveConfig{
+    strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "read_only_folder",
     }

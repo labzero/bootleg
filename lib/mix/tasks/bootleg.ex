@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Bootleg do
 
   ## Build Commands:
 
-    * mix bootleg build release [--revision=<git-revision>|--tag=<git-tag>] [--branch=<git-branch>] [Options]
+    * mix bootleg build release [--refspec=<git-refspec>|--tag=<git-tag>] [--branch=<git-branch>] [Options]
 
   """
   @spec run(OptionParser.argv) :: :ok

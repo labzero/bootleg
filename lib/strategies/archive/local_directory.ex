@@ -11,7 +11,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   oldest versions being those that are pruned first.
   """
 
-  alias Bootleg.{Config, ArchiveConfig, UI}
+  alias Bootleg.{Config, Config.ArchiveConfig, UI}
 
   @file_extension ".tar.gz"
   @config_keys ~w(archive_directory max_archives)

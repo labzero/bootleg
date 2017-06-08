@@ -1,9 +1,9 @@
 defmodule Bootleg.Strategies.Deploy.Distillery do
   @moduledoc ""
 
-  @ssh Application.get_env(:bootleg, :ssh) || Bootleg.SSH
+  @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
 
-  alias Bootleg.{Config, DeployConfig, UI}
+  alias Bootleg.{Config, Config.DeployConfig, UI}
 
   @config_keys ~w(hosts user identity workspace)
 

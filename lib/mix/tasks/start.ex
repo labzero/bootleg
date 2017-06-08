@@ -3,7 +3,7 @@ defmodule Mix.Tasks.Bootleg.Start do
 
   @shortdoc "Starts a deployed release."
 
-  alias Bootleg.{Config, ManageConfig}
+  alias Bootleg.{Config, Config.ManageConfig}
 
   @moduledoc """
   Starts a deployed release using the `Distillery` helper.
