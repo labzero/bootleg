@@ -1,9 +1,9 @@
 defmodule Mix.Tasks.Bootleg.Deploy do
   use Mix.Task
 
-  @shortdoc "Deploy a release from the local cache"
+  alias Bootleg.Config
 
-  alias Bootleg.{Config, Config.DeployConfig}
+  @shortdoc "Deploy a release from the local cache"
 
   @moduledoc """
   Deploy a release
@@ -15,13 +15,12 @@ defmodule Mix.Tasks.Bootleg.Deploy do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config
+    config = Bootleg.config()
 
-    %Config{
-      deploy: %DeployConfig{strategy: deployer}
-    } = config
+    strategy = Config.strategy(config, :deploy)
+    project = Bootleg.project()
 
     config
-    |> deployer.deploy()
+    |> strategy.deploy(project)
   end
 end

@@ -3,16 +3,17 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
 
   @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
 
-  alias Bootleg.{Config, Config.DeployConfig, UI}
+  alias Bootleg.{Config, Config.DeployConfig, Project, UI}
 
   @config_keys ~w(hosts user identity workspace)
 
-  def deploy(%Config{version: version, app: app, deploy: %DeployConfig{}} = config) do
-    conn = init(config)
-    deploy_release_archive(conn, app, version)
+  def deploy(%Config{deploy: %DeployConfig{}} = config, %Project{} = project) do
+    config
+    |> init(project)
+    |> deploy_release_archive(project)
   end
 
-  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, hosts: hosts, user: user} = config}) do
+  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, hosts: hosts, user: user} = config}, %Project{} = _project) do
     with :ok <- Bootleg.check_config(config, @config_keys) do
       @ssh.init(hosts, user, identity: identity, workspace: workspace, create_workspace: true)
     else
@@ -20,10 +21,10 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
     end
   end
 
-  defp deploy_release_archive(conn, app, version) do
-    remote_path = "#{app}.tar.gz"
+  defp deploy_release_archive(conn, %Project{} = project) do
+    remote_path = "#{project.app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "#{version}.tar.gz")
+    local_path = Path.join(local_archive_folder, "#{project.app_version}.tar.gz")
 
     UI.info "Uploading release archive"
     @ssh.upload(conn, local_path, remote_path)

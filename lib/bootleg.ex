@@ -32,4 +32,13 @@ defmodule Bootleg do
   def config do
     Config.init()
   end
+
+  @doc "Get default `%Bootleg.Project{}`"
+  @spec project :: %Bootleg.Project{}
+  def project do
+    %Bootleg.Project{
+      app_name: Mix.Project.config[:app],
+      app_version: Mix.Project.config[:version]
+    }
+  end
 end

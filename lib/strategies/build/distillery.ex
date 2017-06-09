@@ -5,14 +5,18 @@ defmodule Bootleg.Strategies.Build.Distillery do
   @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
   @git Application.get_env(:bootleg, :git, Bootleg.Git)
 
-  alias Bootleg.{Config, Config.BuildConfig, UI}
+  alias Bootleg.{Config, Config.BuildConfig, Project, UI}
 
   @config_keys ~w(host user workspace refspec)
 
-  def init(%Config{build: %BuildConfig{identity: identity, workspace: workspace, host: host, user: user} = config}) do
-    ssh_options = [identity: identity, workspace: workspace, create_workspace: true]
-    with :ok <- Bootleg.check_config(config, @config_keys),
-         conn <- @ssh.init(host, user, ssh_options) do
+  def init(%Config{build: %BuildConfig{} = build_config}, %Project{} = _project) do
+    ssh_options = [
+      identity: build_config.identity,
+      workspace: build_config.workspace,
+      create_workspace: true]
+
+    with :ok <- Bootleg.check_config(build_config, @config_keys),
+         conn <- @ssh.init(build_config.host, build_config.user, ssh_options) do
            @ssh.run!(conn, "git init")
            @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn
@@ -21,18 +25,18 @@ defmodule Bootleg.Strategies.Build.Distillery do
     end
   end
 
-  def build(%Config{version: version, app: app, build: %BuildConfig{} = build_config} = config) do
-    conn = init(config)
+  def build(%Config{build: %BuildConfig{} = build_config} = config, %Project{} = project) do
+    conn = init(config, project)
 
-    target_mix_env = build_config.mix_env || "prod"
+    mix_env = build_config.mix_env || "prod"
 
     :ok = git_push conn, build_config
     git_reset_remote(conn, build_config.refspec)
     git_clean_remote(conn)
-    get_and_update_deps(conn, app, target_mix_env)
-    clean_compile(conn, app, target_mix_env)
-    generate_release(conn, app, target_mix_env)
-    download_release_archive(conn, app, version, target_mix_env)
+    get_and_update_deps(conn, mix_env)
+    clean_compile(conn, mix_env)
+    generate_release(conn, mix_env)
+    download_release_archive(conn, mix_env, project)
   end
 
   defp git_push(conn, %BuildConfig{user: user, host: host, workspace: workspace, push_options: push_options, refspec: refspec} = build_config) do
@@ -83,41 +87,41 @@ defmodule Bootleg.Strategies.Build.Distillery do
     ssh
   end
 
-  defp get_and_update_deps(ssh, app, target_mix_env) do
+  defp get_and_update_deps(ssh, mix_env) do
     UI.info "Fetching / Updating dependencies"
     commands = [
       "mix local.rebar --force",
       "mix local.hex --force",
       "mix deps.get --only=prod"
     ]
-    commands = Enum.map(commands, &(with_env_vars(app, target_mix_env, &1)))
+    commands = Enum.map(commands, &(with_env_vars(mix_env, &1)))
     # clean fetch of dependencies on the remote build host
     @ssh.run!(ssh, commands)
   end
 
-  defp clean_compile(ssh, app, target_mix_env) do
+  defp clean_compile(ssh, mix_env) do
     UI.info "Compiling remote build"
-    commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(app, target_mix_env, &1)))
+    commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(mix_env, &1)))
     @ssh.run!(ssh, commands)
   end
 
-  defp with_env_vars(app, mix_env, cmd) do
-    "APP=#{app} MIX_ENV=#{mix_env} #{cmd}"
+  defp with_env_vars(mix_env, cmd) do
+    "MIX_ENV=#{mix_env} #{cmd}"
   end
 
-  defp generate_release(ssh, app, target_mix_env) do
+  defp generate_release(ssh, mix_env) do
     UI.info "Generating release"
 
     # build assets for phoenix apps
     @ssh.run!(ssh, "[ -f package.json ] && npm install")
     @ssh.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p")
-    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(app, target_mix_env, "mix phoenix.digest"))
+    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest"))
 
-    @ssh.run!(ssh, with_env_vars(app, target_mix_env, "mix release"))
+    @ssh.run!(ssh, with_env_vars(mix_env, "mix release"))
   end
 
-  defp download_release_archive(conn, app, version, target_mix_env) do
-    remote_path = "_build/#{target_mix_env}/rel/#{app}/releases/#{version}/#{app}.tar.gz"
+  defp download_release_archive(conn, mix_env, %Project{} = project) do
+    remote_path = "_build/#{mix_env}/rel/#{project.app_name}/releases/#{project.app_version}/#{project.app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "build.tar.gz")
 

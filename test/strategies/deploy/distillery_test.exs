@@ -6,9 +6,10 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
 
   setup do
     %{
+      project: %Bootleg.Project{
+        app_name: "bootleg",
+        app_version: "1.0.0"},
       config: %Bootleg.Config{
-                app: "bootleg",
-                version: "1.0.0",
                 deploy: %Bootleg.Config.DeployConfig{
                   identity: "identity",
                   workspace: "workspace",
@@ -18,8 +19,8 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
     }
   end
 
-  test "init", %{config: config} do
-    Distillery.init(config)
+  test "init", %{config: config, project: project} do
+    Distillery.init(config, project)
     assert_received({
       Bootleg.SSH,
       :init,
@@ -27,9 +28,9 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
     })
   end
 
-  test "deploy", %{config: config} do
+  test "deploy", %{config: config, project: project} do
     local_file = "#{File.cwd!}/releases/1.0.0.tar.gz"
-    Distillery.deploy(config)
+    Distillery.deploy(config, project)
     assert_received({
       Bootleg.SSH,
       :init,

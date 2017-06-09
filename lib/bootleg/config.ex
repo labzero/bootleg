@@ -7,8 +7,6 @@ defmodule Bootleg.Config do
   the keys in the `Mix.Config`.
 
   ## Fields
-  * `app` - The name of the app being managed by `Bootleg`.
-  * `version` - The version of the app. Defaults to the `Mix.Project` version.
   * `build` - Configuration for the build tasks. This should be a `Map` in `Mix.Config`, and will
       be converted to a `Bootleg.BuildConfig` using `Bootleg.BuildConfig.init/1`.
   * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will
@@ -39,12 +37,11 @@ defmodule Bootleg.Config do
     ```
   """
 
-  alias Mix.Project
   alias Bootleg.Config.{DeployConfig, BuildConfig, ManageConfig, ArchiveConfig}
 
   @doc false
-  @enforce_keys [:app, :version]
-  defstruct [:app, :version, :build, :deploy, :archive, :manage]
+  @enforce_keys []
+  defstruct [:build, :deploy, :archive, :manage]
 
   @doc """
   Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -55,8 +52,6 @@ defmodule Bootleg.Config do
   @spec init([strategy]) :: %Bootleg.Config{}
   def init(options \\ []) do
     %__MODULE__{
-      app: Project.config[:app],
-      version: Project.config[:version],
       build: BuildConfig.init(default_option(options, :build)),
       deploy: DeployConfig.init(default_option(options, :deploy)),
       manage: ManageConfig.init(default_option(options, :manage)),
@@ -70,5 +65,9 @@ defmodule Bootleg.Config do
 
   def get_config(key, default \\ nil) do
     Application.get_env(:bootleg, key, default)
+  end
+
+  def strategy(%Bootleg.Config{} = config, type) do
+    get_in(config, [Access.key!(type), Access.key!(:strategy)])
   end
 end
