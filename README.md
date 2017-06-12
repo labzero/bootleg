@@ -23,11 +23,10 @@ Configure Bootleg in your app's `config.exs`:
 # config/deploy.exs
 use Bootleg.Config
 
-config :bootleg,
-  build_at: "/usr/local/build/myapp/",
-  deploy_to: "/var/www/#{app}", # default
-  releases: "./releases",  # path to store releases
-  scm: :git, # only one supported right now. Need an alternative? Consider contributing!
+config build_at: "/usr/local/build/myapp/",
+config deploy_to: "/var/www/#{app}", # default
+config releases: "./releases",  # path to store releases
+config scm: :git, # only one supported right now. Need an alternative? Consider contributing!
 ```
 
 ```elixir
