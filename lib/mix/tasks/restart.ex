@@ -1,9 +1,9 @@
 defmodule Mix.Tasks.Bootleg.Restart do
   use Mix.Task
 
-  @shortdoc "Restarts a deployed release."
-
   alias Bootleg.Config
+
+  @shortdoc "Restarts a deployed release."
 
   @moduledoc """
   Restarts a deployed release using the `Distillery` helper.
@@ -15,15 +15,14 @@ defmodule Mix.Tasks.Bootleg.Restart do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config
+    config = Bootleg.config()
 
-    %Config{
-      manage: %Config.ManageConfig{strategy: manager}
-    } = config
+    strategy = Config.strategy(config, :manage)
+    project = Bootleg.project()
 
     config
-    |> manager.init
-    |> manager.restart(config)
+    |> strategy.init(project)
+    |> strategy.restart(config, project)
     :ok
   end
 end

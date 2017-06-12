@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Bootleg.Migrate do
   use Mix.Task
 
+  alias Bootleg.Config
+
   @shortdoc "Invokes a releases migrations."
 
   @moduledoc """
@@ -14,11 +16,14 @@ defmodule Mix.Tasks.Bootleg.Migrate do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config
-    strategy = Map.get(config.manage, :strategy) || Bootleg.Strategies.Manage.Distillery
+    config = Bootleg.config()
+
+    strategy = Config.strategy(config, :manage)
+    project = Bootleg.project()
+
     config
-    |> strategy.init
-    |> strategy.migrate(config)
+    |> strategy.init(project)
+    |> strategy.migrate(config, project)
     :ok
   end
 end

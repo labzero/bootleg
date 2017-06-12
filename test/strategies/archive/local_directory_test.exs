@@ -6,11 +6,12 @@ defmodule LocalDirectoryTest do
 
   setup do
     %{
+      project: %Bootleg.Project{
+        app_name: "bootleg",
+        app_version: "1.0.0"},
       filename: "build.tar.gz",
       config:
         %Bootleg.Config{
-          app: "bootleg",
-          version: "1.0.0",
           archive:
             %Bootleg.Config.ArchiveConfig{
               max_archives: 5,
@@ -19,8 +20,6 @@ defmodule LocalDirectoryTest do
         },
       bad_config:
         %Bootleg.Config{
-          app: "Funky Monkey",
-          version: "1.0.0",
           archive:
             %Bootleg.Config.ArchiveConfig{
               max_archives: 1,
@@ -30,13 +29,13 @@ defmodule LocalDirectoryTest do
     }
   end
 
-  test "init good", %{config: config, filename: filename} do
-    assert {:ok, _} = Archiver.archive(config, filename)
+  test "init good", %{config: config, filename: filename, project: project} do
+    assert {:ok, _} = Archiver.archive(config, project, filename)
   end
 
-  test "init bad", %{bad_config: config, filename: filename} do
+  test "init bad", %{bad_config: config, filename: filename, project: project} do
     assert_raise RuntimeError, ~r/This strategy requires "archive_directory" to be configured/, fn ->
-      Archiver.archive(config, filename)
+      Archiver.archive(config, project, filename)
     end
   end
 
@@ -81,41 +80,41 @@ defmodule LocalDirectoryTest do
     ]
   end
 
-  test "archive to invalid directory", %{config: config} do
+  test "archive to invalid directory", %{config: config, project: project} do
     invalid_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "404",
     }
     assert_raise RuntimeError, ~r/Archive directory.*couldn't be created/, fn ->
-      Archiver.archive(%{config | archive: invalid_config}, "build.tar.gz")
+      Archiver.archive(%{config | archive: invalid_config}, project, "build.tar.gz")
     end
   end
 
-  test "archive when build file doesnt exist", %{config: config} do
+  test "archive when build file doesnt exist", %{config: config, project: project} do
     assert_raise RuntimeError, ~r/file not found: 404.tar.gz/, fn ->
-      Archiver.archive(config, "404.tar.gz")
+      Archiver.archive(config, project, "404.tar.gz")
     end
   end
 
-  test "archive when folder full of releases", %{config: config} do
+  test "archive when folder full of releases", %{config: config, project: project} do
     strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "big_release_folder",
     }
-    Archiver.archive(%{config | archive: strategy_config}, "build.tar.gz")
+    Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
   end
 
-  test "archive to read-only folder", %{config: config} do
+  test "archive to read-only folder", %{config: config, project: project} do
     strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "read_only_folder",
     }
     assert_raise RuntimeError, ~r/Error storing build/, fn ->
-      Archiver.archive(%{config | archive: strategy_config}, "build.tar.gz")
+      Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
     end
   end
 
-  test "archive", %{config: config} do
-    Archiver.archive(config, "build.tar.gz")
+  test "archive", %{config: config, project: project} do
+    Archiver.archive(config, project, "build.tar.gz")
   end
 end

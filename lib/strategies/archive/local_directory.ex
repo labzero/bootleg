@@ -11,7 +11,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   oldest versions being those that are pruned first.
   """
 
-  alias Bootleg.{Config, Config.ArchiveConfig, UI}
+  alias Bootleg.{Config, Config.ArchiveConfig, Project, UI}
 
   @file_extension ".tar.gz"
   @config_keys ~w(archive_directory max_archives)
@@ -20,11 +20,11 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
   @doc """
   Archive the build filename passed to us
   """
-  def archive(%Config{version: version, archive: %ArchiveConfig{archive_directory: directory, max_archives: max_archives} = config}, build_filename) do
+  def archive(%Config{archive: %ArchiveConfig{archive_directory: directory, max_archives: max_archives} = config}, %Project{} = project, build_filename) do
     with :ok <- Bootleg.check_config(config, @config_keys),
          :ok <- check_directory(directory),
          :ok <- check_build(build_filename),
-         {:ok, archive_path} <- copy_build(directory, build_filename, version),
+         {:ok, archive_path} <- copy_build(project.app_version, directory, build_filename),
          {:ok, builds} <- trim_builds(directory, max_archives) do
 
       archive_filename = Path.basename(archive_path)
@@ -109,7 +109,7 @@ defmodule Bootleg.Strategies.Archive.LocalDirectory do
     end
   end
 
-  defp copy_build(directory, filename, version) do
+  defp copy_build(version, directory, filename) do
     new_path = Path.join([directory, "#{version}#{@file_extension}"])
     UI.info "Storing build as #{version}#{@file_extension}"
     with :ok <- @file_reader.rename(filename, new_path) do

@@ -1,9 +1,9 @@
 defmodule Mix.Tasks.Bootleg.Start do
   use Mix.Task
 
-  @shortdoc "Starts a deployed release."
+  alias Bootleg.Config
 
-  alias Bootleg.{Config, Config.ManageConfig}
+  @shortdoc "Starts a deployed release."
 
   @moduledoc """
   Starts a deployed release using the `Distillery` helper.
@@ -15,15 +15,14 @@ defmodule Mix.Tasks.Bootleg.Start do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config
+    config = Bootleg.config()
 
-    %Config{
-      manage: %ManageConfig{strategy: manager}
-    } = config
+    strategy = Config.strategy(config, :manage)
+    project = Bootleg.project()
 
     config
-    |> manager.init
-    |> manager.start(config)
+    |> strategy.init(project)
+    |> strategy.start(config, project)
     :ok
   end
 end
