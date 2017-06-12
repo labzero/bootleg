@@ -30,9 +30,9 @@ config :bootleg,
 
 ```elixir
 # config/deploy/production.exs - Create one for each environment you want to build and deploy to
-context :build, "build.myapp.com", user, "build", port: "2222"
-context :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin"
-context :db, ["admin@db1.myapp.com"]
+role :build, "build.myapp.com", user, "build", port: "2222"
+role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin"
+role :db, ["admin@db1.myapp.com"]
 ```
 
 ## Roles
