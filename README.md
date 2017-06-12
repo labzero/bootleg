@@ -21,6 +21,8 @@ Configure Bootleg in your app's `config.exs`:
 
 ```elixir
 # config/deploy.exs
+use Bootleg.Config
+
 config :bootleg,
   build_at: "/usr/local/build/myapp/",
   deploy_to: "/var/www/#{app}", # default
@@ -138,6 +140,8 @@ pieces.
  * `after <:event> do ... end` -  Respond to `:event` and execute the provided code block.
 
 ```elixir
+use Bootleg.Task
+
 before :build do
   IO.puts "Hello"
   trigger :custom_event
@@ -182,6 +186,8 @@ end
 Execute shell commands on a remote server
 
 ```elixir
+use Bootleg.Task
+
 # basic - will run in context of role used by hook
 {:ok, output} = remote do
   "echo hello"
@@ -213,6 +219,8 @@ output = [
 `task`
 
 ```elixir
+use Bootleg.Task
+
 task :example_task do
   IO.puts "local commands in elixir"
   remote do
