@@ -1,4 +1,31 @@
 defmodule Bootleg.Config do
+
+  @doc false
+
+  defmacro __using__(_) do
+    quote do
+      import Bootleg.Config, only: [role: 2]
+      {:ok, agent} = Bootleg.Config.Agent.start_link
+      var!(config_agent, Bootleg.Config) = agent
+    end
+  end
+
+  defmacro role(name, role) do
+    quote do
+      Bootleg.Config.Agent.put(
+        var!(config_agent, Bootleg.Config),
+        :roles,
+        Keyword.merge(
+          Bootleg.Config.Agent.get(var!(config_agent, Bootleg.Config), :roles),
+          [{unquote(name), unquote(role)}]
+        )
+      )
+    end
+  end
+
+  ##################
+  ####  LEGACY  ####
+  ##################
   @moduledoc """
   Configuration for bootleg in general.
 
