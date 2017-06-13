@@ -1,22 +1,23 @@
 defmodule Bootleg.Config do
-
   @doc false
 
   defmacro __using__(_) do
     quote do
-      import Bootleg.Config, only: [role: 2, config: 2, config: 0]
+      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0]
       {:ok, agent} = Bootleg.Config.Agent.start_link
       var!(config_agent, Bootleg.Config) = agent
     end
   end
 
-  defmacro role(name, role) do
+  defmacro role(name, hosts, options \\ []) do
+    host_list = List.wrap(hosts)
+    options = Keyword.merge([user: System.get_env("USER")], options)
     quote do
       Bootleg.Config.Agent.merge(
         var!(config_agent, Bootleg.Config),
         :roles,
         unquote(name),
-        unquote(role)
+        %Bootleg.Role{name: unquote(name), hosts: unquote(host_list), options: unquote(options)}
       )
     end
   end

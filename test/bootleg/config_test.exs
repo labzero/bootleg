@@ -20,7 +20,17 @@ defmodule Bootleg.ConfigTest do
     assert roles() == []
 
     role :build, "build.labzero.com"
-    assert roles() == [build: "build.labzero.com"]
+    result = roles()
+    assert [build: %{hosts: ["build.labzero.com"], name: :build}] = result
+  end
+
+  test "role/3" do
+    use Bootleg.Config
+    assert roles() == []
+
+    role :build, "build.labzero.com", user: "brien"
+    assert roles() ==
+      [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [user: "brien"]}]
   end
 
   test "config/0" do
