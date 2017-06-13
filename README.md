@@ -17,7 +17,7 @@ end
 
 ## Configuration
 
-Configure Bootleg in your app's `config.exs`:
+Configure Bootleg in the bootleg deploy config file:
 
 ```elixir
 # config/deploy.exs
