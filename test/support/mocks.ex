@@ -34,7 +34,6 @@ defmodule Bootleg.Mocks do
 
   defmodule SSHKit do
     @moduledoc false
-    @mocks SSHKit
 
     def run(_conn, "nonexistant_command") do
       [{:ok, [normal: "File not found"], 1}]
@@ -62,7 +61,6 @@ defmodule Bootleg.Mocks do
 
     defmodule Host do
       @moduledoc false
-      @mocks SSHKit.Host
 
       defstruct [:name, :options]
     end
