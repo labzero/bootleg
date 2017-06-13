@@ -1,7 +1,6 @@
 defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
-
-  alias Bootleg.SSH
+  alias Bootleg.{SSH, Role}
   alias SSHKit.{Context, Host}
 
   doctest SSH
@@ -14,11 +13,21 @@ defmodule Bootleg.SSHTest do
           %Host{name: "localhost.1", options: []},
           %Host{name: "localhost.2", options: []}
         ]
+      },
+      role: %Role{
+        hosts: ["localhost.1", "localhost.2"],
+        name: "admin",
+        options: []
       }
     }
   end
 
-  test "init", %{conn: conn} do
+  test "init/1", %{role: role} do
+    assert %Context{} = SSH.init(role), "Connection isn't a context"
+  end
+
+  test "init/2", %{conn: conn} do
+    context = SSH.init(["localhost.1", "localhost.2"], "admin")
     assert %Context{} = conn, "Connection isn't a context"
   end
 
