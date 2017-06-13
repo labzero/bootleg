@@ -2,11 +2,15 @@ defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
-  alias Bootleg.UI
+  alias Bootleg.{UI, Role}
 
   @runner Application.get_env(:bootleg, :sshkit, SSHKit)
   @local_options ~w(create_workspace)a
 
+  def init(%Role{} = role) do
+    user = Keyword.get(role.options, :user, nil)
+    init(role.hosts, user, role.options)
+  end
   def init(hosts, user, options \\ []) do
       workspace = Keyword.get(options, :workspace, ".")
       create_workspace = Keyword.get(options, :create_workspace, false)
@@ -95,11 +99,13 @@ defmodule Bootleg.SSH do
 
   defp ssh_opts(user, options) when is_list(options) do
     identity_file = Keyword.get(options, :identity, nil)
-    case File.open(identity_file) do
-      {:ok, identity} ->
-        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
-      {_, msg} -> raise "Error: #{msg}"
+    if identity_file do
+      case File.open(identity_file) do
+        {:ok, identity} ->
+          key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
+          Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
+        {_, msg} -> raise "Error: #{msg}"
+      end
     end
   end
 
