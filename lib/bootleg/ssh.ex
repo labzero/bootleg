@@ -97,20 +97,14 @@ defmodule Bootleg.SSH do
     end
   end
 
+  defp ssh_opts(user, []), do: ssh_opts(user, nil)
   defp ssh_opts(user, options) when is_list(options) do
     identity_file = Keyword.get(options, :identity, nil)
-    if identity_file do
-      case File.open(identity_file) do
-        {:ok, identity} ->
-          key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-          Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
-        {_, msg} -> raise "Error: #{msg}"
-      end
-    else if user do
-        [user: user]
-      else
-        []
-      end
+    case File.open(identity_file) do
+      {:ok, identity} ->
+        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
+        Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
+      {_, msg} -> raise "Error: #{msg}"
     end
   end
 

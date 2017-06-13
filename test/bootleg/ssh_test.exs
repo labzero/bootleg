@@ -17,8 +17,8 @@ defmodule Bootleg.SSHTest do
       conn_opts: %Context{
         pwd: ".",
         hosts: [
-          %Host{name: "localhost.1", options: [user: "admin"]},
-          %Host{name: "localhost.2", options: [user: "admin"]}
+          %Host{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]},
+          %Host{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]}
         ]
       },
       role: %Role{
