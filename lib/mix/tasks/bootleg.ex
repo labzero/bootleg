@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Bootleg do
   @shortdoc "Build and deploy releases"
 
   @moduledoc """
-  Build and deploy Elixir applications and perform hot-code upgrades
+  Build and deploy Elixir applications
 
   # Usage:
 

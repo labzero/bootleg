@@ -5,22 +5,22 @@ defmodule Bootleg.Config.Agent do
 
   @spec start_link() :: {:ok, pid}
   def start_link do
-    Agent.start_link fn -> [roles: [], config: []] end
+    Agent.start_link(fn -> [roles: [], config: []] end, name: Bootleg.Config.Agent)
   end
 
-  @spec get(pid, atom) :: data
-  def get(agent, name) do
-    Agent.get(agent, &Keyword.get(&1, name))
+  @spec get(atom) :: data
+  def get(name) do
+    Agent.get(Bootleg.Config.Agent, &Keyword.get(&1, name))
   end
 
-  @spec put(pid, atom, data) :: :ok
-  def put(agent, name, data) do
-    Agent.update(agent, &Keyword.put(&1, name, data))
+  @spec put(atom, data) :: :ok
+  def put(name, data) do
+    Agent.update(Bootleg.Config.Agent, &Keyword.put(&1, name, data))
   end
 
-  @spec merge(pid, atom, atom, any) :: :ok
-  def merge(agent, name, key, value) do
-    put(agent, name, Keyword.merge(get(agent, name), [{key, value}]))
+  @spec merge(atom, atom, any) :: :ok
+  def merge(name, key, value) do
+    put(name, Keyword.merge(get(name), [{key, value}]))
   end
 
 end
