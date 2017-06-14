@@ -1,5 +1,7 @@
 defmodule LocalDirectoryTest do
   use ExUnit.Case, async: true
+  import ExUnit.CaptureIO
+
   doctest Bootleg
 
   alias Bootleg.Strategies.Archive.LocalDirectory, as: Archiver
@@ -30,7 +32,7 @@ defmodule LocalDirectoryTest do
   end
 
   test "init good", %{config: config, filename: filename, project: project} do
-    assert {:ok, _} = Archiver.archive(config, project, filename)
+    capture_io(fn -> assert {:ok, _} = Archiver.archive(config, project, filename) end)
   end
 
   test "init bad", %{bad_config: config, filename: filename, project: project} do
@@ -101,7 +103,10 @@ defmodule LocalDirectoryTest do
       max_archives: 1,
       archive_directory: "big_release_folder",
     }
-    Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+    capture_io(fn ->
+      assert {:ok, "1.0.0.tar.gz"}
+             == Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+    end)
   end
 
   test "archive to read-only folder", %{config: config, project: project} do
@@ -110,11 +115,16 @@ defmodule LocalDirectoryTest do
       archive_directory: "read_only_folder",
     }
     assert_raise RuntimeError, ~r/Error storing build/, fn ->
-      Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+      capture_io(fn ->
+        Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+      end)
     end
   end
 
   test "archive", %{config: config, project: project} do
-    Archiver.archive(config, project, "build.tar.gz")
+    capture_io(fn ->
+      assert {:ok, "1.0.0.tar.gz"}
+             == Archiver.archive(config, project, "build.tar.gz")
+    end)
   end
 end
