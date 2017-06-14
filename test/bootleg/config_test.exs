@@ -1,17 +1,12 @@
 defmodule Bootleg.ConfigTest do
   use ExUnit.Case, async: true
+  alias Bootleg.Config
 
   doctest Bootleg.Config
 
   defmacrop roles do
     quote do
-      Bootleg.Config.Agent.get(var!(config_agent, Bootleg.Config), :roles)
-    end
-  end
-
-  defmacrop agent do
-    quote do
-      var!(config_agent, Bootleg.Config)
+      Bootleg.Config.Agent.get(:roles)
     end
   end
 
@@ -33,9 +28,17 @@ defmodule Bootleg.ConfigTest do
       [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [user: "brien"]}]
   end
 
+  test "get_role/1" do
+    use Bootleg.Config
+    role :build, "build.labzero.com"
+
+    result = Config.get_role(:build)
+    assert %Bootleg.Role{name: :build, hosts: ["build.labzero.com"]} = result
+  end
+
   test "config/0" do
     use Bootleg.Config
-    Bootleg.Config.Agent.put(agent(), :config, [foo: :bar])
+    Bootleg.Config.Agent.put(:config, [foo: :bar])
     assert config() == [foo: :bar]
   end
 

@@ -5,7 +5,7 @@ defmodule Bootleg.Config do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0]
       {:ok, agent} = Bootleg.Config.Agent.start_link
-      var!(config_agent, Bootleg.Config) = agent
+      # var!(config_agent, Bootleg.Config) = agent
     end
   end
 
@@ -14,7 +14,6 @@ defmodule Bootleg.Config do
     options = Keyword.merge([user: System.get_env("USER")], options)
     quote do
       Bootleg.Config.Agent.merge(
-        var!(config_agent, Bootleg.Config),
         :roles,
         unquote(name),
         %Bootleg.Role{name: unquote(name), hosts: unquote(host_list), options: unquote(options)}
@@ -22,16 +21,19 @@ defmodule Bootleg.Config do
     end
   end
 
+  def get_role(name) do
+    Keyword.get(Bootleg.Config.Agent.get(:roles), name)
+  end
+
   defmacro config do
     quote do
-      Bootleg.Config.Agent.get(var!(config_agent, Bootleg.Config), :config)
+      Bootleg.Config.Agent.get(:config)
     end
   end
 
   defmacro config(key, value) do
     quote do
       Bootleg.Config.Agent.merge(
-        var!(config_agent, Bootleg.Config),
         :config,
         unquote(key),
         unquote(value)

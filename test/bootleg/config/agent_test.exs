@@ -4,12 +4,12 @@ defmodule Bootleg.Config.AgentTest do
 
   test "stores values for retrieval" do
     {:ok, agent} = Agent.start_link
-    assert Agent.get(agent, :config) == []
+    assert Agent.get(:config) == []
 
-    Agent.put(agent, :config, [key: :value, key2: :value])
-    assert Agent.get(agent, :config) == [key: :value, key2: :value]
+    Agent.put(:config, [key: :value, key2: :value])
+    assert Agent.get(:config) == [key: :value, key2: :value]
 
-    Agent.merge(agent, :config, :foo, :bar)
-    assert Agent.get(agent, :config) == [key: :value, key2: :value, foo: :bar]
+    Agent.merge(:config, :foo, :bar)
+    assert Agent.get(:config) == [key: :value, key2: :value, foo: :bar]
   end
 end
