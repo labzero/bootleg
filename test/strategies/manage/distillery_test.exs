@@ -1,6 +1,7 @@
 defmodule Bootleg.Strategies.Manage.DistilleryTest do
   use ExUnit.Case, async: false
   alias Bootleg.Strategies.Manage.Distillery
+  import ExUnit.CaptureIO
 
   doctest Distillery
 
@@ -66,17 +67,17 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
   end
 
   test "start", %{config: config, project: project} do
-    Distillery.start(:conn, config, project)
+    assert capture_io(fn -> Distillery.start(:conn, config, project) end) == "bootleg started\n"
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg start"]})
   end
 
   test "stop", %{config: config, project: project} do
-    Distillery.stop(:conn, config, project)
+    assert capture_io(fn -> Distillery.stop(:conn, config, project) end) == "bootleg stopped\n"
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg stop"]})
   end
 
   test "restart", %{config: config, project: project} do
-    Distillery.restart(:conn, config, project)
+    assert capture_io(fn -> Distillery.restart(:conn, config, project) end) == "bootleg restarted\n"
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg restart"]})
   end
 
@@ -86,14 +87,12 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
   end
 
   test "migrate with 'migration_function' uses the configured function", %{migration_function_config: config, project: project} do
-    IO.puts config.manage.migration_module
-    Distillery.migrate(:conn, config, project)
+    assert capture_io(fn -> Distillery.migrate(:conn, config, project) end) == "bootleg migrated\n"
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module a_function 'bootleg.'"]})
   end
 
   test "migrate without 'migration_function' uses 'migrate/0'", %{config: config, project: project} do
-    IO.puts config.manage.migration_module
-    Distillery.migrate(:conn, config, project)
+    capture_io(fn -> Distillery.migrate(:conn, config, project) end)
     assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module migrate 'bootleg.'"]})
   end
 

@@ -1,6 +1,7 @@
 defmodule Bootleg.Strategies.Build.DistilleryTest do
   use ExUnit.Case, async: false
   alias Bootleg.Strategies.Build.Distillery
+  import ExUnit.CaptureIO
 
   doctest Distillery
 
@@ -36,7 +37,7 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
 
   test "build", %{config: config, project: project} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
-    Distillery.build(config, project)
+    capture_io(fn -> Distillery.build(config, project) end)
     assert_received({
       Bootleg.SSH,
       :init,
