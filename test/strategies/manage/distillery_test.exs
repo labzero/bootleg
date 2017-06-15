@@ -57,7 +57,10 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
 
   test "init good", %{config: config, project: project} do
     Distillery.init(config, project)
-    assert_received({Bootleg.SSH, :init, ["host", "user", [identity: "identity", workspace: "."]]})
+    assert_received({
+      Bootleg.SSH,
+      :init,
+      ["host", [user: "user", identity: "identity", workspace: "."]]})
   end
 
   test "init bad", %{bad_config: config, project: project} do

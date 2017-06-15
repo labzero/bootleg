@@ -25,7 +25,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
     assert_received({
       Bootleg.SSH,
       :init,
-      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+      ["host", [user: "user", identity: "identity", workspace: "workspace", create_workspace: true]]
     })
   end
 
@@ -36,7 +36,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
     assert_received({
       Bootleg.SSH,
       :init,
-      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
+      ["host", [user: "user", identity: "identity", workspace: "workspace", create_workspace: true]]
     })
     assert_received({Bootleg.SSH, :upload, [:conn, ^local_file, "bootleg.tar.gz", []]})
     assert_received({Bootleg.SSH, :"run!", [:conn, "tar -zxvf bootleg.tar.gz"]})

@@ -8,15 +8,16 @@ defmodule Bootleg.SSH do
   @local_options ~w(create_workspace)a
 
   def init(%Role{} = role) do
-    user = Keyword.get(role.options, :user, nil)
-    init(role.hosts, user, role.options)
+    init(role.hosts, role.options)
   end
 
   def init(role_name) when is_atom(role_name) do
-    init(Config.get_role(role_name))
+    role_name
+    |> Config.get_role
+    |> init
   end
 
-  def init(hosts, user, options \\ []) do
+  def init(hosts, options \\ []) do
       workspace = Keyword.get(options, :workspace, ".")
       create_workspace = Keyword.get(options, :create_workspace, false)
       UI.puts "Creating remote context at '#{workspace}'"
@@ -26,7 +27,7 @@ defmodule Bootleg.SSH do
 
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %Host{name: host, options: ssh_opts(user, options)} end)
+      |> Enum.map(fn(host) -> %Host{name: host, options: ssh_opts(options)} end)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end
@@ -102,20 +103,15 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp ssh_opts(user, options = [identity: identity_file]) when is_list(options) do
+  defp ssh_opts(options = [{:identity, identity_file} | _]) do
     case File.open(identity_file) do
       {:ok, identity} ->
         key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
+        Keyword.merge(options, [key_cb: key_cb])
       {_, msg} -> raise "Error: #{msg}"
     end
   end
 
-  defp ssh_opts(user, _), do: Keyword.merge(default_opts(), [user: user])
+  defp ssh_opts(options), do: options
 
-  defp default_opts do
-    [
-      connect_timeout: 5000,
-    ]
-  end
 end
