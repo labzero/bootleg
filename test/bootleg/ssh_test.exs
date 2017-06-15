@@ -36,12 +36,12 @@ defmodule Bootleg.SSHTest do
     end)
   end
 
-  test "init/1 with Role name atom", %{role: role} do
+  test "init/1 with Role name atom", %{role: role_fixture} do
     use Bootleg.Config
     role :build, "build.labzero.com"
 
     capture_io(fn ->
-      assert %Context{} = SSH.init(role.name)
+      assert %Context{} = SSH.init(role_fixture.name)
     end)
   end
 
