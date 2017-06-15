@@ -16,7 +16,8 @@ defmodule Bootleg.ConfigTest do
 
     role :build, "build.labzero.com"
     result = roles()
-    assert [build: %{hosts: ["build.labzero.com"], name: :build}] = result
+    assert [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [user: user]}] = result
+    assert user == System.get_env("USER")
   end
 
   test "role/3" do
@@ -49,5 +50,24 @@ defmodule Bootleg.ConfigTest do
 
     config :build_at, "some path"
     assert config() == [build_at: "some path"]
+  end
+
+  test "config file" do
+    Code.eval_file(Path.relative_to_cwd("test/fixtures/deploy.exs"))
+
+    roles = Bootleg.Config.Agent.get(:roles)
+    config = Bootleg.Config.Agent.get(:config)
+
+    assert %Bootleg.Role{hosts: ["www1.example.com", "www2.example.com"], name: :app, options: [user: user]}
+      = roles[:app]
+    assert user == System.get_env("USER")
+    assert %Bootleg.Role{hosts: ["db.example.com"], name: :db, options: [primary: true, user: "foo"]}
+      = roles[:db]
+    assert %Bootleg.Role{hosts: ["replacement.example.com"], name: :replace, options: [user: user, bar: :car]}
+      = roles[:replace]
+    assert user == System.get_env("USER")
+
+    assert config[:build_at] == "some path"
+    assert config[:replace_me] == "this"
   end
 end
