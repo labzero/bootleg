@@ -3,7 +3,7 @@ defmodule Bootleg.Config.AgentTest do
   alias Bootleg.Config.Agent
 
   test "stores values for retrieval" do
-    {:ok, agent} = Agent.start_link
+    {:ok, _} = Agent.start_link
     assert Agent.get(:config) == []
 
     Agent.put(:config, [key: :value, key2: :value])

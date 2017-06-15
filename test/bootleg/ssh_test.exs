@@ -24,15 +24,24 @@ defmodule Bootleg.SSHTest do
       },
       role: %Role{
         hosts: ["localhost.1", "localhost.2"],
-        name: "admin",
+        name: :build,
         options: []
       }
     }
   end
 
-  test "init/1", %{role: role} do
+  test "init/1 with Bootleg.Role", %{role: role} do
     capture_io(fn ->
       assert %Context{} = SSH.init(role), "Connection isn't a context"
+    end)
+  end
+
+  test "init/1 with Role name atom", %{role: role_fixture} do
+    use Bootleg.Config
+    role :build, "build.labzero.com"
+
+    capture_io(fn ->
+      assert %Context{} = SSH.init(role_fixture.name)
     end)
   end
 
@@ -40,6 +49,26 @@ defmodule Bootleg.SSHTest do
     capture_io(fn ->
       context = SSH.init(["localhost.1", "localhost.2"], "admin")
       assert conn == context
+    end)
+  end
+
+  test "init/2 with identity" do
+    capture_io(fn ->
+      context = SSH.init(
+        ["localhost.1", "localhost.2"],
+        "admin",
+        [identity: "test/fixtures/identity_rsa"])
+
+      assert %Context{} = context
+
+      assert {SSHKit.SSH.ClientKeyAPI, options} = context
+      |> Map.get(:hosts)
+      |> List.first
+      |> Map.get(:options)
+      |> Keyword.get(:key_cb)
+
+      assert [:known_hosts_data, :identity_data, :known_hosts, :identity, :accept_hosts]
+             = Keyword.keys(options)
     end)
   end
 
