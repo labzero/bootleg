@@ -45,9 +45,9 @@ defmodule Bootleg.SSHTest do
     end)
   end
 
-  test "init/2", %{conn_opts: conn} do
+  test "init/2", %{conn: conn} do
     capture_io(fn ->
-      context = SSH.init(["localhost.1", "localhost.2"], "admin")
+      context = SSH.init(["localhost.1", "localhost.2"])
       assert conn == context
     end)
   end
@@ -56,8 +56,7 @@ defmodule Bootleg.SSHTest do
     capture_io(fn ->
       context = SSH.init(
         ["localhost.1", "localhost.2"],
-        "admin",
-        [identity: "test/fixtures/identity_rsa"])
+        identity: "test/fixtures/identity_rsa")
 
       assert %Context{} = context
 
