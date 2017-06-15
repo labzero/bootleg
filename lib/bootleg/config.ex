@@ -60,7 +60,6 @@ defmodule Bootleg.Config do
   ## Example
 
     ```
-    config :bootlet, app: "my_app"
     config :bootleg, build: [
       strategy: Bootleg.Strategies.Build.RemoteSSH,
       host: "build1.example.com",
