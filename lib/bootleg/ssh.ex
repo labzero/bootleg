@@ -7,17 +7,16 @@ defmodule Bootleg.SSH do
   @runner Application.get_env(:bootleg, :sshkit, SSHKit)
   @local_options ~w(create_workspace)a
 
-  def init(%Role{} = role) do
-    init(role.hosts, role.options)
+  def init(role, options \\ [])
+  def init(%Role{} = role, options) do
+    init(role.hosts, Keyword.merge(role.options, options))
   end
 
-  def init(role_name) when is_atom(role_name) do
-    role_name
-    |> Config.get_role
-    |> init
+  def init(role_name, options) when is_atom(role_name) do
+    init(Config.get_role(role_name), options)
   end
 
-  def init(hosts, options \\ []) do
+  def init(hosts, options) do
       workspace = Keyword.get(options, :workspace, ".")
       create_workspace = Keyword.get(options, :create_workspace, false)
       UI.puts "Creating remote context at '#{workspace}'"

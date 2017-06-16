@@ -6,25 +6,27 @@ defmodule Bootleg.Strategies.Deploy.DistilleryTest do
   doctest Distillery
 
   setup do
+    use Bootleg.Config
+
+    role :app, "host", user: "user", identity: "identity", workspace: "workspace"
+
     %{
       project: %Bootleg.Project{
         app_name: "bootleg",
-        app_version: "1.0.0"},
-      config: %Bootleg.Config{
-                deploy: %Bootleg.Config.DeployConfig{
-                  identity: "identity",
-                  workspace: "workspace",
-                  hosts: "host",
-                  user: "user"}
-                }
+        app_version: "1.0.0"}
     }
   end
 
-  test "init", %{config: config, project: project} do
-    capture_io(fn -> assert %SSHKit.Context{} = Distillery.init(config, project) end)
+  test "init", %{project: project} do
+    capture_io(fn ->
+      assert %SSHKit.Context{hosts: [%SSHKit.Host{name: "host", options: options}], pwd: "workspace", user: nil}
+        = Distillery.init(project)
+      assert options[:user] == "user"
+      assert options[:identity] == "identity"
+    end)
   end
 
-  test "deploy", %{config: config, project: project} do
-    capture_io(fn -> assert :ok == Distillery.deploy(config, project) end)
+  test "deploy", %{project: project} do
+    capture_io(fn -> assert :ok == Distillery.deploy(project) end)
   end
 end
