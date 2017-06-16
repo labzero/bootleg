@@ -51,16 +51,16 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
               migration_module: "MyApp.Module",
               migration_function: "a_function"
             }
+        },
+      conn:
+        %SSHKit.Context{
+          hosts: [%SSHKit.Host{name: "host.1"}]
         }
     }
   end
 
   test "init good", %{config: config, project: project} do
-    Distillery.init(config, project)
-    assert_received({
-      Bootleg.SSH,
-      :init,
-      ["host", [user: "user", identity: "identity", workspace: "."]]})
+    capture_io(fn -> assert %SSHKit.Context{} = Distillery.init(config, project) end)
   end
 
   test "init bad", %{bad_config: config, project: project} do
@@ -69,37 +69,43 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
     end
   end
 
-  test "start", %{config: config, project: project} do
-    assert capture_io(fn -> Distillery.start(:conn, config, project) end) == "bootleg started\n"
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg start"]})
+  test "start", %{conn: conn, config: config, project: project} do
+    capture_io(fn -> assert {:ok, %SSHKit.Context{}} = Distillery.start(conn, config, project) end)
   end
 
-  test "stop", %{config: config, project: project} do
-    assert capture_io(fn -> Distillery.stop(:conn, config, project) end) == "bootleg stopped\n"
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg stop"]})
+  test "stop", %{conn: conn, config: config, project: project} do
+    capture_io(fn -> assert {:ok, %SSHKit.Context{}} = Distillery.stop(conn, config, project) end)
   end
 
-  test "restart", %{config: config, project: project} do
-    assert capture_io(fn -> Distillery.restart(:conn, config, project) end) == "bootleg restarted\n"
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg restart"]})
+  test "restart", %{conn: conn, config: config, project: project} do
+    capture_io(fn ->
+      assert {:ok, %SSHKit.Context{}} = Distillery.restart(conn, config, project)
+    end)
   end
 
-  test "ping", %{config: config, project: project} do
-    Distillery.ping(:conn, config, project)
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg ping"]})
+  test "ping", %{conn: conn, config: config, project: project} do
+    capture_io(fn ->
+      assert {:ok, %SSHKit.Context{}} = Distillery.ping(conn, config, project)
+    end)
   end
 
-  test "migrate with 'migration_function' uses the configured function", %{migration_function_config: config, project: project} do
-    assert capture_io(fn -> Distillery.migrate(:conn, config, project) end) == "bootleg migrated\n"
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module a_function 'bootleg.'"]})
+  test "migrate with 'migration_function' uses the configured function",
+       %{conn: conn, migration_function_config: config, project: project} do
+    capture_io(fn ->
+      assert :ok = Distillery.migrate(conn, config, project)
+    end)
   end
 
-  test "migrate without 'migration_function' uses 'migrate/0'", %{config: config, project: project} do
-    capture_io(fn -> Distillery.migrate(:conn, config, project) end)
-    assert_received({Bootleg.SSH, :"run!", [:conn, "bin/bootleg rpcterms Elixir.MyApp.Module migrate 'bootleg.'"]})
+  test "migrate without 'migration_function' uses 'migrate/0'",
+       %{conn: conn, config: config, project: project} do
+    capture_io(fn ->
+      assert :ok = Distillery.migrate(conn, config, project)
+    end)
   end
 
-  test "migrate required configuration", %{bad_migrate_config: config, project: project} do
-    assert catch_error(Distillery.migrate(:conn, config, project)) == %RuntimeError{message: "Error: This strategy requires \"migration_module\" to be configured"}
+  test "migrate required configuration",
+       %{conn: conn, bad_migrate_config: config, project: project} do
+    assert catch_error(Distillery.migrate(conn, config, project))
+      == %RuntimeError{message: "Error: This strategy requires \"migration_module\" to be configured"}
   end
 end
