@@ -2,10 +2,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
 
-  @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
   @git Application.get_env(:bootleg, :git, Bootleg.Git)
 
-  alias Bootleg.{Config, Config.BuildConfig, Project, UI}
+  alias Bootleg.{Config, Config.BuildConfig, Project, UI, SSH}
 
   @config_keys ~w(host user workspace refspec)
 
@@ -17,9 +16,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
       create_workspace: true]
 
     with :ok <- Bootleg.check_config(build_config, @config_keys),
-         conn <- @ssh.init(build_config.host, ssh_options) do
-           @ssh.run!(conn, "git init")
-           @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
+         conn <- SSH.init(build_config.host, ssh_options) do
+           SSH.run!(conn, "git init")
+           SSH.run!(conn, "git config receive.denyCurrentBranch ignore")
            conn
     else
       {:error, msg} -> raise "Error: #{msg}"
@@ -62,7 +61,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   defp git_reset_remote(ssh, refspec) do
     UI.info "Resetting remote hosts to refspec \"#{refspec}\""
     ssh
-    |> @ssh.run!("git reset --hard #{refspec}")
+    |> SSH.run!("git reset --hard #{refspec}")
     |> UI.puts_recv()
   end
 
@@ -97,13 +96,13 @@ defmodule Bootleg.Strategies.Build.Distillery do
     ]
     commands = Enum.map(commands, &(with_env_vars(mix_env, &1)))
     # clean fetch of dependencies on the remote build host
-    @ssh.run!(ssh, commands)
+    SSH.run!(ssh, commands)
   end
 
   defp clean_compile(ssh, mix_env) do
     UI.info "Compiling remote build"
     commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(mix_env, &1)))
-    @ssh.run!(ssh, commands)
+    SSH.run!(ssh, commands)
   end
 
   defp with_env_vars(mix_env, cmd) do
@@ -114,11 +113,11 @@ defmodule Bootleg.Strategies.Build.Distillery do
     UI.info "Generating release"
 
     # build assets for phoenix apps
-    @ssh.run!(ssh, "[ -f package.json ] && npm install")
-    @ssh.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p")
-    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest"))
+    SSH.run!(ssh, "[ -f package.json ] && npm install")
+    SSH.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p")
+    SSH.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest"))
 
-    @ssh.run!(ssh, with_env_vars(mix_env, "mix release"))
+    SSH.run!(ssh, with_env_vars(mix_env, "mix release"))
   end
 
   defp download_release_archive(conn, mix_env, %Project{} = project) do
@@ -129,7 +128,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     UI.info "Downloading release archive"
     File.mkdir_p!(local_archive_folder)
 
-    case @ssh.download(conn, remote_path, local_path) do
+    case SSH.download(conn, remote_path, local_path) do
       :ok -> {:ok, local_path}
       _ -> raise "Error: downloading of release archive failed"
     end
