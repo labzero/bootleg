@@ -1,23 +1,17 @@
 defmodule Bootleg.Strategies.Deploy.Distillery do
   @moduledoc ""
 
-  alias Bootleg.{Config, Config.DeployConfig, Project, UI, SSH}
+  alias Bootleg.{Project, UI, SSH}
 
-  @config_keys ~w(hosts user identity workspace)
-
-  def deploy(%Config{deploy: %DeployConfig{}} = config, %Project{} = project) do
-    config
-    |> init(project)
+  def deploy(%Project{} = project) do
+    project
+    |> init
     |> deploy_release_archive(project)
     :ok
   end
 
-  def init(%Config{deploy: %DeployConfig{identity: identity, workspace: workspace, hosts: hosts, user: user} = config}, %Project{} = _project) do
-    with :ok <- Bootleg.check_config(config, @config_keys) do
-      SSH.init(hosts, user: user, identity: identity, workspace: workspace, create_workspace: true)
-    else
-      {:error, msg} -> raise "Error: #{msg}"
-    end
+  def init(%Project{} = _project) do
+    SSH.init(:app, create_workspace: true)
   end
 
   defp deploy_release_archive(conn, %Project{} = project) do

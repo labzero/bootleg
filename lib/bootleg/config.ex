@@ -66,12 +66,6 @@ defmodule Bootleg.Config do
       user: "jane",
       workspace: "/usr/local/my_app/build"
     ]
-    config :bootleg, deploy: [
-      strategy: Bootleg.Strategies.Deploy.RemoteSSH,
-      host: "deploy1.example.com",
-      user: "jane",
-      workspace: "/usr/local/my_app/release"
-    ]
     config :bootleg, manage: [
       strategy: Bootleg.Strategies.Manage.RemoteSSH,
       host: "deploy1.example.com",
@@ -81,11 +75,11 @@ defmodule Bootleg.Config do
     ```
   """
 
-  alias Bootleg.Config.{DeployConfig, BuildConfig, ManageConfig, ArchiveConfig}
+  alias Bootleg.Config.{BuildConfig, ManageConfig, ArchiveConfig}
 
   @doc false
   @enforce_keys []
-  defstruct [:build, :deploy, :archive, :manage]
+  defstruct [:build, :archive, :manage]
 
   @doc """
   Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -97,7 +91,6 @@ defmodule Bootleg.Config do
   def init(options \\ []) do
     %__MODULE__{
       build: BuildConfig.init(default_option(options, :build)),
-      deploy: DeployConfig.init(default_option(options, :deploy)),
       manage: ManageConfig.init(default_option(options, :manage)),
       archive: ArchiveConfig.init(default_option(options, :archive))
     }
