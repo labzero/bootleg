@@ -44,7 +44,6 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "config/2" do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     assert config() == []
 
@@ -69,5 +68,16 @@ defmodule Bootleg.ConfigTest do
 
     assert config[:build_at] == "some path"
     assert config[:replace_me] == "this"
+  end
+
+  test "get_config" do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    config :some_key, "some value"
+
+    assert Config.get_config(:some_key) == "some value"
+    assert Config.get_config(:another_key) == nil
+    assert Config.get_config(:another_key, :bar) == :bar
   end
 end
