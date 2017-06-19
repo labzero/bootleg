@@ -52,20 +52,12 @@ defmodule Bootleg.Config do
   the keys in the `Mix.Config`.
 
   ## Fields
-  * `build` - Configuration for the build tasks. This should be a `Map` in `Mix.Config`, and will
-      be converted to a `Bootleg.BuildConfig` using `Bootleg.BuildConfig.init/1`.
   * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will
       be converted to a `Bootleg.DeployConfig` using `Bootleg.DeployConfig.init/1`.
 
   ## Example
 
     ```
-    config :bootleg, build: [
-      strategy: Bootleg.Strategies.Build.RemoteSSH,
-      host: "build1.example.com",
-      user: "jane",
-      workspace: "/usr/local/my_app/build"
-    ]
     config :bootleg, manage: [
       strategy: Bootleg.Strategies.Manage.RemoteSSH,
       host: "deploy1.example.com",
@@ -75,11 +67,11 @@ defmodule Bootleg.Config do
     ```
   """
 
-  alias Bootleg.Config.{BuildConfig, ManageConfig, ArchiveConfig}
+  alias Bootleg.Config.{ManageConfig, ArchiveConfig}
 
   @doc false
   @enforce_keys []
-  defstruct [:build, :archive, :manage]
+  defstruct [:archive, :manage]
 
   @doc """
   Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -90,7 +82,6 @@ defmodule Bootleg.Config do
   @spec init([strategy]) :: %Bootleg.Config{}
   def init(options \\ []) do
     %__MODULE__{
-      build: BuildConfig.init(default_option(options, :build)),
       manage: ManageConfig.init(default_option(options, :manage)),
       archive: ArchiveConfig.init(default_option(options, :archive))
     }
@@ -101,7 +92,7 @@ defmodule Bootleg.Config do
   end
 
   def get_config(key, default \\ nil) do
-    Application.get_env(:bootleg, key, default)
+    Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
   end
 
   def strategy(%Bootleg.Config{} = config, type) do
