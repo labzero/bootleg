@@ -107,7 +107,7 @@ defmodule Bootleg.SSH do
   end
 
   def ssh_opts(options) do
-    Enum.filter_map(options, &(&1 != []), &ssh_opt/1)
+    List.flatten(Enum.map(options, &ssh_opt/1))
   end
 
   def ssh_opt({:identity, nil}), do: []
@@ -115,9 +115,11 @@ defmodule Bootleg.SSH do
     case File.open(identity_file) do
       {:ok, identity} ->
         key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        {:key_cb, key_cb}
+        [{:key_cb, key_cb}, {:identity, identity_file}]
       {_, msg} -> raise "Error: #{msg}"
     end
   end
+
+  def ssh_opt({_, nil}), do: []
   def ssh_opt(option), do: option
 end
