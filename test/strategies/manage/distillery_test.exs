@@ -1,6 +1,6 @@
 defmodule Bootleg.Strategies.Manage.DistilleryTest do
   use ExUnit.Case, async: false
-  alias Bootleg.Strategies.Manage.Distillery
+  alias Bootleg.{Strategies.Manage.Distillery, Fixtures}
   import ExUnit.CaptureIO
 
   doctest Distillery
@@ -14,7 +14,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
         %Bootleg.Config{
           manage:
             %Bootleg.Config.ManageConfig{
-              identity: "identity",
+              identity: Fixtures.identity_path(),
               workspace: ".",
               hosts: "host",
               user: "user",
@@ -34,7 +34,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
         %Bootleg.Config{
           manage:
             %Bootleg.Config.ManageConfig{
-              identity: "identity",
+              identity: Fixtures.identity_path(),
               workspace: ".",
               hosts: "host",
               user: "user"
@@ -44,7 +44,7 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
         %Bootleg.Config{
           manage:
             %Bootleg.Config.ManageConfig{
-              identity: "identity",
+              identity: Fixtures.identity_path(),
               workspace: ".",
               hosts: "host",
               user: "user",

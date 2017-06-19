@@ -26,9 +26,13 @@ defmodule Bootleg.SSH do
 
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %Host{name: host, options: ssh_opts(options)} end)
+      |> Enum.map(&wrap_host(&1, options))
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
+  end
+
+  defp wrap_host(host, options) do
+    %Host{name: host, options: ssh_opts(options)}
   end
 
   def run(context, cmd) do
@@ -102,15 +106,20 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp ssh_opts(options = [{:identity, identity_file} | _]) do
+  def ssh_opts(options) do
+    List.flatten(Enum.map(options, &ssh_opt/1))
+  end
+
+  def ssh_opt({:identity, nil}), do: []
+  def ssh_opt({:identity, identity_file}) do
     case File.open(identity_file) do
       {:ok, identity} ->
         key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        Keyword.merge(options, [key_cb: key_cb])
+        [{:key_cb, key_cb}, {:identity, identity_file}]
       {_, msg} -> raise "Error: #{msg}"
     end
   end
 
-  defp ssh_opts(options), do: options
-
+  def ssh_opt({_, nil}), do: []
+  def ssh_opt(option), do: option
 end
