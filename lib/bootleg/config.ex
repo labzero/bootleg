@@ -11,12 +11,16 @@ defmodule Bootleg.Config do
 
   defmacro role(name, hosts, options \\ []) do
     host_list = List.wrap(hosts)
-    options = Keyword.merge([user: System.get_env("USER")], options)
+    user = Keyword.get(options, :user, System.get_env("USER"))
+    options = Keyword.delete(options, :user)
     quote do
       Bootleg.Config.Agent.merge(
         :roles,
         unquote(name),
-        %Bootleg.Role{name: unquote(name), hosts: unquote(host_list), options: unquote(options)}
+        %Bootleg.Role{
+          name: unquote(name), hosts: unquote(host_list), user: unquote(user),
+          options: unquote(options)
+        }
       )
     end
   end
