@@ -51,20 +51,6 @@ defmodule Bootleg.Config do
   under the key `:bootleg`. Attributes in the struct have a 1:1 relationship with
   the keys in the `Mix.Config`.
 
-  ## Fields
-  * `deploy` - Configuration for the deployment tasks. This should be a `Map` in `Mix.Config`, and will
-      be converted to a `Bootleg.DeployConfig` using `Bootleg.DeployConfig.init/1`.
-
-  ## Example
-
-    ```
-    config :bootleg, manage: [
-      strategy: Bootleg.Strategies.Manage.RemoteSSH,
-      host: "deploy1.example.com",
-      user: "jane",
-      workspace: "/usr/local/my_app/release"
-    ]
-    ```
   """
 
   alias Bootleg.Config.{ManageConfig, ArchiveConfig}

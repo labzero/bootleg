@@ -4,7 +4,7 @@ defmodule Bootleg.Config.ManageConfig do
 
   ## Fields
     * `workspace` - Absolute path to the directory where the deploy can be found.
-    * `strategy` - The bootleg strategy to use for manage. Defaults to `Bootleg.Strategies.Manage.RemoteSSH`.
+    * `strategy` - The bootleg strategy to use for manage. Defaults to `Bootleg.Strategies.Manage.Distillery`.
     * `user` - The username to use when connecting to the deployment host.
     * `hosts` - The hostname(s) or IP(s) of the deployment host(s).
     * `identity` - Absolute path to a private key used to authenticate with the deployment host. This should be in `PEM` format.
@@ -14,14 +14,6 @@ defmodule Bootleg.Config.ManageConfig do
 
   ## Example
 
-    ```
-    config :bootleg, manage: [
-      strategy: Bootleg.Strategies.Manage.RemoteSSH,
-      hosts: ["prod1.example.com","prod2.example.com"],
-      user: "jane",
-      workspace: "/usr/local/my_app/release"
-    ]
-    ```
   """
 
   @doc false
