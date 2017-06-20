@@ -9,7 +9,8 @@ defmodule Bootleg.SSH do
 
   def init(role, options \\ [])
   def init(%Role{} = role, options) do
-    init(role.hosts, Keyword.merge(role.options, options))
+    role_options = Keyword.merge(role.options, [user: role.user])
+    init(role.hosts, Keyword.merge(role_options, options))
   end
 
   def init(role_name, options) when is_atom(role_name) do

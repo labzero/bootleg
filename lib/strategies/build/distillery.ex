@@ -31,7 +31,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   defp git_push(conn, refspec) do
     build_role = Config.get_role(:build)
-    user_host = "#{build_role.options[:user]}@#{List.first(build_role.hosts)}"
+    user_host = "#{build_role.user}@#{List.first(build_role.hosts)}"
     host_url = "#{user_host}:#{build_role.options[:workspace]}"
     push_options = Config.get_config(:push_options, "-f")
     identity = build_role.options[:identity]

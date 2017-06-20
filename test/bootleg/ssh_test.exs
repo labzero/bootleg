@@ -25,6 +25,7 @@ defmodule Bootleg.SSHTest do
       role: %Role{
         hosts: ["localhost.1", "localhost.2"],
         name: :build,
+        user: "sanejane",
         options: []
       }
     }

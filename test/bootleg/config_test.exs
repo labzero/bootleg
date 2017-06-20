@@ -16,7 +16,7 @@ defmodule Bootleg.ConfigTest do
 
     role :build, "build.labzero.com"
     result = roles()
-    assert [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [user: user]}] = result
+    assert [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [], user: user}] = result
     assert user == System.get_env("USER")
   end
 
@@ -26,7 +26,7 @@ defmodule Bootleg.ConfigTest do
 
     role :build, "build.labzero.com", user: "brien"
     assert roles() ==
-      [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [user: "brien"]}]
+      [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [], user: "brien"}]
   end
 
   test "get_role/1" do
@@ -57,12 +57,12 @@ defmodule Bootleg.ConfigTest do
     roles = Bootleg.Config.Agent.get(:roles)
     config = Bootleg.Config.Agent.get(:config)
 
-    assert %Bootleg.Role{hosts: ["www1.example.com", "www2.example.com"], name: :app, options: [user: user]}
+    assert %Bootleg.Role{hosts: ["www1.example.com", "www2.example.com"], name: :app, options: [], user: user}
       = roles[:app]
     assert user == System.get_env("USER")
-    assert %Bootleg.Role{hosts: ["db.example.com"], name: :db, options: [primary: true, user: "foo"]}
+    assert %Bootleg.Role{hosts: ["db.example.com"], name: :db, options: [primary: true], user: "foo"}
       = roles[:db]
-    assert %Bootleg.Role{hosts: ["replacement.example.com"], name: :replace, options: [user: user, bar: :car]}
+    assert %Bootleg.Role{hosts: ["replacement.example.com"], name: :replace, options: [bar: :car], user: user}
       = roles[:replace]
     assert user == System.get_env("USER")
 
