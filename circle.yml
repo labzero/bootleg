@@ -1,3 +1,6 @@
+machine:
+  services:
+    - docker
 dependencies:
   pre:
     - script/ci/prepare.sh
