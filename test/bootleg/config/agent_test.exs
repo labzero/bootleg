@@ -12,4 +12,9 @@ defmodule Bootleg.Config.AgentTest do
     Agent.merge(:config, :foo, :bar)
     assert Agent.get(:config) == [key: :value, key2: :value, foo: :bar]
   end
+
+  test "startlink/0 ignores 'already started' errors" do
+    Agent.start_link
+    assert {:ok, _} = Agent.start_link
+  end
 end
