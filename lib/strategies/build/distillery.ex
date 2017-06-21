@@ -113,9 +113,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
     UI.info "Generating release"
 
     # build assets for phoenix apps
-    @ssh.run!(ssh, "[ -f package.json ] && npm install")
-    @ssh.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p")
-    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest"))
+    @ssh.run!(ssh, "[ -f package.json ] && npm install || true")
+    @ssh.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true")
+    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest") <> " || true")
 
     @ssh.run!(ssh, with_env_vars(mix_env, "mix release"))
   end
