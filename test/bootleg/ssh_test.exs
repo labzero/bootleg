@@ -1,6 +1,6 @@
 defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
-  alias Bootleg.{SSH, Role}
+  alias Bootleg.{SSH, Role, Fixtures}
   alias SSHKit.{Context, Host}
   import ExUnit.CaptureIO
 
@@ -26,38 +26,57 @@ defmodule Bootleg.SSHTest do
         hosts: ["localhost.1", "localhost.2"],
         name: :build,
         user: "sanejane",
-        options: []
+        options: [workspace: "some workspace"]
       }
     }
   end
 
-  test "init/1 with Bootleg.Role", %{role: role} do
+  test "init/2 with Bootleg.Role", %{role: role} do
     capture_io(fn ->
-      assert %Context{} = SSH.init(role), "Connection isn't a context"
+      assert %Context{hosts: [
+        %Host{name: "localhost.1", options: options_1},
+        %Host{name: "localhost.2", options: options_2}
+      ], pwd: "some workspace"} = SSH.init(role), "Connection isn't a context"
+      assert options_1 == options_2
+      assert options_1[:user] ==  "sanejane"
     end)
   end
 
-  test "init/1 with Role name atom", %{role: role_fixture} do
+  test "init/2 with Role name atom" do
     use Bootleg.Config
-    role :build, "build.labzero.com"
+    role :build, "build.labzero.com", workspace: "some path", user: "sanejane", identity: Fixtures.identity_path
 
     capture_io(fn ->
-      assert %Context{} = SSH.init(role_fixture.name)
+      assert %Context{hosts: [%Host{name: "build.labzero.com", options: options}], pwd: "some path"} = SSH.init(:build)
+      assert options[:user] == "sanejane"
+      assert options[:identity] == Fixtures.identity_path
+      assert {SSHKit.SSH.ClientKeyAPI, _} = options[:key_cb]
     end)
   end
 
-  test "init/2", %{conn: conn} do
+  test "init/2 with options", %{role: role} do
+    capture_io(fn ->
+      assert %Context{pwd: "some other workspace"}
+        = SSH.init(role, workspace: "some other workspace"), "Workspace isn't overridden"
+      assert %Context{hosts: [%Host{options: options_1}, %Host{options: options_2}]}
+        = SSH.init(role, user: "slimjim")
+      assert options_1 == options_2
+      assert options_1[:user] == "slimjim", "User isn't overridden"
+    end)
+  end
+
+  test "init/3", %{conn: conn} do
     capture_io(fn ->
       context = SSH.init(["localhost.1", "localhost.2"])
       assert conn == context
     end)
   end
 
-  test "init/2 with identity" do
+  test "init/3 with identity" do
     capture_io(fn ->
       context = SSH.init(
         ["localhost.1", "localhost.2"],
-        identity: "test/fixtures/identity_rsa")
+        identity: Fixtures.identity_path)
 
       assert %Context{} = context
 
