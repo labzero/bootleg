@@ -1,0 +1,17 @@
+dependencies:
+  pre:
+    - script/ci/prepare.sh
+  cache_directories:
+    - ~/dependencies
+    - ~/.mix
+    - _build
+    - deps
+test:
+  override:
+    - mkdir -p $CIRCLE_TEST_REPORTS/test
+    - script/ci/run-mix.sh dialyzer
+    - script/ci/run-mix.sh credo --strict
+    - script/ci/run-mix.sh test
+    - script/ci/run-mix.sh coveralls.html
+  post:
+    - cp -r cover/ $CIRCLE_ARTIFACTS/

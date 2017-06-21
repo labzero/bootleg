@@ -1,6 +1,8 @@
 defmodule Mix.Tasks.Bootleg.Build do
   use Mix.Task
 
+  alias Bootleg.Config
+
   @shortdoc "Build a release"
 
   @moduledoc """
@@ -18,15 +20,17 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
+    config = Bootleg.config()
 
-    _mix_env = Application.get_env(:bootleg, :mix_env, "prod")
-    version = Mix.Project.config[:version]
-    config = Application.get_env(:bootleg, :build)
-    strategy = config[:strategy] || Bootleg.Strategies.Build.RemoteSSH
-    
-    config
-    |> strategy.init
-    |> strategy.build(config, version)
+    builder = Config.strategy(config, :build)
+    archiver = Config.strategy(config, :archive)
+    project = Bootleg.project()
+
+    {:ok, build_filename} = builder.build(config, project)
+
+    unless archiver == false do
+      archiver.archive(config, project, build_filename)
+    end
   end
 
 end
