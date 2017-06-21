@@ -5,7 +5,10 @@ defmodule Bootleg.Config.Agent do
 
   @spec start_link() :: {:ok, pid}
   def start_link do
-    Agent.start_link(fn -> [roles: [], config: []] end, name: Bootleg.Config.Agent)
+    case Agent.start_link(fn -> [roles: [], config: []] end, name: Bootleg.Config.Agent) do
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      val -> val
+    end
   end
 
   @spec get(atom) :: data
