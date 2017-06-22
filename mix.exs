@@ -37,11 +37,12 @@ defmodule Bootleg.Mixfile do
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.14", only: :dev, runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
-      {:bunt, "~> 0.2.0"}
+      {:bunt, "~> 0.2.0"},
+      {:mock, "~> 0.2.0", only: :test}
     ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
-  defp elixirc_paths(:dev), do: ["lib", "web", "test/support"]  
+  defp elixirc_paths(:dev), do: ["lib", "web", "test/support"]
   defp elixirc_paths(_), do: ["lib", "web"]
 end

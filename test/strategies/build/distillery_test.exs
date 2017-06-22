@@ -18,15 +18,17 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
     }
   end
 
+  @tag skip: "Migrate to functional test"
   test "init", %{project: project} do
     capture_io(fn ->
-      assert %SSHKit.Context{hosts: [%SSHKit.Host{name: "build_host", options: options}], pwd: "workspace", user: nil}
+      assert %SSHKit.Context{hosts: [%SSHKit.Host{name: "build_host", options: options}], path: "workspace", user: nil}
         = Distillery.init(project)
       assert options[:user] == "user"
       assert options[:identity] == Fixtures.identity_path()
     end)
   end
 
+  @tag skip: "Migrate to functional test"
   test "build", %{project: project} do
     local_file = "#{File.cwd!}/releases/build.tar.gz"
     capture_io(fn -> assert {:ok, local_file} == Distillery.build(project) end)

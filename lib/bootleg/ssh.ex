@@ -2,9 +2,9 @@ defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
   alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
+  alias SSHKit.SSH, as: SSHKitSSH
   alias Bootleg.{UI, Role, Config}
 
-  @runner Application.get_env(:bootleg, :sshkit, SSHKit)
   @local_options ~w(create_workspace)a
 
   def init(role, options \\ [])
@@ -41,9 +41,9 @@ defmodule Bootleg.SSH do
 
     run = fn host ->
       UI.puts_send host, cmd
-      {:ok, conn} = @runner.SSH.connect(host.name, host.options)
+      {:ok, conn} = SSHKitSSH.connect(host.name, host.options)
       conn
-      |> @runner.SSH.run(cmd, fun: &capture(&1, &2, host))
+      |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host))
       |> Tuple.append(host)
     end
 
@@ -53,11 +53,11 @@ defmodule Bootleg.SSH do
   defp validate_workspace(context, workspace, create_workspace)
   defp validate_workspace(context, workspace, false) do
     run!(context, "test -d #{workspace}")
-    SSHKit.pwd context, workspace
+    SSHKit.path context, workspace
   end
   defp validate_workspace(context, workspace, true) do
     run!(context, "mkdir -p #{workspace}")
-    SSHKit.pwd context, workspace
+    SSHKit.path context, workspace
   end
 
   defp capture(message, state = {buffer, status}, host) do
@@ -93,7 +93,7 @@ defmodule Bootleg.SSH do
 
   def download(conn, remote_path, local_path) do
     UI.puts_download conn, remote_path, local_path
-    case @runner.download(conn, remote_path, as: local_path) do
+    case SSHKit.download(conn, remote_path, as: local_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
     end
@@ -101,7 +101,7 @@ defmodule Bootleg.SSH do
 
   def upload(conn, local_path, remote_path) do
     UI.puts_upload conn, local_path, remote_path
-    case @runner.upload(conn, local_path, as: remote_path) do
+    case SSHKit.upload(conn, local_path, as: remote_path) do
       [:ok|_] -> :ok
       [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
     end

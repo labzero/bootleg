@@ -83,7 +83,7 @@ defmodule Bootleg.UI do
         ++ [:reset, :yellow, "UPLOAD", " "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ [:reset, :yellow, " -> "]
-        ++ [:reset, Path.join(context.pwd, remote_path)]
+        ++ [:reset, Path.join(context.path, remote_path)]
       |> Bunt.puts()
     end)
   end
@@ -96,7 +96,7 @@ defmodule Bootleg.UI do
       [:bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "DOWNLOAD", " "]
-        ++ [:reset, Path.join(context.pwd, remote_path)]
+        ++ [:reset, Path.join(context.path, remote_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
       |> Bunt.puts()
