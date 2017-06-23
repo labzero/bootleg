@@ -37,7 +37,7 @@ jobs:
       - run: mix compile
       - run: mix dialyzer
       - run: mix credo --strict
-      - run: EXUNIT_VERBOSE=true mix test
+      - run: DOCKER_LEAVE_CONTAINER=true EXUNIT_VERBOSE=true mix test
       - run: mix coveralls.html
 
       - store_artifacts:

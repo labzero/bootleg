@@ -29,7 +29,9 @@ defmodule Bootleg.FunctionalCase do
       Logger.info("started docker hosts: #{inspect hosts, pretty: true}")
     end
 
-    on_exit fn -> kill(hosts) end
+    unless Map.get(tags, :leave_vm, System.get_env("DOCKER_LEAVE_CONTAINER")) do
+      on_exit fn -> kill(hosts) end
+    end
 
     {:ok, hosts: hosts}
   end
