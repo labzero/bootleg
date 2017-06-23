@@ -9,15 +9,11 @@ set -e
 export ERLANG_VERSION="19.0"
 export ELIXIR_VERSION="v1.4.2"
 
-export INSTALL_PATH="$HOME/dependencies"
-
 export ERLANG_PATH="$INSTALL_PATH/otp_src_$ERLANG_VERSION"
 export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
 
 mkdir -p $INSTALL_PATH
 cd $INSTALL_PATH
-
-export PATH="$INSTALL_PATH/bin:$PATH"
 
 # Install erlang
 if [ ! -e $INSTALL_PATH/bin/erl ]; then
@@ -49,8 +45,3 @@ if [ ! -e $HOME/.mix/rebar ]; then
   yes Y | LC_ALL=en_GB.UTF-8 mix local.hex
   yes Y | LC_ALL=en_GB.UTF-8 mix local.rebar
 fi
-
-# Fetch and compile dependencies and application code (and include testing tools)
-export MIX_ENV="test"
-cd $HOME/$CIRCLE_PROJECT_REPONAME
-mix do deps.get, deps.compile, compile, dialyzer --plt
