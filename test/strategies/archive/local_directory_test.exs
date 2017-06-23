@@ -11,6 +11,7 @@ defmodule LocalDirectoryTest do
 
   setup do
     File.cp("test/fixtures/#{@build_tarball}", @build_tarball)
+    on_exit fn -> File.rm(@build_tarball) end
     %{
       project: %Bootleg.Project{
         app_name: "bootleg",
