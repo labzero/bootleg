@@ -7,10 +7,16 @@ jobs:
       - checkout
       - run: echo 'export INSTALL_PATH="$HOME/dependencies";export PATH="$INSTALL_PATH/bin:$PATH";export MIX_ENV=test' >> $BASH_ENV
       - restore_cache:
-          key: dependency-cache
+          key: environment-cache-{{ checksum ".circleci/config.yml" }}
       - run:
           name: Install Elixir
           command: script/ci/prepare.sh
+      - save_cache:
+          key: environment-cache-{{ checksum ".circleci/config.yml" }}
+          paths:
+            - ~/dependencies
+      - restore_cache:
+          key: dependencies-cache-{{ checksum "mix.lock" }}
       - run:
           name: Preparing dependencies
           command: |
@@ -19,9 +25,8 @@ jobs:
             mix dialyzer --plt;
           no_output_timeout: 10m
       - save_cache:
-          key: dependency-cache
+          key: dependencies-cache-{{ checksum "mix.lock" }}
           paths:
-            - ~/dependencies
             - ~/.mix
             - _build
             - deps
