@@ -14,4 +14,5 @@ end
 
 Docker.build!("bootleg-test-sshd", "test/support/docker")
 
+ExUnit.configure formatters: [JUnitFormatter, ExUnit.CLIFormatter]
 ExUnit.start()

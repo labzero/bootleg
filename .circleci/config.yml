@@ -37,6 +37,7 @@ jobs:
       - run: mix credo --strict
       - run: mix test
       - run: mix coveralls.html
-
+      - store_test_results:
+          path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
           path: cover
