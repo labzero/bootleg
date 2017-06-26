@@ -30,6 +30,8 @@ if [ ! -e $INSTALL_PATH/bin/erl ]; then
               --without-javac \
               --prefix=$INSTALL_PATH
   make install
+else
+  echo "Erlang already installed."
 fi
 
 # Install elixir
@@ -38,10 +40,13 @@ if [ ! -e $INSTALL_PATH/bin/elixir ]; then
   cd $ELIXIR_PATH
   git checkout $ELIXIR_VERSION
   PREFIX=$INSTALL_PATH make install
+else
+  echo "Elixir already installed."
 fi
 
-# Install package tools
-if [ ! -e $HOME/.mix/rebar ]; then
-  yes Y | LC_ALL=en_GB.UTF-8 mix local.hex
-  yes Y | LC_ALL=en_GB.UTF-8 mix local.rebar
+if [ $VERSION_CIRCLECI -ne 2 ]; then
+  # Fetch and compile dependencies and application code (and include testing tools)
+  export MIX_ENV="test"
+  cd $HOME/$CIRCLE_PROJECT_REPONAME
+  mix do deps.get, deps.compile, compile, dialyzer --plt
 fi
