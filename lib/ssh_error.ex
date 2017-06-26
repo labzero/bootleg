@@ -9,6 +9,11 @@ defmodule SSHError do
     %SSHError{message: msg, status: status, output: output, host: host}
   end
 
+  def exception([err, host]) when is_atom(err) do
+    msg = "SSHKit returned an internal error on #{host.name}: #{err}"
+    %SSHError{message: msg, status: err}
+  end
+
   @padding 8
   defp format(key, value) do
     String.pad_leading(key, @padding)
