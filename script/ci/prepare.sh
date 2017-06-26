@@ -45,6 +45,12 @@ else
 fi
 
 if [ $VERSION_CIRCLECI -ne 2 ]; then
+  # Install package tools
+  mix help | grep [^.]hex > /dev/null
+  if [ $? -ne 0 ]; then
+    yes Y | LC_ALL=en_GB.UTF-8 mix local.hex
+  fi
+
   # Fetch and compile dependencies and application code (and include testing tools)
   export MIX_ENV="test"
   cd $HOME/$CIRCLE_PROJECT_REPONAME
