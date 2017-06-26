@@ -25,11 +25,11 @@ defmodule Bootleg.FunctionalCase do
     conf = %{image: @image, cmd: @cmd, args: @args}
     hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
 
-    if Map.get(tags, :verbose, System.get_env("EXUNIT_VERBOSE")) do
+    if Map.get(tags, :verbose, System.get_env("TEST_VERBOSE")) do
       Logger.info("started docker hosts: #{inspect hosts, pretty: true}")
     end
 
-    unless Map.get(tags, :leave_vm, System.get_env("DOCKER_LEAVE_CONTAINER")) do
+    unless Map.get(tags, :leave_vm, System.get_env("TEST_LEAVE_CONTAINER")) do
       on_exit fn -> kill(hosts) end
     end
 
