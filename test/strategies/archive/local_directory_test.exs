@@ -107,7 +107,7 @@ defmodule LocalDirectoryTest do
     end
   end
 
-  @tag note: "Migrate to functional test"
+  @tag skip: "Migrate to functional test"
   test "archive when folder full of releases", %{config: config, project: project} do
     strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
