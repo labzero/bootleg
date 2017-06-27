@@ -45,9 +45,9 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
   @tag boot: 1
   test "deploy/1 deploys the release to the target hosts", %{project: project} do
     File.cd!("test/fixtures", fn ->
-      # capture_io(fn ->
+      capture_io(fn ->
         assert :ok = Distillery.deploy(project)
-      # end)
+      end)
     end)
   end
 
@@ -64,7 +64,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  test "init/1 returns an error if the host is not found", %{project: project} do
+  test "init/1 raises an error if the host is not found", %{project: project} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     role :app, "bad-host-name"
