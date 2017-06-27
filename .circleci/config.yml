@@ -1,36 +1,34 @@
 version: 2
 jobs:
   build:
-    docker:
-      - image: trenpixster/elixir:latest
-        environment:
-          - MIX_ENV: test
+    machine: true
     working_directory: ~/bootleg
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Install Docker client
-          command: |
-            set -x
-            VER="17.05.0-ce"
-            curl -L -o /tmp/docker-$VER.tgz https://get.docker.com/builds/Linux/x86_64/docker-$VER.tgz
-            tar -xz -C /tmp -f /tmp/docker-$VER.tgz
-            mv /tmp/docker/* /usr/bin
+      - run: echo 'export INSTALL_PATH="$HOME/dependencies";export PATH="$INSTALL_PATH/bin:$PATH";export MIX_ENV=test;export VERSION_CIRCLECI=2' >> $BASH_ENV
       - restore_cache:
-          key: dependency-cache
+          key: environment-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}
+      - run:
+          name: Install Elixir
+          command: script/ci/prepare.sh
+      - save_cache:
+          key: environment-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}
+          paths:
+            - ~/dependencies
+      - restore_cache:
+          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "mix.lock" }}
       - run:
           name: Preparing dependencies
           command: |
-            mkdir -p $CIRCLE_TEST_REPORTS/test;
+            mix local.hex --force
+            mix local.rebar --force
             mix deps.get;
             mix deps.compile;
             mix dialyzer --plt;
           no_output_timeout: 10m
       - save_cache:
-          key: dependency-cache
+          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "mix.lock" }}
           paths:
-            - ~/dependencies
             - ~/.mix
             - _build
             - deps
@@ -39,6 +37,7 @@ jobs:
       - run: mix credo --strict
       - run: mix test
       - run: mix coveralls.html
-
+      - store_test_results:
+          path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
           path: cover

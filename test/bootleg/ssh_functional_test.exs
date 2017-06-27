@@ -10,7 +10,7 @@ defmodule Bootleg.SSHFunctionalTest do
     options = [port: host.port, user: host.user, password: host.password]
     capture_io(fn ->
       conn = SSH.init(host.ip, Keyword.merge(@defaults, options))
-      assert [{:ok, [normal: "Badgers"], 0, _}] = SSH.run!(conn, "uname")
+      assert [{:ok, [stdout: "Linux\n"], 0, _}] = SSH.run!(conn, "uname")
     end)
   end
 end

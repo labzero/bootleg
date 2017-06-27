@@ -2,9 +2,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
 
-  @git Application.get_env(:bootleg, :git, Bootleg.Git)
-
-  alias Bootleg.{Project, UI, SSH, Config}
+  alias Bootleg.{Git, Project, UI, SSH, Config}
 
   def init(%Project{} = _project) do
 
@@ -39,7 +37,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
     UI.info "Pushing new commits with git to: #{user_host}"
 
-    case @git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
+    case Git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> :ok
       {result, 0} ->
         UI.puts_recv conn, result

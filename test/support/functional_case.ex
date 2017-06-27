@@ -4,6 +4,7 @@ defmodule Bootleg.FunctionalCase do
   use ExUnit.CaseTemplate
 
   import Bootleg.FunctionalCaseHelpers
+  require Logger
 
   @image "bootleg-test-sshd"
   @cmd "/usr/sbin/sshd"
@@ -24,7 +25,13 @@ defmodule Bootleg.FunctionalCase do
     conf = %{image: @image, cmd: @cmd, args: @args}
     hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
 
-    on_exit fn -> kill(hosts) end
+    if Map.get(tags, :verbose, System.get_env("TEST_VERBOSE")) do
+      Logger.info("started docker hosts: #{inspect hosts, pretty: true}")
+    end
+
+    unless Map.get(tags, :leave_vm, System.get_env("TEST_LEAVE_CONTAINER")) do
+      on_exit fn -> kill(hosts) end
+    end
 
     {:ok, hosts: hosts}
   end

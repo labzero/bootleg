@@ -11,7 +11,7 @@ defmodule Bootleg.UITest do
   setup do
     %{
       conn: %Context{
-        pwd: ".",
+        path: ".",
         hosts: [
           %Host{name: "localhost.1", options: []},
           %Host{name: "localhost.2", options: []}
