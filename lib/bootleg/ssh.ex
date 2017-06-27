@@ -5,7 +5,7 @@ defmodule Bootleg.SSH do
   alias SSHKit.SSH, as: SSHKitSSH
   alias Bootleg.{UI, Role, Config}
 
-  @local_options ~w(create_workspace)a
+  @local_options ~w(create_workspace workspace)a
 
   def init(role, options \\ [])
   def init(%Role{} = role, options) do
@@ -41,7 +41,12 @@ defmodule Bootleg.SSH do
 
     run = fn host ->
       UI.puts_send host, cmd
-      {:ok, conn} = SSHKitSSH.connect(host.name, host.options)
+
+      conn = case SSHKitSSH.connect(host.name, host.options) do
+        {:ok, conn} -> conn
+        {:error, err} -> raise SSHError, [err, host]
+      end
+
       conn
       |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host))
       |> Tuple.append(host)

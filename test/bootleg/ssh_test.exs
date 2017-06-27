@@ -123,4 +123,17 @@ defmodule Bootleg.SSHTest do
       end)
     end
   end
+
+  test "init/3 raises an error if the host is not found" do
+    capture_io(fn ->
+      assert_raise SSHError, fn -> SSH.init("bad-host-name") end
+    end)
+  end
+
+  test "run!/2 raises an error if the host is not found" do
+    capture_io(fn ->
+      conn = SSHKit.context(SSHKit.host("bad-host-name"))
+      assert_raise SSHError, fn -> SSH.run!(conn, "echo foo") end
+    end)
+  end
 end

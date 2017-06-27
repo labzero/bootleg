@@ -9,4 +9,20 @@ defmodule SSHErrorTest do
               message: "Command exited on host with non-zero status (status)\n     cmd: cmd\n  stdout: output\n",
               output: [stdout: "output"]} == error
   end
+
+  test "exception([err, host]) when err is an atom" do
+    error = SSHError.exception([:an_error, %{name: "host"}])
+    assert %SSHError{status: :an_error,
+              host: %{name: "host"},
+              message: "SSHKit returned an internal error on host: an_error"
+              } = error
+  end
+
+  test "exception([err, host]) when err is a string" do
+    error = SSHError.exception(["an error", %{name: "host"}])
+    assert %SSHError{status: "an error",
+              host: %{name: "host"},
+              message: "SSHKit returned an internal error on host: an error"
+              } = error
+  end
 end
