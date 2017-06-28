@@ -66,8 +66,16 @@ defmodule Bootleg.Config do
     add_callback(task, :before, do: block)
   end
 
+  defmacro before_task(task, other_task) when is_atom(task) and is_atom(other_task) do
+    quote do: before_task(unquote(task), do: invoke(unquote(other_task)))
+  end
+
   defmacro after_task(task, do: block) when is_atom(task) do
     add_callback(task, :after, do: block)
+  end
+
+  defmacro after_task(task, other_task) when is_atom(task) and is_atom(other_task) do
+    quote do: after_task(unquote(task), do: invoke(unquote(other_task)))
   end
 
   defmacro task(task, do: block) when is_atom(task) do
