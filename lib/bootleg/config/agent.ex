@@ -5,7 +5,10 @@ defmodule Bootleg.Config.Agent do
 
   @spec start_link() :: {:ok, pid}
   def start_link do
-    case Agent.start_link(fn -> [roles: [], config: []] end, name: Bootleg.Config.Agent) do
+    state_fn = fn ->
+      [roles: [], config: [], before_hooks: [], after_hooks: [], next_hook_number: 0]
+    end
+    case Agent.start_link(state_fn, name: Bootleg.Config.Agent) do
       {:error, {:already_started, pid}} -> {:ok, pid}
       val -> val
     end
@@ -24,6 +27,13 @@ defmodule Bootleg.Config.Agent do
   @spec merge(atom, atom, any) :: :ok
   def merge(name, key, value) do
     put(name, Keyword.merge(get(name), [{key, value}]))
+  end
+
+  @spec increment(atom) :: integer()
+  def increment(key) do
+    Agent.get_and_update(Bootleg.Config.Agent, fn (state) ->
+      {state[key], Keyword.put(state, key, state[key] + 1)}
+    end)
   end
 
 end
