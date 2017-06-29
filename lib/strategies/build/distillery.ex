@@ -6,7 +6,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   def init(%Project{} = _project) do
 
-    conn = SSH.init(:build, create_workspace: true)
+    conn = SSH.init(:build)
     SSH.run!(conn, "git init")
     SSH.run!(conn, "git config receive.denyCurrentBranch ignore")
     conn
