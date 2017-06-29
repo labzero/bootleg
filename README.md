@@ -188,7 +188,7 @@ pieces.
 **NOTE:** Invoking an undefined task is not an error and any registered hooks will still be executed.
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
 before_task :build do
   IO.puts "Hello"
@@ -234,7 +234,7 @@ end
 Execute shell commands on a remote server
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
 # basic - will run in context of role used by hook
 {:ok, output} = remote do
@@ -267,7 +267,7 @@ output = [
 `task`
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
 task :example_task do
   IO.puts "local commands in elixir"

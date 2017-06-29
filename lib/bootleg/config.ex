@@ -47,17 +47,17 @@ defmodule Bootleg.Config do
   end
 
   defp add_callback(task, position, do: block) do
-    hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
-    module_name = String.to_atom("Bootleg.Config.DynamicCallbacks." <>
-      String.capitalize("#{position}") <> String.capitalize("#{task}") <>
-      "#{hook_number}")
     quote do
-      defmodule unquote(module_name) do
+      hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
+      module_name = String.to_atom("Elixir.Bootleg.Config.DynamicCallbacks." <>
+        String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
+        "#{hook_number}")
+      defmodule module_name do
         def execute, do: unquote(block)
         hook_list_name = :"#{unquote(position)}_hooks"
         hooks = Keyword.get(Bootleg.Config.Agent.get(hook_list_name), unquote(task), [])
         Bootleg.Config.Agent.merge(hook_list_name, unquote(task), hooks ++
-          [[unquote(module_name), :execute]])
+          [[module_name, :execute]])
       end
     end
   end
@@ -79,7 +79,7 @@ defmodule Bootleg.Config do
   end
 
   defmacro task(task, do: block) when is_atom(task) do
-    module_name = :"Bootleg.Config.DynamicTasks.#{String.capitalize("#{task}")}"
+    module_name = :"Elixir.Bootleg.Config.DynamicTasks.#{String.capitalize("#{task}")}"
     quote do
       defmodule unquote(module_name) do
         def execute, do: unquote(block)
@@ -97,7 +97,7 @@ defmodule Bootleg.Config do
   def invoke(task) when is_atom(task) do
     invoke_task_callbacks(task, :before_hooks)
 
-    module_name = :"Bootleg.Config.DynamicTasks.#{String.capitalize("#{task}")}"
+    module_name = :"Elixir.Bootleg.Config.DynamicTasks.#{String.capitalize("#{task}")}"
     if Code.ensure_compiled?(module_name) do
       apply(module_name, :execute, [])
     end
