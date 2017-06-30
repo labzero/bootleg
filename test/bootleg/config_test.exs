@@ -113,16 +113,16 @@ defmodule Bootleg.ConfigTest do
       end
     end
 
-    Module.create(Bootleg.Config.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
+    Module.create(Bootleg.Tasks.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
 
     Config.Agent.merge(:before_hooks, :taskinvoketest, [
-      [Bootleg.Config.DynamicTasks.Taskinvoketest, :before_hook_1],
-      [Bootleg.Config.DynamicTasks.Taskinvoketest, :before_hook_2]
+      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_1],
+      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_2]
     ])
 
     Config.Agent.merge(:after_hooks, :taskinvoketest, [
-      [Bootleg.Config.DynamicTasks.Taskinvoketest, :after_hook_1],
-      [Bootleg.Config.DynamicTasks.Taskinvoketest, :after_hook_2]
+      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_1],
+      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_2]
     ])
 
     invoke :taskinvoketest
@@ -153,7 +153,7 @@ defmodule Bootleg.ConfigTest do
 
     task :task_test, do: true
 
-    assert apply(Bootleg.Config.DynamicTasks.Task_test, :execute, [])
+    assert apply(Bootleg.Tasks.DynamicTasks.Task_test, :execute, [])
   end
 
   test "hooks" do
