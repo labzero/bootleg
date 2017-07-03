@@ -37,18 +37,6 @@ defmodule Bootleg.UI do
     puts(:info, output, setting)
   end
 
-  defp format(level, output) do
-    level_str =
-      level
-      |> Atom.to_string()
-      |> String.upcase()
-      |> String.pad_leading(6)
-      |> String.pad_trailing(7)
-
-    prefix = "[" <> level_str <> "] "
-    Bunt.puts [:bright, :blue, prefix, :reset, output]
-  end
-
   @doc """
   Get configured output verbosity and sanitize it for our uses.
   Defaults to :info
