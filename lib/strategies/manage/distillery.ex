@@ -7,7 +7,8 @@ defmodule Bootleg.Strategies.Manage.Distillery do
 
   def init(%Config{manage: %ManageConfig{identity: identity, hosts: hosts, user: user, workspace: workspace} = config}, %Project{} = _project) do
     with :ok <- Bootleg.check_config(config, @config_keys) do
-      SSH.init(hosts, [user: user, identity: identity, workspace: workspace])
+      SSH.init(hosts,
+               [user: user, identity: identity, workspace: workspace, create_workspace: false])
     else
       {:error, msg} -> raise "Error: #{msg}"
     end

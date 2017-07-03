@@ -19,7 +19,7 @@ defmodule Bootleg.SSH do
 
   def init(hosts, options) do
       workspace = Keyword.get(options, :workspace, ".")
-      create_workspace = Keyword.get(options, :create_workspace, false)
+      create_workspace = Keyword.get(options, :create_workspace, true)
       UI.puts "Creating remote context at '#{workspace}'"
 
       options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)

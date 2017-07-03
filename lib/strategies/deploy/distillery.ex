@@ -11,7 +11,7 @@ defmodule Bootleg.Strategies.Deploy.Distillery do
   end
 
   def init(%Project{} = _project) do
-    SSH.init(:app, create_workspace: true)
+    SSH.init(:app)
   end
 
   defp deploy_release_archive(conn, %Project{} = project) do
