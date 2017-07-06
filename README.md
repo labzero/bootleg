@@ -107,7 +107,7 @@ mix bootleg.stop production      # Stops a deployed release.
 mix bootleg.ping production      # Check status of running nodes
 ```
 
-## Hooks and Events
+## Hooks
 
 [VERY MUCH A WIP]
 
@@ -115,7 +115,7 @@ Hooks may be defined by the user in order to perform additional (or exceptional)
 operations before or after certain actions performed by bootleg.
 
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
-before or after the following built-in events:
+before or after a task. The following tasks are provided by bootleg:
 
 1. `build` - generation of a release package
 1. `deploy` - deploy of a release package
@@ -123,34 +123,83 @@ before or after the following built-in events:
 1. `stop` - stopping of a release
 1. `restart` - restarting of a release
 
-Alternatively, custom events may be triggered inside your tasks. **Custom event
-hooks are only available as after hooks**.
+Hooks can be defined for any task (built-in or user defined), even ones that do not exist. This can be used
+to create an "event" that you want to respond to, but has no real "implementation".
 
-## `trigger`, `invoke`, `task` and events.
+To register a hook, use:
+
+ * `before_task <:task> do ... end` - Before `task` executes, execute the provided code block.
+ * `after_task <:task> do ... end` - After `task` executes, execute the provided code block.
+
+For example:
+
+```elixir
+use Bootleg.Config
+
+before_task :build do
+  IO.puts "Starting build..."
+end
+
+after_task :deploy do
+  MyAPM.notify_deploy()
+end
+```
+
+You can define multiple hooks for a task, and they will be executed in the order they are defined. For example:
+
+```elixir
+use Bootleg.Config
+
+before_task :start do
+  IO.puts "This may take a bit"
+end
+
+after_task :start do
+  IO.puts "Started app!"
+end
+
+before_task :start do
+  IO.puts "Starting app!"
+end
+```
+
+would result in:
+
+```
+$ mix bootleg.build
+This may take a bit
+Starting app!
+...
+Started app!
+$
+```
+
+## `invoke` and `task`
 
 There are a few ways for custom code to be executed during the bootleg life
 cycle. Before showing some examples, here's a quick glossary of the related
 pieces.
 
  * `task <:identifier> do ... end` - Assign a block of code to the symbol provided as `:identifier`.
- This can then be executed by using the `invoke` macro.
- * `trigger <:event>` - Trigger a custom event with the identifier provided as `:event`
- * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`
- * `after <:event> do ... end` -  Respond to `:event` and execute the provided code block.
+   This can then be executed by using the `invoke` macro.
+ * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`, as well as
+   any before/after hooks.
+
+**NOTE:** Invoking an undefined task is not an error and any registered hooks will still be executed.
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
-before :build do
+before_task :build do
   IO.puts "Hello"
-  trigger :custom_event
+  invoke :custom_event
 end
 
 task :custom_task docs
   IO.puts "World"
 end
 
-after :custom_event do
+after_task :custom_event do
   IO.puts "Elixir"
   invoke :custom_task
 end
@@ -165,13 +214,13 @@ task :clear_cache do
   end
 end
 
-before :restart, do: :clear_cache
+before_task :restart, do: :clear_cache
 ```
 
 Alternatively:
 
 ```elixir
-before :restart do
+before_task :restart do
   {:ok, _output} = remote do
     "rm -rf /tmp/cache"
   end
@@ -185,7 +234,7 @@ end
 Execute shell commands on a remote server
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
 # basic - will run in context of role used by hook
 {:ok, output} = remote do
@@ -218,7 +267,7 @@ output = [
 `task`
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
 task :example_task do
   IO.puts "local commands in elixir"
@@ -234,7 +283,7 @@ task :invoke_something do
   invoke :example_task
 end
 
-before `deploy` do: :invoke_something
+before :deploy, :invoke_something
 ```
 
 ## Help

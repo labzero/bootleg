@@ -3,9 +3,11 @@ defmodule Bootleg.Config do
 
   defmacro __using__(_) do
     quote do
-      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0]
+      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
+        after_task: 2, invoke: 1, task: 2]
       {:ok, agent} = Bootleg.Config.Agent.start_link
-      # var!(config_agent, Bootleg.Config) = agent
+      Code.ensure_loaded(Bootleg.Tasks)
+      :ok
     end
   end
 
@@ -43,6 +45,65 @@ defmodule Bootleg.Config do
         unquote(value)
       )
     end
+  end
+
+  defp add_callback(task, position, do: block) do
+    quote do
+      hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
+      module_name = String.to_atom("Elixir.Bootleg.Tasks.DynamicCallbacks." <>
+        String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
+        "#{hook_number}")
+      defmodule module_name do
+        def execute, do: unquote(block)
+        hook_list_name = :"#{unquote(position)}_hooks"
+        hooks = Keyword.get(Bootleg.Config.Agent.get(hook_list_name), unquote(task), [])
+        Bootleg.Config.Agent.merge(hook_list_name, unquote(task), hooks ++
+          [[module_name, :execute]])
+      end
+    end
+  end
+
+  defmacro before_task(task, do: block) when is_atom(task) do
+    add_callback(task, :before, do: block)
+  end
+
+  defmacro before_task(task, other_task) when is_atom(task) and is_atom(other_task) do
+    quote do: before_task(unquote(task), do: invoke(unquote(other_task)))
+  end
+
+  defmacro after_task(task, do: block) when is_atom(task) do
+    add_callback(task, :after, do: block)
+  end
+
+  defmacro after_task(task, other_task) when is_atom(task) and is_atom(other_task) do
+    quote do: after_task(unquote(task), do: invoke(unquote(other_task)))
+  end
+
+  defmacro task(task, do: block) when is_atom(task) do
+    module_name = :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+    quote do
+      defmodule unquote(module_name) do
+        def execute, do: unquote(block)
+      end
+    end
+  end
+
+  defp invoke_task_callbacks(task, agent_key) do
+    agent_key
+    |> Bootleg.Config.Agent.get()
+    |> Keyword.get(task, [])
+    |> Enum.each(fn([module, fnref]) -> apply(module, fnref, []) end)
+  end
+
+  def invoke(task) when is_atom(task) do
+    invoke_task_callbacks(task, :before_hooks)
+
+    module_name = :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+    if Code.ensure_compiled?(module_name) do
+      apply(module_name, :execute, [])
+    end
+
+    invoke_task_callbacks(task, :after_hooks)
   end
 
   ##################
