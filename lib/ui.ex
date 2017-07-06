@@ -52,7 +52,7 @@ defmodule Bootleg.UI do
 
   defp verbosity_includes(setting, level)
   defp verbosity_includes(:info, :info), do: true
-  defp verbosity_includes(:warning, :info), do: true
+  defp verbosity_includes(:info, :warning), do: true
   defp verbosity_includes(:warning, :warning), do: true
   defp verbosity_includes(:debug, :info), do: true
   defp verbosity_includes(:debug, :warning), do: true

@@ -1,6 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Deploy do
   use Mix.Task
-  import Bootleg.Strategies.Deploy.Distillery
 
   @shortdoc "Deploy a release from the local cache"
 
@@ -14,6 +13,7 @@ defmodule Mix.Tasks.Bootleg.Deploy do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    deploy(Bootleg.project())
+    use Bootleg.Config
+    invoke :deploy
   end
 end

@@ -1,6 +1,7 @@
 defmodule Bootleg.ConfigTest do
-  use ExUnit.Case, async: true
-  alias Bootleg.Config
+  use ExUnit.Case, async: false
+  alias Bootleg.{Config, UI}
+  import Mock
 
   doctest Bootleg.Config
 
@@ -133,27 +134,49 @@ defmodule Bootleg.ConfigTest do
     assert_next_received {:after, :invoke_test, 1}
     assert_next_received {:after, :invoke_test, 2}
   end
+
   test "before_task/2" do
     use Bootleg.Config
 
     before_task :before_task_test, :some_other_task
     hooks = Config.Agent.get(:before_hooks)
-    assert [[_, :execute]] = hooks[:before_task_test]
+    assert [[module, :execute]] = hooks[:before_task_test]
+    assert {file, line} = module.location
+    assert file == __ENV__.file
+    assert line
   end
+
   test "after_task/2" do
     use Bootleg.Config
 
     after_task :after_task_test, :some_other_task
     hooks = Config.Agent.get(:after_hooks)
-    assert [[_, :execute]] = hooks[:after_task_test]
+    assert [[module, :execute]] = hooks[:after_task_test]
+    assert {file, line} = module.location
+    assert file == __ENV__.file
+    assert line
   end
-  test "task/2" do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+
+  test_with_mock "task/2", UI, [], [warn: fn(_string) -> :ok end] do
     use Bootleg.Config
 
     task :task_test, do: true
 
-    assert apply(Bootleg.Tasks.DynamicTasks.Task_test, :execute, [])
+    module = Bootleg.Tasks.DynamicTasks.Task_test
+    assert apply(module, :execute, [])
+    assert {file, line} = module.location
+    assert file == __ENV__.file
+    assert line
+    refute called UI.warn(:_)
+  end
+
+  test_with_mock "task/2 redefine task warning", UI, [], [warn: fn(_string) -> :ok end] do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    task :task_redefine_test, do: true
+    task :task_redefine_test, do: false
+    assert called UI.warn(:_)
   end
 
   test "hooks" do

@@ -1,6 +1,8 @@
 defmodule Bootleg.Config do
   @doc false
 
+  alias Bootleg.UI
+
   defmacro __using__(_) do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
@@ -47,14 +49,18 @@ defmodule Bootleg.Config do
     end
   end
 
-  defp add_callback(task, position, do: block) do
+  defp add_callback(task, position, caller, do: block) do
+    file = caller.file()
+    line = caller.line()
     quote do
       hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
       module_name = String.to_atom("Elixir.Bootleg.Tasks.DynamicCallbacks." <>
         String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
         "#{hook_number}")
       defmodule module_name do
+        @file unquote(file)
         def execute, do: unquote(block)
+        def location, do: {unquote(file), unquote(line)}
         hook_list_name = :"#{unquote(position)}_hooks"
         hooks = Keyword.get(Bootleg.Config.Agent.get(hook_list_name), unquote(task), [])
         Bootleg.Config.Agent.merge(hook_list_name, unquote(task), hooks ++
@@ -64,7 +70,7 @@ defmodule Bootleg.Config do
   end
 
   defmacro before_task(task, do: block) when is_atom(task) do
-    add_callback(task, :before, do: block)
+    add_callback(task, :before, __CALLER__, do: block)
   end
 
   defmacro before_task(task, other_task) when is_atom(task) and is_atom(other_task) do
@@ -72,7 +78,7 @@ defmodule Bootleg.Config do
   end
 
   defmacro after_task(task, do: block) when is_atom(task) do
-    add_callback(task, :after, do: block)
+    add_callback(task, :after, __CALLER__, do: block)
   end
 
   defmacro after_task(task, other_task) when is_atom(task) and is_atom(other_task) do
@@ -80,11 +86,31 @@ defmodule Bootleg.Config do
   end
 
   defmacro task(task, do: block) when is_atom(task) do
-    module_name = :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+    file = __CALLER__.file()
+    line = __CALLER__.line()
+    module_name = module_for_task(task)
+
     quote do
-      defmodule unquote(module_name) do
-        def execute, do: unquote(block)
+      if Code.ensure_compiled?(unquote(module_name)) do
+        {orig_file, orig_line} = unquote(module_name).location
+        UI.warn "warning: task '#{unquote(task)}' is being redefined. " <>
+        "The most recent definition will win, but this is probably not what you meant to do. " <>
+        "The previous definition was at: #{orig_file}:#{orig_line}"
       end
+
+      original_opts = Code.compiler_options()
+      Code.compiler_options(Map.put(original_opts, :ignore_module_conflict, true))
+
+      try do
+        defmodule unquote(module_name) do
+          @file unquote(file)
+          def execute, do: unquote(block)
+          def location, do: {unquote(file), unquote(line)}
+        end
+      after
+        Code.compiler_options(original_opts)
+      end
+      :ok
     end
   end
 
@@ -95,10 +121,14 @@ defmodule Bootleg.Config do
     |> Enum.each(fn([module, fnref]) -> apply(module, fnref, []) end)
   end
 
+  defp module_for_task(task) do
+    :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+  end
+
   def invoke(task) when is_atom(task) do
     invoke_task_callbacks(task, :before_hooks)
 
-    module_name = :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+    module_name = module_for_task(task)
     if Code.ensure_compiled?(module_name) do
       apply(module_name, :execute, [])
     end
