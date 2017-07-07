@@ -118,10 +118,11 @@ Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
 before or after a task. The following tasks are provided by bootleg:
 
 1. `build` - generation of a release package
-1. `deploy` - deploy of a release package
-1. `start` - starting of a release
-1. `stop` - stopping of a release
-1. `restart` - restarting of a release
+2. `deploy` - deploy of a release package
+3. `start` - starting of a release
+4. `stop` - stopping of a release
+5. `restart` - restarting of a release
+6. `ping` - check connectivity to a deployed app
 
 Hooks can be defined for any task (built-in or user defined), even ones that do not exist. This can be used
 to create an "event" that you want to respond to, but has no real "implementation".
