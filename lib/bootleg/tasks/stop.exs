@@ -1,6 +1,6 @@
 use Bootleg.Config
 
-task :start do
+task :stop do
   config = Bootleg.config()
 
   strategy = Config.strategy(config, :manage)

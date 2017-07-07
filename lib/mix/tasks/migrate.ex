@@ -1,8 +1,6 @@
 defmodule Mix.Tasks.Bootleg.Migrate do
   use Mix.Task
 
-  alias Bootleg.Config
-
   @shortdoc "Invokes a releases migrations."
 
   @moduledoc """
