@@ -16,14 +16,7 @@ defmodule Mix.Tasks.Bootleg.Migrate do
   """
   @spec run(OptionParser.argv) :: :ok
   def run(_args) do
-    config = Bootleg.config()
-
-    strategy = Config.strategy(config, :manage)
-    project = Bootleg.project()
-
-    config
-    |> strategy.init(project)
-    |> strategy.migrate(config, project)
-    :ok
+    use Bootleg.Config
+    invoke :migrate
   end
 end
