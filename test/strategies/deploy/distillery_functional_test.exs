@@ -67,7 +67,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
   test "init/1 raises an error if the host is not found", %{project: project} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
-    role :app, "bad-host-name"
+    role :app, "bad-host-name.local"
     capture_io(fn ->
       assert_raise SSHError, fn -> Distillery.init(project) end
     end)

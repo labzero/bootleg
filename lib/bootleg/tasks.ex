@@ -2,8 +2,12 @@ defmodule Bootleg.Tasks do
   @moduledoc false
   @on_load :load_tasks
 
+  alias Bootleg.Config
+
   def load_tasks do
-    use Bootleg.Config
+    use Config
+
+    Config.load("config/deploy.exs")
 
     tasks_path = Path.join(__DIR__, "tasks")
     parent_env = %{__ENV__ | line: 1}

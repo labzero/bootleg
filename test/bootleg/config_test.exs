@@ -64,8 +64,8 @@ defmodule Bootleg.ConfigTest do
     assert config() == [build_at: "some path"]
   end
 
-  test "config file" do
-    Code.eval_file(Path.relative_to_cwd("test/fixtures/deploy.exs"))
+  test "load/1" do
+    Config.load("test/fixtures/deploy.exs")
 
     roles = Bootleg.Config.Agent.get(:roles)
     config = Bootleg.Config.Agent.get(:config)
@@ -81,6 +81,10 @@ defmodule Bootleg.ConfigTest do
 
     assert config[:build_at] == "some path"
     assert config[:replace_me] == "this"
+  end
+
+  test "load/1 error" do
+    assert {:error, _} = Config.load("invalid_path")
   end
 
   test "get_config" do

@@ -160,6 +160,21 @@ defmodule Bootleg.Config do
     end
   end
 
+  @doc """
+  Loads a configuration file.
+
+  `file` is the path to the configuration file to be read and loaded. If that file doesn't
+  exist or if there's an error loading it, a `Mix.Config.LoadError` exception
+  will be raised.
+
+  """
+  def load(file) do
+    case File.regular?(file) do
+      true -> Code.eval_file(file)
+      false -> {:error, "File not found"}
+    end
+  end
+
   ##################
   ####  LEGACY  ####
   ##################
