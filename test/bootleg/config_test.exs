@@ -1,6 +1,7 @@
 defmodule Bootleg.ConfigTest do
   use ExUnit.Case, async: false
   alias Bootleg.{Config, UI, SSH}
+  alias Mix.Project
   import Mock
 
   doctest Bootleg.Config
@@ -95,6 +96,22 @@ defmodule Bootleg.ConfigTest do
     assert Config.get_config(:some_key) == "some value"
     assert Config.get_config(:another_key) == nil
     assert Config.get_config(:another_key, :bar) == :bar
+  end
+
+  test "app/0" do
+    use Bootleg.Config
+
+    assert Project.config[:app] == Config.app
+    config :app, "some_app_name"
+    assert "some_app_name" == Config.app
+  end
+
+  test "version/0" do
+    use Bootleg.Config
+
+    assert Project.config[:version] == Config.version
+    config :version, "1.2.3"
+    assert "1.2.3" == Config.version
   end
 
   test "invoke/1" do

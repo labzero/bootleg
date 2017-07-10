@@ -2,9 +2,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
 
-  alias Bootleg.{Git, Project, UI, SSH, Config}
+  alias Bootleg.{Git, UI, SSH, Config}
 
-  def init(%Project{} = _project) do
+  def init do
 
     conn = SSH.init(:build)
     SSH.run!(conn, "git init")
@@ -12,8 +12,8 @@ defmodule Bootleg.Strategies.Build.Distillery do
     conn
   end
 
-  def build(%Project{} = project) do
-    conn = init(project)
+  def build do
+    conn = init()
 
     mix_env = Config.get_config(:mix_env, "prod")
     refspec = Config.get_config(:refspec, "master")
@@ -24,7 +24,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     get_and_update_deps(conn, mix_env)
     clean_compile(conn, mix_env)
     generate_release(conn, mix_env)
-    download_release_archive(conn, mix_env, project)
+    download_release_archive(conn, mix_env)
   end
 
   defp git_push(conn, refspec) do
@@ -111,8 +111,10 @@ defmodule Bootleg.Strategies.Build.Distillery do
     SSH.run!(ssh, with_env_vars(mix_env, "mix release"))
   end
 
-  defp download_release_archive(conn, mix_env, %Project{} = project) do
-    remote_path = "_build/#{mix_env}/rel/#{project.app_name}/releases/#{project.app_version}/#{project.app_name}.tar.gz"
+  defp download_release_archive(conn, mix_env) do
+    app_name = Config.app
+    app_version = Config.version
+    remote_path = "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
     local_path = Path.join(local_archive_folder, "build.tar.gz")
 

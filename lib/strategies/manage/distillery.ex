@@ -1,11 +1,11 @@
 defmodule Bootleg.Strategies.Manage.Distillery do
   @moduledoc ""
 
-  alias Bootleg.{Config, Config.ManageConfig, Project, UI, SSH}
+  alias Bootleg.{Config, Config.ManageConfig, UI, SSH}
 
   @config_keys ~w(hosts user workspace)
 
-  def init(%Config{manage: %ManageConfig{identity: identity, hosts: hosts, user: user, workspace: workspace} = config}, %Project{} = _project) do
+  def init(%Config{manage: %ManageConfig{identity: identity, hosts: hosts, user: user, workspace: workspace} = config}) do
     with :ok <- Bootleg.check_config(config, @config_keys) do
       SSH.init(hosts,
                [user: user, identity: identity, workspace: workspace, create_workspace: false])
@@ -14,26 +14,30 @@ defmodule Bootleg.Strategies.Manage.Distillery do
     end
   end
 
-  def start(conn, _config, %Project{} = project) do
-    SSH.run!(conn, "bin/#{project.app_name} start")
-    UI.info "#{project.app_name} started"
+  def start(conn, _config) do
+    app_name = Config.app
+    SSH.run!(conn, "bin/#{app_name} start")
+    UI.info "#{app_name} started"
     {:ok, conn}
   end
 
-  def stop(conn, _config, %Project{} = project) do
-    SSH.run!(conn, "bin/#{project.app_name} stop")
-    UI.info "#{project.app_name} stopped"
+  def stop(conn, _config) do
+    app_name = Config.app
+    SSH.run!(conn, "bin/#{app_name} stop")
+    UI.info "#{app_name} stopped"
     {:ok, conn}
   end
 
-  def restart(conn, _config, %Project{} = project) do
-    SSH.run!(conn, "bin/#{project.app_name} restart")
-    UI.info "#{project.app_name} restarted"
+  def restart(conn, _config) do
+    app_name = Config.app
+    SSH.run!(conn, "bin/#{app_name} restart")
+    UI.info "#{app_name} restarted"
     {:ok, conn}
   end
 
-  def ping(conn, _config, %Project{} = project) do
-    SSH.run!(conn, "bin/#{project.app_name} ping")
+  def ping(conn, _config) do
+    app_name = Config.app
+    SSH.run!(conn, "bin/#{app_name} ping")
     {:ok, conn}
   end
 end

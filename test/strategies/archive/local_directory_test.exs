@@ -1,5 +1,5 @@
 defmodule LocalDirectoryTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   import ExUnit.CaptureIO
 
   doctest Bootleg
@@ -10,15 +10,17 @@ defmodule LocalDirectoryTest do
   @build_tarball "build.tar.gz"
 
   setup do
+    use Bootleg.Config
+
+    config :app, "bootleg"
+    config :version, "1.0.0"
+
     File.cp("test/fixtures/#{@build_tarball}", @build_tarball)
     on_exit fn ->
       File.rm(@build_tarball)
       File.rm(Path.join(@archive_directory, "1.0.0.tar.gz"))
     end
     %{
-      project: %Bootleg.Project{
-        app_name: "bootleg",
-        app_version: "1.0.0"},
       filename: @build_tarball,
       config:
         %Bootleg.Config{
@@ -39,15 +41,15 @@ defmodule LocalDirectoryTest do
     }
   end
 
-  test "init good", %{config: config, filename: filename, project: project} do
+  test "init good", %{config: config, filename: filename} do
     capture_io(fn ->
-      assert {:ok, _} = Archiver.archive(config, project, filename)
+      assert {:ok, _} = Archiver.archive(config, filename)
     end)
   end
 
-  test "init bad", %{bad_config: config, filename: filename, project: project} do
+  test "init bad", %{bad_config: config, filename: filename} do
     assert_raise RuntimeError, ~r/This strategy requires "archive_directory" to be configured/, fn ->
-      Archiver.archive(config, project, filename)
+      Archiver.archive(config, filename)
     end
   end
 
@@ -93,52 +95,52 @@ defmodule LocalDirectoryTest do
   end
 
   @tag skip: "Migrate to functional test"
-  test "archive to invalid directory", %{config: config, project: project} do
+  test "archive to invalid directory", %{config: config} do
     invalid_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "404",
     }
     assert_raise RuntimeError, ~r/Archive directory.*couldn't be created/, fn ->
-      Archiver.archive(%{config | archive: invalid_config}, project, "build.tar.gz")
+      Archiver.archive(%{config | archive: invalid_config}, "build.tar.gz")
     end
   end
 
   @tag note: "Migrate to functional test"
-  test "archive when build file doesnt exist", %{config: config, project: project} do
+  test "archive when build file doesnt exist", %{config: config} do
     assert_raise RuntimeError, ~r/file not found: 404.tar.gz/, fn ->
-      Archiver.archive(config, project, "404.tar.gz")
+      Archiver.archive(config, "404.tar.gz")
     end
   end
 
   @tag skip: "Migrate to functional test"
-  test "archive when folder full of releases", %{config: config, project: project} do
+  test "archive when folder full of releases", %{config: config} do
     strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "big_release_folder",
     }
     capture_io(fn ->
       assert {:ok, "1.0.0.tar.gz"}
-             == Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+             == Archiver.archive(%{config | archive: strategy_config}, "build.tar.gz")
     end)
   end
 
   @tag skip: "Migrate to functional test"
-  test "archive to read-only folder", %{config: config, project: project} do
+  test "archive to read-only folder", %{config: config} do
     strategy_config = %Bootleg.Config.ArchiveConfig{
       max_archives: 1,
       archive_directory: "read_only_folder",
     }
     assert_raise RuntimeError, "Error: Build file not found: build.tar.gz", fn ->
       capture_io(fn ->
-        Archiver.archive(%{config | archive: strategy_config}, project, "build.tar.gz")
+        Archiver.archive(%{config | archive: strategy_config}, "build.tar.gz")
       end)
     end
   end
 
-  test "archive", %{config: config, project: project} do
+  test "archive", %{config: config} do
     capture_io(fn ->
       assert {:ok, "1.0.0.tar.gz"}
-             == Archiver.archive(config, project, "build.tar.gz")
+             == Archiver.archive(config, "build.tar.gz")
     end)
   end
 end
