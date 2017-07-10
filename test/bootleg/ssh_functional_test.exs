@@ -1,5 +1,5 @@
 defmodule Bootleg.SSHFunctionalTest do
-  use Bootleg.FunctionalCase, async: true
+  use Bootleg.FunctionalCase, async: false
   alias Bootleg.{Host, Role, SSH, Fixtures}
   alias SSHKit.Context, as: SSHKitContext
   alias SSHKit.Host, as: SSHKitHost
