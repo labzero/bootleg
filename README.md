@@ -2,9 +2,9 @@
 
 Simple deployment and server automation for Elixir.
 
-**bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
+**Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
-Out of the box, bootleg provides remote build and remote server automation for you existing distillery releases.
+Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases.
 
 ## Installation
 
@@ -17,7 +17,7 @@ end
 
 ## Configuration
 
-Configure Bootleg in the bootleg deploy config file:
+Configure Bootleg in the deploy config file:
 
 ```elixir
 # config/deploy.exs
@@ -38,45 +38,65 @@ role :db, ["admin@db1.myapp.com"]
 
 ## Roles
 
-Actions in bootleg work against roles, sometimes referred to as a context. A
-role, is simply a collection of hosts that are responsible for the
-same function, for example building a release, or running your application.
-Role names are unique so there can only be one of each defined, but
-hosts can be grouped into one or more roles.
+Actions in Bootleg are paired with roles, which are simply a collection of hosts that are responsible for the same function, for example building a release, archiving a release, or executing commands against a running application.
 
-By defining roles, you are defining responsibility groups to cross cut your
-host infrastructure. `:build` and
-`:app` have inherent meaning to the default behavior of bootleg, but you may
-also define more that you can later filter on when running commands inside a
-bootleg hook. There is another built in role `:all` which will always include
+Role names are unique so there can only be one of each defined, but hosts can be grouped into one or more roles. Roles can be declared repeatedly to provide a different set of options to different sets of hosts.
+
+By defining roles, you are defining responsibility groups to cross cut your host infrastructure. The `build` and
+`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a bootleg hook. There is another built in role `:all` which will always include
 all hosts assigned to any role.
 
 Some features or extensions may require additional roles, for example if your
 release needs to run Ecto migrations, you will need to assign the `:db`
 role to one host.
 
-To specify additional host connection options, a keyword list can be passed after
-the hosts list. Additional connection options currently supported are:
+### Role and host options
 
-1.  `user` # defaults to executing environment's current user
-1.  `port` # default 22
-1.  `timeout` # default :infinity
+Options are set on roles and on hosts based on the order in which the roles are defined.
 
-### More notes on roles
+#### Examples
 
-Some built in roles, or some roles defined by yet-to-be-written extensions, may
-only allow ONE host to be defined and will warn or error if sent a list.
+```
+role :app, ["host1", "host2"], user: "deploy"
+role :app, ["host2"], port: 2222
+```
+> In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
 
-### Available roles
+```
+role :db, ["db.example.com", "db2.example.com"], user: "datadog"
+role :db, "db.example.com", primary: true
+```
+> In this example, two hosts are declared for the `db` role but the first will receive a host-specific option for being the primary. Host options can be arbitrarily named and targeted by tasks.
 
-1. `:build` - Takes only one host. If a list is given, only the first hosts is
-used and a warning may result. If no `:build` role is set, release package will
-happen locally.
-1. `:app` -  Takes a lists of hosts, or a string with one host.
+```
+role :balancer, ["lb1.example.com", "lb2.example.com"], banana: "boat"
+role :balancer, "lb3.example.com"
+```
+> In this example, two load balancers are configured with a host-specific option of *banana*. The `balancer` role itself also receives the role-specific option of *banana*. A third balancer is then configured without any specific host options.
 
-### Future roles provided by some yet-to-be-written extensions?
 
-1. `:db` - host on which to run migrations and other db related functions
+#### SSH options
+
+If you include any common `:ssh.connect` options they will not be included in role or host options and will only used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
+
+Supported SSH options include:
+
+* user
+* port
+* timeout
+* recv_timeout
+
+> Refer to [Bootleg.SSH.supported_options/0](lib/bootleg/ssh.ex) for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
+
+### Role restrictions
+
+Bootleg extensions may impose restrictions on certain roles, such as restricting them to a certain number of hosts. See the extension documentation for more information.
+
+### Roles provided by Bootleg
+
+* `build` - Takes only one host. If a list is given, only the first hosts is
+used and a warning may result. If this role isn't set the release packaging will be done locally.
+* `app` -  Takes a lists of hosts, or a string with one host.
 
 ## Versioning
 

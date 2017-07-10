@@ -1,9 +1,10 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
+  alias SSHKit.{Context, SSH.ClientKeyAPI}
+  alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
-  alias Bootleg.{UI, Role, Config}
+  alias Bootleg.{UI, Host, Role, Config}
 
   @local_options ~w(create_workspace workspace)a
 
@@ -27,13 +28,16 @@ defmodule Bootleg.SSH do
 
       hosts
       |> List.wrap
-      |> Enum.map(&wrap_host(&1, options))
+      |> Enum.map(&ssh_host_options(&1, options))
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end
 
-  defp wrap_host(host, options) do
-    %Host{name: host, options: ssh_opts(options)}
+  defp ssh_host_options(%Host{} = host, options) do
+    sshkit_host = get_in(host, [Access.key!(:host)])
+    sshkit_host_options = get_in(sshkit_host, [Access.key!(:options)])
+
+    %SSHKitHost{sshkit_host | options: Keyword.merge(ssh_opts(sshkit_host_options), options)}
   end
 
   def run(context, cmd) do
@@ -128,4 +132,10 @@ defmodule Bootleg.SSH do
 
   def ssh_opt({_, nil}), do: []
   def ssh_opt(option), do: option
+
+  @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
+    idle_time silently_accept_hosts user_dir timeout connection_timeout)a
+  def supported_options do
+    @ssh_options
+  end
 end

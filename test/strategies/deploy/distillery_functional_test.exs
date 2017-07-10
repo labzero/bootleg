@@ -5,7 +5,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
 
   setup %{hosts: [host]} do
     use Bootleg.Config
-    role :app, host.ip, port: host.port, user: host.user, password: host.password,
+    role :app, [host.ip], port: host.port, user: host.user, password: host.password,
       silently_accept_hosts: true, workspace: "workspace"
 
     config :app, "my_app"

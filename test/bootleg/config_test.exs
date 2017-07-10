@@ -24,14 +24,30 @@ defmodule Bootleg.ConfigTest do
     end
   end
 
-  test "role/2" do
+  setup do
+    %{
+      local_user: System.get_env("USER")
+    }
+  end
+
+  test "role/2", %{local_user: local_user} do
     use Bootleg.Config
     assert roles() == []
 
     role :build, "build.labzero.com"
     result = roles()
-    assert [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [], user: user}] = result
-    assert user == System.get_env("USER")
+    assert [
+      build: %Bootleg.Role{
+        hosts: [
+          %Bootleg.Host{
+            host: %SSHKit.Host{name: "build.labzero.com", options: []},
+            options: [user: ^local_user]
+          }
+        ],
+        name: :build,
+        options: [user: ^local_user],
+        user: ^local_user}
+    ] = result
   end
 
   test "role/3" do
@@ -39,16 +55,28 @@ defmodule Bootleg.ConfigTest do
     assert roles() == []
 
     role :build, "build.labzero.com", user: "brien"
-    assert roles() ==
-      [build: %Bootleg.Role{hosts: ["build.labzero.com"], name: :build, options: [], user: "brien"}]
+    assert roles() == [
+      build: %Bootleg.Role{
+        hosts: [
+          %Bootleg.Host{
+            host: %SSHKit.Host{name: "build.labzero.com", options: [user: "brien"]},
+            options: [user: "brien"]
+          }
+        ],
+        name: :build,
+        options: [user: "brien"],
+        user: "brien"
+      }
+    ]
   end
 
-  test "get_role/1" do
+  test "get_role/1", %{local_user: local_user} do
     use Bootleg.Config
     role :build, "build.labzero.com"
 
     result = Config.get_role(:build)
-    assert %Bootleg.Role{name: :build, hosts: ["build.labzero.com"]} = result
+    assert %Bootleg.Role{name: :build, hosts: [%Bootleg.Host{host: %SSHKit.Host{name: "build.labzero.com",
+      options: []}, options: [user: ^local_user]}]} = result
   end
 
   test "config/0" do
@@ -71,14 +99,32 @@ defmodule Bootleg.ConfigTest do
     roles = Bootleg.Config.Agent.get(:roles)
     config = Bootleg.Config.Agent.get(:config)
 
-    assert %Bootleg.Role{hosts: ["www1.example.com", "www2.example.com"], name: :app, options: [], user: user}
+    local_user = System.get_env("USER")
+    # hosts = [
+    #   %Bootleg.Host{host: %SSHKit.Host{name: "www1.example.com",
+    #     options: []}, options: [user: local_user]},
+    #   %Bootleg.Host{host: %SSHKit.Host{name: "www2.example.com",
+    #     options: []}, options: [user: local_user]}
+    # ]
+
+    assert %Bootleg.Role{hosts: [
+      %Bootleg.Host{host: %SSHKit.Host{name: "www1.example.com",
+        options: []}, options: [user: ^local_user]},
+      %Bootleg.Host{host: %SSHKit.Host{name: "www2.example.com",
+        options: []}, options: [user: ^local_user]},
+      %Bootleg.Host{host: %SSHKit.Host{name: "www3.example.com",
+        options: [port: 2222, user: "deploy"]},
+        options: [user: "deploy"]},
+    ], name: :app, options: [user: ^local_user], user: ^local_user}
       = roles[:app]
-    assert user == System.get_env("USER")
-    assert %Bootleg.Role{hosts: ["db.example.com"], name: :db, options: [primary: true], user: "foo"}
-      = roles[:db]
-    assert %Bootleg.Role{hosts: ["replacement.example.com"], name: :replace, options: [bar: :car], user: user}
-      = roles[:replace]
-    assert user == System.get_env("USER")
+    assert %Bootleg.Role{hosts: [
+      %Bootleg.Host{
+        host: %SSHKit.Host{name: "db.example.com", options: [user: "foo"]},
+        options: [user: "foo", primary: true]},
+      %Bootleg.Host{
+        host: %SSHKit.Host{name: "db2.example.com", options: [user: "foo"]},
+        options: [user: "foo"]},
+      ], name: :db, options: [user: "foo", primary: true], user: "foo"} = roles[:db]
 
     assert config[:build_at] == "some path"
     assert config[:replace_me] == "this"
