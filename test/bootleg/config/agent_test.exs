@@ -1,5 +1,5 @@
 defmodule Bootleg.Config.AgentTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   alias Bootleg.Config.Agent
 
   test "stores values for retrieval" do

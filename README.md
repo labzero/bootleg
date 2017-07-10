@@ -227,23 +227,18 @@ before_task :restart do
 end
 ```
 
-### DSL Scratchpad
+## `remote`
 
-`remote do` and `remote :role do`
-
-Execute shell commands on a remote server
+The workhorse of the `bootleg` DSL is `remote`: it executes shell commands on remote servers and returns
+the results. It takes a role and a block of commands to execute. The commands are executed on all servers
+belonging to the role, and raises an `SSHError` if an error is encountered.
 
 ```elixir
 use Bootleg.Config
 
-# basic - will run in context of role used by hook
-{:ok, output} = remote do
-  "echo hello"
-end
-
-# select role
+# basic
 remote :app do
-  "ls"
+  "echo hello"
 end
 
 # multi line
@@ -251,39 +246,16 @@ remote :app do
   "touch ~/file.txt"
   "rm file.txt"
 end
-```
 
-```
-{:ok, output} = success
-{:error, output} = error
-
-output = [
-          {host, output, exit_status},
-          {host, output, exit_status},
-          ...
-         ]
-```
-
-`task`
-
-```elixir
-use Bootleg.Config
-
-task :example_task do
-  IO.puts "local commands in elixir"
-  remote do
-    "echo remote commands inside remote blocks"
-  end
-  remote :app do
-    "echo more than one remote block is fine"
-  end
+# getting the result
+[{:ok, [stdout: output], _, _}] = remote :app do
+  "ls -la"
 end
 
-task :invoke_something do
-  invoke :example_task
+# raises an SSHError
+remote :app do
+  "false"
 end
-
-before :deploy, :invoke_something
 ```
 
 ## Help

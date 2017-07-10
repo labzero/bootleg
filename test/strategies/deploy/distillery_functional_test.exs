@@ -1,5 +1,5 @@
 defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
-  use Bootleg.FunctionalCase, async: true
+  use Bootleg.FunctionalCase, async: false
   alias Bootleg.Strategies.Deploy.Distillery
   import ExUnit.CaptureIO
 

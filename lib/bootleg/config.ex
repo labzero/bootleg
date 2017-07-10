@@ -1,12 +1,12 @@
 defmodule Bootleg.Config do
   @doc false
 
-  alias Bootleg.UI
+  alias Bootleg.{UI, SSH}
 
   defmacro __using__(_) do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2]
+        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2]
       {:ok, agent} = Bootleg.Config.Agent.start_link
       Code.ensure_loaded(Bootleg.Tasks)
       :ok
@@ -122,7 +122,7 @@ defmodule Bootleg.Config do
   end
 
   defp module_for_task(task) do
-    :"Elixir.Bootleg.Tasks.DynamicTasks.#{String.capitalize("#{task}")}"
+    :"Elixir.Bootleg.Tasks.DynamicTasks.#{Macro.camelize("#{task}")}"
   end
 
   def invoke(task) when is_atom(task) do
@@ -134,6 +134,30 @@ defmodule Bootleg.Config do
     end
 
     invoke_task_callbacks(task, :after_hooks)
+  end
+
+  defmacro remote(do: block) do
+    quote do: remote(nil, do: unquote(block))
+  end
+
+  defmacro remote(lines) do
+    quote do: remote(nil, unquote(lines))
+  end
+
+  defmacro remote(role, do: {:__block__, _, lines}) do
+    quote do: remote(unquote(role), unquote(lines))
+  end
+
+  defmacro remote(role, do: lines) do
+    quote do: remote(unquote(role), unquote(lines))
+  end
+
+  defmacro remote(role, lines) do
+    quote do
+      unquote(role)
+      |> SSH.init
+      |> SSH.run!(unquote(lines))
+    end
   end
 
   ##################

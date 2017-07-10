@@ -1,6 +1,6 @@
 defmodule Bootleg.ConfigTest do
   use ExUnit.Case, async: false
-  alias Bootleg.{Config, UI}
+  alias Bootleg.{Config, UI, SSH}
   import Mock
 
   doctest Bootleg.Config
@@ -162,7 +162,7 @@ defmodule Bootleg.ConfigTest do
 
     task :task_test, do: true
 
-    module = Bootleg.Tasks.DynamicTasks.Task_test
+    module = Bootleg.Tasks.DynamicTasks.TaskTest
     assert apply(module, :execute, [])
     assert {file, line} = module.location
     assert file == __ENV__.file
@@ -171,7 +171,6 @@ defmodule Bootleg.ConfigTest do
   end
 
   test_with_mock "task/2 redefine task warning", UI, [], [warn: fn(_string) -> :ok end] do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     task :task_redefine_test, do: true
@@ -200,5 +199,61 @@ defmodule Bootleg.ConfigTest do
     assert_next_received {:after, :hello}
     refute_received {:task, :hello}
     refute_received {:before, :foo}
+  end
+
+  test_with_mock "remote/2", SSH, [], [init: fn(role) -> {role} end, run!: fn(_, _cmd) -> :ok end] do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    task :remote_test_1 do
+      remote :test_1, do: "echo Hello World!"
+    end
+
+    task :remote_test_2 do
+      remote do: "echo Hello World2!"
+    end
+
+    task :remote_test_3 do
+      remote do
+        "echo Hello"
+        "echo World" <> "!"
+      end
+    end
+
+    task :remote_test_4 do
+      remote :test_4, ["echo Hello", "echo World"]
+    end
+
+    invoke :remote_test_1
+
+    assert called SSH.init(:test_1)
+    assert called SSH.run!({:test_1}, "echo Hello World!")
+
+    invoke :remote_test_2
+
+    assert called SSH.init(nil)
+    assert called SSH.run!({nil}, "echo Hello World2!")
+
+    invoke :remote_test_3
+
+    assert called SSH.run!({nil}, ["echo Hello", "echo World!"])
+
+    invoke :remote_test_4
+
+    assert called SSH.init(:test_4)
+    assert called SSH.run!({:test_4}, ["echo Hello", "echo World"])
+
+    with_mock Time, [], [utc_now: fn -> :now end] do
+      task :remote_test_5 do
+        remote Time.utc_now
+      end
+
+      refute called Time.utc_now
+
+      invoke :remote_test_5
+
+      assert called Time.utc_now
+      assert called SSH.run!({nil}, :now)
+    end
   end
 end
