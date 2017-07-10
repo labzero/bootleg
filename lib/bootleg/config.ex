@@ -188,6 +188,7 @@ defmodule Bootleg.Config do
   """
 
   alias Bootleg.Config.{ManageConfig, ArchiveConfig}
+  alias Mix.Project
 
   @doc false
   @enforce_keys []
@@ -217,5 +218,13 @@ defmodule Bootleg.Config do
 
   def strategy(%Bootleg.Config{} = config, type) do
     get_in(config, [Access.key!(type), Access.key!(:strategy)])
+  end
+
+  def app do
+    get_config(:app, Project.config[:app])
+  end
+
+  def version do
+    get_config(:version, Project.config[:version])
   end
 end

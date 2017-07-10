@@ -1,23 +1,23 @@
 defmodule Bootleg.Strategies.Deploy.Distillery do
   @moduledoc ""
 
-  alias Bootleg.{Project, UI, SSH}
+  alias Bootleg.{Config, UI, SSH}
 
-  def deploy(%Project{} = project) do
-    project
-    |> init
-    |> deploy_release_archive(project)
+  def deploy do
+    deploy_release_archive(init())
     :ok
   end
 
-  def init(%Project{} = _project) do
+  def init do
     SSH.init(:app)
   end
 
-  defp deploy_release_archive(conn, %Project{} = project) do
-    remote_path = "#{project.app_name}.tar.gz"
+  defp deploy_release_archive(conn) do
+    app_name = Config.app
+    app_version = Config.version
+    remote_path = "#{app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "#{project.app_version}.tar.gz")
+    local_path = Path.join(local_archive_folder, "#{app_version}.tar.gz")
 
     UI.info "Uploading release archive"
     SSH.upload(conn, local_path, remote_path)
