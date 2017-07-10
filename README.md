@@ -306,12 +306,6 @@ Or execute the above steps with a single command:
 ```sh
 mix bootleg.update production
 ```
-
-# run ecto migrations manually:
-
-```sh
-mix bootleg.migrate
-```
 -----
 
 ## Contributing

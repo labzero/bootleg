@@ -18,7 +18,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
               workspace: ".",
               hosts: "host",
               user: "user",
-              migration_module: "MyApp.Module"
             }
         },
       bad_config:
@@ -28,28 +27,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
               identity: nil,
               "workspace": "what",
               hosts: nil
-            }
-        },
-      bad_migrate_config:
-        %Bootleg.Config{
-          manage:
-            %Bootleg.Config.ManageConfig{
-              identity: Fixtures.identity_path(),
-              workspace: ".",
-              hosts: "host",
-              user: "user"
-            }
-        },
-      migration_function_config:
-        %Bootleg.Config{
-          manage:
-            %Bootleg.Config.ManageConfig{
-              identity: Fixtures.identity_path(),
-              workspace: ".",
-              hosts: "host",
-              user: "user",
-              migration_module: "MyApp.Module",
-              migration_function: "a_function"
             }
         },
       conn:
@@ -93,28 +70,5 @@ defmodule Bootleg.Strategies.Manage.DistilleryTest do
     capture_io(fn ->
       assert {:ok, %SSHKit.Context{}} = Distillery.ping(conn, config, project)
     end)
-  end
-
-  @tag skip: "Migrate to functional test"
-  test "migrate with 'migration_function' uses the configured function",
-       %{conn: conn, migration_function_config: config, project: project} do
-    capture_io(fn ->
-      assert :ok = Distillery.migrate(conn, config, project)
-    end)
-  end
-
-  @tag skip: "Migrate to functional test"
-  test "migrate without 'migration_function' uses 'migrate/0'",
-       %{conn: conn, config: config, project: project} do
-    capture_io(fn ->
-      assert :ok = Distillery.migrate(conn, config, project)
-    end)
-  end
-
-  @tag skip: "Migrate to functional test"
-  test "migrate required configuration",
-       %{conn: conn, bad_migrate_config: config, project: project} do
-    assert catch_error(Distillery.migrate(conn, config, project))
-      == %RuntimeError{message: "Error: This strategy requires \"migration_module\" to be configured"}
   end
 end
