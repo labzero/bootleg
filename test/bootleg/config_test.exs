@@ -100,12 +100,6 @@ defmodule Bootleg.ConfigTest do
     config = Bootleg.Config.Agent.get(:config)
 
     local_user = System.get_env("USER")
-    # hosts = [
-    #   %Bootleg.Host{host: %SSHKit.Host{name: "www1.example.com",
-    #     options: []}, options: [user: local_user]},
-    #   %Bootleg.Host{host: %SSHKit.Host{name: "www2.example.com",
-    #     options: []}, options: [user: local_user]}
-    # ]
 
     assert %Bootleg.Role{hosts: [
       %Bootleg.Host{host: %SSHKit.Host{name: "www1.example.com",

@@ -14,6 +14,20 @@ defmodule Bootleg.Host do
     get_in(host, [Access.key!(:host), Access.key!(:name)])
   end
 
+  def option(%__MODULE__{} = host, option) when is_atom(option) do
+    get_in(host, [Access.key!(:options), option])
+  end
+  def option(%__MODULE__{} = host, option, value) when is_atom(option) do
+    put_in(host, [Access.key!(:options), option], value)
+  end
+
+  def ssh_option(%__MODULE__{} = host, option) when is_atom(option) do
+    get_in(host, [Access.key!(:host), Access.key!(:options), option])
+  end
+  def ssh_option(%__MODULE__{} = host, option, value) when is_atom(option) do
+    put_in(host, [Access.key!(:host), Access.key!(:options), option], value)
+  end
+
   def combine_uniq(hosts) do
     do_uniq_hosts(hosts, %{}, &host_name/1, [])
   end
