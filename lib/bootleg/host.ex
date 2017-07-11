@@ -29,26 +29,26 @@ defmodule Bootleg.Host do
   end
 
   def combine_uniq(hosts) do
-    do_uniq_hosts(hosts, %{}, &host_name/1, [])
+    do_combine_uniq(hosts, %{}, &host_name/1, [])
   end
 
-  defp do_uniq_hosts([h | t], set, fun, acc) do
+  defp do_combine_uniq([h | t], set, fun, acc) do
     value = fun.(h)
     case set do
-      %{^value => true} -> do_uniq_hosts(t, set, fun, Enum.map(acc, &combine_hosts(&1, h)))
-      %{} -> do_uniq_hosts(t, Map.put(set, value, true), fun, [h | acc])
+      %{^value => true} -> do_combine_uniq(t, set, fun, Enum.map(acc, &combine_hosts(&1, h)))
+      %{} -> do_combine_uniq(t, Map.put(set, value, true), fun, [h | acc])
     end
   end
 
-  defp do_uniq_hosts([], _set, _fun, acc) do
+  defp do_combine_uniq([], _set, _fun, acc) do
     :lists.reverse(acc)
   end
 
   defp combine_hosts(host1, host2) do
-    search_name = get_in host2, [Access.key!(:host), Access.key!(:name)]
-    case get_in host1, [Access.key!(:host), Access.key!(:name)] do
-      ^search_name -> combine_host_options host1, host2
-      _ -> host1
+    if host_name(host1) == host_name(host2) do
+      combine_host_options host1, host2
+    else
+      host1
     end
   end
 
