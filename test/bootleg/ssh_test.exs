@@ -21,8 +21,12 @@ defmodule Bootleg.SSHTest do
       conn_opts: %Context{
         path: ".",
         hosts: [
-          %Host{host: %SSHKitHost{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]}, options: []},
-          %Host{host: %SSHKitHost{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]}, options: []}
+          %Host{
+            host: %SSHKitHost{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]},
+            options: []},
+          %Host{
+            host: %SSHKitHost{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]},
+            options: []}
         ]
       },
       role: %Role{
@@ -35,51 +39,6 @@ defmodule Bootleg.SSHTest do
         options: [workspace: "some workspace"]
       }
     }
-  end
-
-  @tag skip: "SSH: Migrate to functional tests"
-  test "init/2 with Bootleg.Role", %{role: role} do
-    capture_io(fn ->
-      assert %Context{hosts: [
-        %Host{host: %SSHKitHost{name: "localhost.1", options: options_1}, options: []},
-        %Host{host: %SSHKitHost{name: "localhost.2", options: options_2}, options: []}
-      ], path: "some workspace"} = SSH.init(role), "Connection isn't a context"
-      assert options_1 == options_2
-      assert options_1[:user] ==  "sanejane"
-    end)
-  end
-
-  @tag skip: "SSH: Migrate to functional tests"
-  test "init/2 with Role name atom" do
-    use Bootleg.Config
-    role :build, "build.labzero.com", workspace: "some path", user: "sanejane", identity: Fixtures.identity_path
-
-    capture_io(fn ->
-      assert %Context{hosts: [%Host{host: %SSHKitHost{name: "build.labzero.com", options: options}, options: []}], path: "some path"} = SSH.init(:build)
-      assert options[:user] == "sanejane"
-      assert options[:identity] == Fixtures.identity_path
-      assert {SSHKit.SSH.ClientKeyAPI, _} = options[:key_cb]
-    end)
-  end
-
-  @tag skip: "SSH: Migrate to functional tests"
-  test "init/2 with options", %{role: role} do
-    capture_io(fn ->
-      assert %Context{path: "some other workspace"}
-        = SSH.init(role, workspace: "some other workspace"), "Workspace isn't overridden"
-      assert %Context{hosts: [%Host{options: options_1}, %Host{options: options_2}]}
-        = SSH.init(role, user: "slimjim")
-      assert options_1 == options_2
-      assert options_1[:user] == "slimjim", "User isn't overridden"
-    end)
-  end
-
-  @tag skip: "SSH: Migrate to functional tests"
-  test "init/3", %{conn: conn} do
-    capture_io(fn ->
-      context = SSH.init(["localhost.1", "localhost.2"])
-      assert conn == context
-    end)
   end
 
   @tag skip: "SSH: Migrate to functional tests"
@@ -142,13 +101,8 @@ defmodule Bootleg.SSHTest do
     end)
   end
 
-  test "ssh_host_options/2 returns host options merged with defaults", %{conn: conn} do
+  test "ssh_host_options/1 returns host options", %{conn: conn} do
     host = List.first(conn.hosts)
-    IO.inspect SSH.ssh_host_options(host)
-
-    # capture_io(fn ->
-    #   conn = SSHKit.context(SSHKit.host("bad-host-name.local"))
-    #   assert_raise SSHError, fn -> SSH.run!(conn, "echo foo") end
-    # end)
+    assert %SSHKitHost{name: "localhost.1", options: []} == SSH.ssh_host_options(host)
   end
 end
