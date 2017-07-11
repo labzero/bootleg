@@ -1,11 +1,10 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
+  alias SSHKit.{Context, SSH.ClientKeyAPI}
+  alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
-  alias Bootleg.{UI, Role, Config}
-
-  @local_options ~w(create_workspace workspace)a
+  alias Bootleg.{UI, Host, Role, Config}
 
   def init(role, options \\ [])
   def init(%Role{} = role, options) do
@@ -22,18 +21,20 @@ defmodule Bootleg.SSH do
       create_workspace = Keyword.get(options, :create_workspace, true)
       UI.puts "Creating remote context at '#{workspace}'"
 
-      options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
       :ssh.start()
 
       hosts
       |> List.wrap
-      |> Enum.map(&wrap_host(&1, options))
+      |> Enum.map(&ssh_host_options/1)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end
 
-  defp wrap_host(host, options) do
-    %Host{name: host, options: ssh_opts(options)}
+  def ssh_host_options(%Host{} = host) do
+    sshkit_host = get_in(host, [Access.key!(:host)])
+    sshkit_host_options = get_in(sshkit_host, [Access.key!(:options)])
+
+    %SSHKitHost{sshkit_host | options: ssh_opts(sshkit_host_options)}
   end
 
   def run(context, cmd) do
@@ -128,4 +129,10 @@ defmodule Bootleg.SSH do
 
   def ssh_opt({_, nil}), do: []
   def ssh_opt(option), do: option
+
+  @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
+    idle_time silently_accept_hosts user_dir timeout connection_timeout)a
+  def supported_options do
+    @ssh_options
+  end
 end

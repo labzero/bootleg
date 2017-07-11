@@ -1,7 +1,7 @@
 defmodule Bootleg.Config do
   @doc false
 
-  alias Bootleg.{UI, SSH}
+  alias Bootleg.{UI, SSH, Host, Role}
 
   defmacro __using__(_) do
     quote do
@@ -14,17 +14,33 @@ defmodule Bootleg.Config do
   end
 
   defmacro role(name, hosts, options \\ []) do
-    host_list = List.wrap(hosts)
+    # user is in the role options for scm
     user = Keyword.get(options, :user, System.get_env("USER"))
-    options = Keyword.delete(options, :user)
+    ssh_options = Enum.filter(options, &Enum.member?(SSH.supported_options, elem(&1, 0)) == true)
+    role_options = Keyword.put(options -- ssh_options, :user, user)
+
     quote do
+      hosts =
+        unquote(hosts)
+        |> List.wrap()
+        |> Enum.map(&Host.init(&1, unquote(ssh_options), unquote(role_options)))
+
+      new_role = %Role{
+        name: unquote(name),
+        user: unquote(user),
+        hosts: [],
+        options: unquote(role_options)
+      }
+      role =
+        :roles
+        |> Bootleg.Config.Agent.get()
+        |> Keyword.get(unquote(name), new_role)
+        |> Role.combine_hosts(hosts)
+
       Bootleg.Config.Agent.merge(
         :roles,
         unquote(name),
-        %Bootleg.Role{
-          name: unquote(name), hosts: unquote(host_list), user: unquote(user),
-          options: unquote(options)
-        }
+        role
       )
     end
   end
