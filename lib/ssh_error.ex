@@ -10,7 +10,7 @@ defmodule SSHError do
   end
 
   def exception([err, host]) do
-    msg = "SSHKit returned an internal error on #{host.name}: #{err}"
+    msg = "SSHKit returned an internal error on #{host.name}: #{inspect(err)}"
     %SSHError{message: msg, status: err, host: host}
   end
 

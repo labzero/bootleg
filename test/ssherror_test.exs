@@ -14,7 +14,7 @@ defmodule SSHErrorTest do
     error = SSHError.exception([:an_error, %{name: "host"}])
     assert %SSHError{status: :an_error,
               host: %{name: "host"},
-              message: "SSHKit returned an internal error on host: an_error"
+              message: "SSHKit returned an internal error on host: :an_error"
               } = error
   end
 
@@ -22,7 +22,7 @@ defmodule SSHErrorTest do
     error = SSHError.exception(["an error", %{name: "host"}])
     assert %SSHError{status: "an error",
               host: %{name: "host"},
-              message: "SSHKit returned an internal error on host: an error"
+              message: "SSHKit returned an internal error on host: \"an error\""
               } = error
   end
 end

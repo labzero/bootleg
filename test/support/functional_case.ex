@@ -54,9 +54,14 @@ defmodule Bootleg.FunctionalCase do
   def init(host) do
     adduser!(host, @user)
     chpasswd!(host, @user, @pass)
-    keygen!(host, @user)
+    private_key = keygen!(host, @user)
 
-    Map.merge(host, %{user: @user, password: @pass})
+    Temp.track!
+    private_key_path = Temp.open!(nil, &IO.write(&1, private_key))
+    File.chmod!(private_key_path, 0o600)
+
+    Map.merge(host, %{user: @user, password: @pass, private_key: private_key,
+      private_key_path: private_key_path})
   end
 
   def kill(hosts) do

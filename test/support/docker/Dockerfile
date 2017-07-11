@@ -1,11 +1,12 @@
-FROM alpine:3.5
+FROM bitwalker/alpine-elixir:latest
 
 # Set up an Alpine Linux machine running an SSH server.
 # Autogenerate missing host keys.
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories
-RUN apk add --update --no-cache openssh sudo perl-utils
+RUN apk add --update --no-cache openssh sudo perl-utils git
 RUN ssh-keygen -A
+RUN printf "PermitUserEnvironment yes\n" >> /etc/ssh/sshd_config
 
 # Create the skeleton directory, used for creating new users.
 
@@ -14,6 +15,7 @@ RUN chmod 700 /etc/skel/.ssh
 
 RUN touch /etc/skel/.ssh/authorized_keys
 RUN chmod 600 /etc/skel/.ssh/authorized_keys
+RUN printf "PATH=/usr/local/bin:/usr/local/sbin:$PATH" > /etc/skel/.ssh/environment
 
 # Allow members of group "wheel" to execute any command.
 
