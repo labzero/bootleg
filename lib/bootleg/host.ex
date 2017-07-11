@@ -49,5 +49,5 @@ defmodule Bootleg.Host do
 end
 
 defimpl String.Chars, for: Bootleg.Host do
-  def to_string(host), do: "Host #{host.host.name}"
+  def to_string(h), do: "Bootleg.Host: #{h.host.name}"
 end

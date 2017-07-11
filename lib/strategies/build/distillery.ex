@@ -17,7 +17,6 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
     mix_env = Config.get_config(:mix_env, "prod")
     refspec = Config.get_config(:refspec, "master")
-
     :ok = git_push(conn, refspec)
     git_reset_remote(conn, refspec)
     git_clean_remote(conn)
@@ -29,7 +28,12 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   defp git_push(conn, refspec) do
     build_role = Config.get_role(:build)
-    user_host = "#{build_role.user}@#{List.first(build_role.hosts)}"
+    build_host =
+      build_role.hosts
+      |> List.first()
+      |> SSH.ssh_host_options()
+
+    user_host = "#{build_role.user}@#{build_host.name}"
     host_url = "#{user_host}:#{build_role.options[:workspace]}"
     push_options = Config.get_config(:push_options, "-f")
     identity = build_role.options[:identity]

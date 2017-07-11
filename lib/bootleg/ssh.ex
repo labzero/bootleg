@@ -6,8 +6,6 @@ defmodule Bootleg.SSH do
   alias SSHKit.SSH, as: SSHKitSSH
   alias Bootleg.{UI, Host, Role, Config}
 
-  @local_options ~w(create_workspace workspace)a
-
   def init(role, options \\ [])
   def init(%Role{} = role, options) do
     role_options = Keyword.merge(role.options, [user: role.user])
@@ -23,21 +21,20 @@ defmodule Bootleg.SSH do
       create_workspace = Keyword.get(options, :create_workspace, true)
       UI.puts "Creating remote context at '#{workspace}'"
 
-      options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
       :ssh.start()
 
       hosts
       |> List.wrap
-      |> Enum.map(&ssh_host_options(&1, options))
+      |> Enum.map(&ssh_host_options/1)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
   end
 
-  defp ssh_host_options(%Host{} = host, options) do
+  def ssh_host_options(%Host{} = host) do
     sshkit_host = get_in(host, [Access.key!(:host)])
     sshkit_host_options = get_in(sshkit_host, [Access.key!(:options)])
 
-    %SSHKitHost{sshkit_host | options: Keyword.merge(ssh_opts(sshkit_host_options), options)}
+    %SSHKitHost{sshkit_host | options: ssh_opts(sshkit_host_options)}
   end
 
   def run(context, cmd) do

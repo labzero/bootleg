@@ -34,9 +34,10 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   @tag boot: 1
-  test "init/3 raises an error if the host refuses the connection", %{bootleg_hosts: hosts} do
+  test "init/3 raises an error if the host refuses the connection", %{hosts: hosts} do
+    bootleg_hosts = Enum.map(hosts, &Host.init(&1.ip, [port: 404], []))
     capture_io(fn ->
-      assert_raise SSHError, fn -> SSH.init(hosts, [port: 404]) end
+      assert_raise SSHError, fn -> SSH.init(bootleg_hosts) end
     end)
   end
 

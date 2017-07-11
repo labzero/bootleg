@@ -1,7 +1,8 @@
 defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
-  alias Bootleg.{SSH, Role, Fixtures}
-  alias SSHKit.{Context, Host}
+  alias Bootleg.{SSH, Host, Role, Fixtures}
+  alias SSHKit.Context
+  alias SSHKit.Host, as: SSHKitHost
   import ExUnit.CaptureIO
 
   import Mock
@@ -13,19 +14,22 @@ defmodule Bootleg.SSHTest do
       conn: %Context{
         path: ".",
         hosts: [
-          %Host{name: "localhost.1", options: []},
-          %Host{name: "localhost.2", options: []}
+          %Host{host: %SSHKitHost{name: "localhost.1", options: []}, options: []},
+          %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
         ]
       },
       conn_opts: %Context{
         path: ".",
         hosts: [
-          %Host{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]},
-          %Host{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]}
+          %Host{host: %SSHKitHost{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]}, options: []},
+          %Host{host: %SSHKitHost{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]}, options: []}
         ]
       },
       role: %Role{
-        hosts: ["localhost.1", "localhost.2"],
+        hosts: [
+          %Host{host: %SSHKitHost{name: "localhost.1", options: []}, options: []},
+          %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
+        ],
         name: :build,
         user: "sanejane",
         options: [workspace: "some workspace"]
@@ -37,8 +41,8 @@ defmodule Bootleg.SSHTest do
   test "init/2 with Bootleg.Role", %{role: role} do
     capture_io(fn ->
       assert %Context{hosts: [
-        %Host{name: "localhost.1", options: options_1},
-        %Host{name: "localhost.2", options: options_2}
+        %Host{host: %SSHKitHost{name: "localhost.1", options: options_1}, options: []},
+        %Host{host: %SSHKitHost{name: "localhost.2", options: options_2}, options: []}
       ], path: "some workspace"} = SSH.init(role), "Connection isn't a context"
       assert options_1 == options_2
       assert options_1[:user] ==  "sanejane"
@@ -51,7 +55,7 @@ defmodule Bootleg.SSHTest do
     role :build, "build.labzero.com", workspace: "some path", user: "sanejane", identity: Fixtures.identity_path
 
     capture_io(fn ->
-      assert %Context{hosts: [%Host{name: "build.labzero.com", options: options}], path: "some path"} = SSH.init(:build)
+      assert %Context{hosts: [%Host{host: %SSHKitHost{name: "build.labzero.com", options: options}, options: []}], path: "some path"} = SSH.init(:build)
       assert options[:user] == "sanejane"
       assert options[:identity] == Fixtures.identity_path
       assert {SSHKit.SSH.ClientKeyAPI, _} = options[:key_cb]
@@ -136,5 +140,15 @@ defmodule Bootleg.SSHTest do
       conn = SSHKit.context(SSHKit.host("bad-host-name.local"))
       assert_raise SSHError, fn -> SSH.run!(conn, "echo foo") end
     end)
+  end
+
+  test "ssh_host_options/2 returns host options merged with defaults", %{conn: conn} do
+    host = List.first(conn.hosts)
+    IO.inspect SSH.ssh_host_options(host)
+
+    # capture_io(fn ->
+    #   conn = SSHKit.context(SSHKit.host("bad-host-name.local"))
+    #   assert_raise SSHError, fn -> SSH.run!(conn, "echo foo") end
+    # end)
   end
 end
