@@ -9,7 +9,7 @@ defmodule Bootleg.Git do
     git("push", args, options)
   end
 
-  defp git(cmd, args, options \\ []) do
+  defp git(cmd, args, options) do
     System.cmd("git", [cmd | args], Keyword.merge(options, [stderr_to_stdout: true]))
   end
 
