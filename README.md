@@ -23,10 +23,10 @@ Configure Bootleg in the deploy config file:
 # config/deploy.exs
 use Bootleg.Config
 
-config build_at: "/usr/local/build/myapp/"
-config deploy_to: "/var/www/#{app}" # default
-config releases: "./releases"  # path to store releases
-config scm: :git # only one supported right now. Need an alternative? Consider contributing!
+config :build_at, "/usr/local/build/myapp/"
+config :deploy_to, "/var/www/#{app}" # default
+config :releases, "./releases"  # path to store releases
+config :scm, :git # only one supported right now. Need an alternative? Consider contributing!
 ```
 
 ```elixir
@@ -56,19 +56,19 @@ Options are set on roles and on hosts based on the order in which the roles are 
 
 #### Examples
 
-```
+```elixir
 role :app, ["host1", "host2"], user: "deploy"
 role :app, ["host2"], port: 2222
 ```
 > In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
 
-```
+```elixir
 role :db, ["db.example.com", "db2.example.com"], user: "datadog"
 role :db, "db.example.com", primary: true
 ```
 > In this example, two hosts are declared for the `db` role but the first will receive a host-specific option for being the primary. Host options can be arbitrarily named and targeted by tasks.
 
-```
+```elixir
 role :balancer, ["lb1.example.com", "lb2.example.com"], banana: "boat"
 role :balancer, "lb3.example.com"
 ```
@@ -77,7 +77,7 @@ role :balancer, "lb3.example.com"
 
 #### SSH options
 
-If you include any common `:ssh.connect` options they will not be included in role or host options and will only used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
+If you include any common `:ssh.connect` options they will not be included in role or host options and will only be used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
 
 Supported SSH options include:
 
