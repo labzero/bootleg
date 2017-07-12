@@ -66,7 +66,7 @@ defmodule Bootleg.SSH do
     SSHKit.path context, workspace
   end
 
-  defp capture(message, state = {buffer, status}, host) do
+  defp capture(message, {buffer, status} = state, host) do
     next = case message do
       {:data, _, 0, data} ->
         UI.puts_recv host, String.trim_trailing(data)
