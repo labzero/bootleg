@@ -39,7 +39,8 @@ defmodule Bootleg.Mixfile do
       {:excoveralls, "~> 0.6", only: :test},
       {:bunt, "~> 0.2.0"},
       {:mock, "~> 0.2.0", only: :test},
-      {:junit_formatter, "~> 1.3", only: :test}
+      {:junit_formatter, "~> 1.3", only: :test},
+      {:temp, "~> 0.4.3", only: :test}
     ]
   end
 

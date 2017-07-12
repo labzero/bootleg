@@ -28,16 +28,25 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   defp git_push(conn, refspec) do
     build_role = Config.get_role(:build)
+
     build_host =
       build_role.hosts
       |> List.first()
       |> SSH.ssh_host_options()
 
+    options = Keyword.merge(build_host.options, build_role.options)
+
     user_host = "#{build_role.user}@#{build_host.name}"
-    host_url = "#{user_host}:#{build_role.options[:workspace]}"
+    port = options[:port]
+    user_host = if port, do: "#{user_host}:#{port}"
+    workspace = options[:workspace]
+    host_url = case String.first(workspace) do
+      "/" -> "ssh://#{user_host}#{workspace}"
+      _   -> "ssh://#{user_host}/~/#{workspace}"
+    end
+
     push_options = Config.get_config(:push_options, "-f")
-    identity = build_role.options[:identity]
-    git_env = if identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{identity}'"}]
+    git_env = git_env(options)
 
     UI.info "Pushing new commits with git to: #{user_host}"
 
@@ -51,6 +60,23 @@ defmodule Bootleg.Strategies.Build.Distillery do
         {:error, status}
     end
 
+  end
+
+  defp git_env(options) do
+    git_ssh_options =
+      options
+      |> Enum.map(fn {key, value} ->
+          case key do
+            :identity -> "-i '#{value}'"
+            :silently_accept_hosts -> "-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+            _ -> nil
+          end
+        end)
+      |> Enum.filter(fn v -> v end)
+
+    if Enum.count(git_ssh_options) > 0 do
+      [{"GIT_SSH_COMMAND", "ssh #{Enum.join(git_ssh_options, " ")}"}]
+    end
   end
 
   defp git_reset_remote(ssh, refspec) do

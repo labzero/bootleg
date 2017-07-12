@@ -101,7 +101,7 @@ defmodule Bootleg.SSH do
     UI.puts_download conn, remote_path, local_path
     case SSHKit.download(conn, remote_path, as: local_path) do
       [:ok|_] -> :ok
-      [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
+      [{_, msg}|_] -> raise "SCP download error: #{msg}"
     end
   end
 
@@ -109,7 +109,7 @@ defmodule Bootleg.SSH do
     UI.puts_upload conn, local_path, remote_path
     case SSHKit.upload(conn, local_path, as: remote_path) do
       [:ok|_] -> :ok
-      [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
+      [{_, msg}|_] -> raise "SCP upload error #{msg}"
     end
   end
 
@@ -122,7 +122,7 @@ defmodule Bootleg.SSH do
     case File.open(identity_file) do
       {:ok, identity} ->
         key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        [{:key_cb, key_cb}, {:identity, identity_file}]
+        [{:key_cb, key_cb}]
       {_, msg} -> raise "Error: #{msg}"
     end
   end
