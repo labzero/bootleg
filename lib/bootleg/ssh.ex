@@ -1,7 +1,7 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.{Context, SSH.ClientKeyAPI}
+  alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
   alias Bootleg.{UI, Host, Role, Config}
@@ -121,7 +121,7 @@ defmodule Bootleg.SSH do
   def ssh_opt({:identity, identity_file}) do
     case File.open(identity_file) do
       {:ok, identity} ->
-        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
+        key_cb = SSHClientKeyAPI.with_options(identity: identity, accept_hosts: true)
         [{:key_cb, key_cb}]
       {_, msg} -> raise "Error: #{msg}"
     end
