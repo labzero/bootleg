@@ -203,25 +203,9 @@ defmodule Bootleg.Config do
 
   """
 
-  alias Bootleg.Config.{ManageConfig}
   alias Mix.Project
 
   @doc false
-  @enforce_keys []
-  defstruct [:manage]
-
-  @doc """
-  Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
-
-  The keys in the map should match the fields in the struct.
-  """
-  @type strategy :: {:strategy, [...]}
-  @spec init([strategy]) :: %Bootleg.Config{}
-  def init(options \\ []) do
-    %__MODULE__{
-      manage: ManageConfig.init(default_option(options, :manage))
-    }
-  end
 
   defp default_option(config, key) do
     Keyword.get(config, key, get_config(key))
@@ -229,10 +213,6 @@ defmodule Bootleg.Config do
 
   def get_config(key, default \\ nil) do
     Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
-  end
-
-  def strategy(%Bootleg.Config{} = config, type) do
-    get_in(config, [Access.key!(type), Access.key!(:strategy)])
   end
 
   def app do

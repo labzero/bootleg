@@ -1,12 +1,8 @@
 use Bootleg.Config
 
 task :restart do
-  config = Bootleg.config()
-
-  strategy = Config.strategy(config, :manage)
-
-  config
-  |> strategy.init()
-  |> strategy.restart(config)
+  alias Bootleg.Strategies.Manage.Distillery
+  Distillery.init()
+  |> Distillery.restart()
   :ok
 end

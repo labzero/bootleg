@@ -1,37 +1,7 @@
 defmodule Bootleg.Strategies.Manage.DistilleryTest do
   use ExUnit.Case, async: false
-  alias Bootleg.{Strategies.Manage.Distillery, Fixtures}
+  alias Bootleg.{Strategies.Manage.Distillery}
   import ExUnit.CaptureIO
-
-  doctest Distillery
-
-  setup do
-    %{
-      config:
-        %Bootleg.Config{
-          manage:
-            %Bootleg.Config.ManageConfig{
-              identity: Fixtures.identity_path(),
-              workspace: ".",
-              hosts: "host",
-              user: "user",
-            }
-        },
-      bad_config:
-        %Bootleg.Config{
-          manage:
-            %Bootleg.Config.ManageConfig{
-              identity: nil,
-              "workspace": "what",
-              hosts: nil
-            }
-        },
-      conn:
-        %SSHKit.Context{
-          hosts: [%SSHKit.Host{name: "host.1"}]
-        }
-    }
-  end
 
   @tag skip: "Migrate to functional test"
   test "init good", %{config: config} do
