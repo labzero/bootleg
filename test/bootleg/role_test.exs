@@ -44,10 +44,10 @@ defmodule Bootleg.RoleTest do
       ] == new_role.hosts
     end
 
-    test "combines previous host options for the same host name", %{role: role} do
+    test "combines previous host options for the same host name and port", %{role: role} do
       hosts = [
         %Host{
-          host: %SSHKitHost{name: "alpha", options: [port: 2222]},
+          host: %SSHKitHost{name: "alpha", options: [port: 22]},
           options: [primary: true]
         }
       ]
@@ -56,7 +56,7 @@ defmodule Bootleg.RoleTest do
 
       assert [
         %Host{
-          host: %SSHKitHost{name: "alpha", options: [user: "johnny", port: 2222]},
+          host: %SSHKitHost{name: "alpha", options: [user: "johnny", port: 22]},
           options: [primary: true]
         }
       ] == new_role.hosts
@@ -69,7 +69,7 @@ defmodule Bootleg.RoleTest do
           options: [primary: true]
         },
         %Host{
-          host: %SSHKitHost{name: "bravo", options: [user: "second"]},
+          host: %SSHKitHost{name: "bravo", options: [user: "second", port: 2222]},
           options: []
         },
       ]
@@ -82,7 +82,7 @@ defmodule Bootleg.RoleTest do
           options: []
         },
         %Host{
-          host: %SSHKitHost{name: "bravo", options: [port: 2222, user: "second"]},
+          host: %SSHKitHost{name: "bravo", options: [user: "second", port: 2222]},
           options: [primary: true]
         },
       ] == new_role.hosts

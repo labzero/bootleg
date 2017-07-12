@@ -68,6 +68,11 @@ defmodule Bootleg.ConfigTest do
         user: "brien"
       }
     ]
+
+    role :build, "build.labzero.com", port: 123
+    role :build, "build.labzero.com", port: 123, user: "foo"
+    assert [build: %Bootleg.Role{hosts: hosts}] = roles()
+    assert Enum.count(hosts) == 2
   end
 
   test "get_role/1", %{local_user: local_user} do

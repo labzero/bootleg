@@ -15,7 +15,6 @@ RUN chmod 700 /etc/skel/.ssh
 
 RUN touch /etc/skel/.ssh/authorized_keys
 RUN chmod 600 /etc/skel/.ssh/authorized_keys
-RUN printf "PATH=/usr/local/bin:/usr/local/sbin:$PATH" > /etc/skel/.ssh/environment
 
 # Allow members of group "wheel" to execute any command.
 
@@ -29,6 +28,9 @@ RUN echo "%passwordless-sudoers ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers.d/y
 
 # Add fixture data for tests
 ADD fixtures /fixtures
+RUN chmod -R a+x /fixtures/bin
+RUN printf 'export PATH=$PATH:/fixtures/bin\n' >> /etc/profile
+RUN printf "PATH=$PATH:/fixtures/bin\n" > /etc/skel/.ssh/environment
 
 # Run SSH daemon and expose the standard SSH port.
 EXPOSE 22

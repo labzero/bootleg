@@ -29,7 +29,11 @@ defmodule Bootleg.Host do
   end
 
   def combine_uniq(hosts) do
-    do_combine_uniq(hosts, %{}, &host_name/1, [])
+    do_combine_uniq(hosts, %{}, &host_id/1, [])
+  end
+
+  defp host_id(host) do
+    {host_name(host), ssh_option(host, :port)}
   end
 
   defp do_combine_uniq([h | t], set, fun, acc) do
@@ -45,7 +49,7 @@ defmodule Bootleg.Host do
   end
 
   defp combine_hosts(host1, host2) do
-    if host_name(host1) == host_name(host2) do
+    if host_id(host1) == host_id(host2) do
       combine_host_options host1, host2
     else
       host1

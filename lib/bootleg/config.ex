@@ -22,7 +22,12 @@ defmodule Bootleg.Config do
     # user is in the role options for scm
     user = Keyword.get(options, :user, System.get_env("USER"))
     ssh_options = Enum.filter(options, &Enum.member?(SSH.supported_options, elem(&1, 0)) == true)
-    role_options = Keyword.put(options -- ssh_options, :user, user)
+    role_options =
+      options -- ssh_options
+      |> Keyword.put(:user, user)
+      # identity needs to be present in both options lists
+      |> Keyword.put(:identity, ssh_options[:identity])
+      |> Enum.filter(fn {_, v} -> v end)
 
     quote do
       hosts =

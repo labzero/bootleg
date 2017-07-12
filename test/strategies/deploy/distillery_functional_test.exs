@@ -12,7 +12,6 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     config :version, "valid_archive"
   end
 
-  @tag boot: 1
   test "deploy/1 returns an error if there is no file to upload" do
     use Bootleg.Config
 
@@ -26,7 +25,6 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "deploy/1 returns an error if the unpack fails" do
     use Bootleg.Config
 
@@ -40,7 +38,6 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "deploy/1 deploys the release to the target hosts" do
     File.cd!("test/fixtures", fn ->
       capture_io(fn ->
@@ -49,8 +46,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
-  test "init/1 initializes the SSH context", %{hosts: [host]} do
+  test "init/0 initializes the SSH context", %{hosts: [host]} do
     capture_io(fn ->
       assert %SSHKit.Context{
         hosts: [%SSHKit.Host{name: hostname, options: options}], path: "workspace", user: nil
@@ -62,7 +58,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  test "init/1 raises an error if the host is not found" do
+  test "init/0 raises an error if the host is not found" do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     role :app, "bad-host-name.local"

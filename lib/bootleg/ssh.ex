@@ -131,7 +131,7 @@ defmodule Bootleg.SSH do
   def ssh_opt(option), do: option
 
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
-    idle_time silently_accept_hosts user_dir timeout connection_timeout)a
+    idle_time silently_accept_hosts user_dir timeout connection_timeout identity)a
   def supported_options do
     @ssh_options
   end

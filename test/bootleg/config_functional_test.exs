@@ -8,7 +8,6 @@ defmodule Bootleg.ConfigFunctionalTest do
       silently_accept_hosts: true, workspace: "workspace"
   end
 
-  @tag boot: 1
   test "remote/2" do
     use Bootleg.Config
 
@@ -42,7 +41,6 @@ defmodule Bootleg.ConfigFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "remote/2 fails remotely" do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
