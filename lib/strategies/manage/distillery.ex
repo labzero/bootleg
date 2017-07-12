@@ -1,41 +1,34 @@
 defmodule Bootleg.Strategies.Manage.Distillery do
   @moduledoc ""
 
-  alias Bootleg.{Config, Config.ManageConfig, UI, SSH}
+  alias Bootleg.{UI, SSH, Config}
 
-  @config_keys ~w(hosts user workspace)
-
-  def init(%Config{manage: %ManageConfig{identity: identity, hosts: hosts, user: user, workspace: workspace} = config}) do
-    with :ok <- Bootleg.check_config(config, @config_keys) do
-      SSH.init(hosts,
-               [user: user, identity: identity, workspace: workspace, create_workspace: false])
-    else
-      {:error, msg} -> raise "Error: #{msg}"
-    end
+  def init do
+    SSH.init(:app)
   end
 
-  def start(conn, _config) do
+  def start(conn) do
     app_name = Config.app
     SSH.run!(conn, "bin/#{app_name} start")
     UI.info "#{app_name} started"
     {:ok, conn}
   end
 
-  def stop(conn, _config) do
+  def stop(conn) do
     app_name = Config.app
     SSH.run!(conn, "bin/#{app_name} stop")
     UI.info "#{app_name} stopped"
     {:ok, conn}
   end
 
-  def restart(conn, _config) do
+  def restart(conn) do
     app_name = Config.app
     SSH.run!(conn, "bin/#{app_name} restart")
     UI.info "#{app_name} restarted"
     {:ok, conn}
   end
 
-  def ping(conn, _config) do
+  def ping(conn) do
     app_name = Config.app
     SSH.run!(conn, "bin/#{app_name} ping")
     {:ok, conn}
