@@ -98,10 +98,6 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 used and a warning may result. If this role isn't set the release packaging will be done locally.
 * `app` -  Takes a lists of hosts, or a string with one host.
 
-## Versioning
-
-Bootleg uses the application version as defined in `mix.exs`. Whether your application version is set here or comes from another source (e.g. [a VERSION file](https://gist.github.com/jeffweiss/9df547a4e472e3cf5bd3)), Bootleg requires it to be a parseable [Elixir.Version](https://hexdocs.pm/elixir/Version.html).
-
 ## Building and deploying a release
 
 ```console

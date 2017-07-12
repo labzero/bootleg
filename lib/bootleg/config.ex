@@ -203,12 +203,12 @@ defmodule Bootleg.Config do
 
   """
 
-  alias Bootleg.Config.{ManageConfig, ArchiveConfig}
+  alias Bootleg.Config.{ManageConfig}
   alias Mix.Project
 
   @doc false
   @enforce_keys []
-  defstruct [:archive, :manage]
+  defstruct [:manage]
 
   @doc """
   Creates a `Bootleg.Config` from the `Application` configuration (under the key `:bootleg`).
@@ -219,8 +219,7 @@ defmodule Bootleg.Config do
   @spec init([strategy]) :: %Bootleg.Config{}
   def init(options \\ []) do
     %__MODULE__{
-      manage: ManageConfig.init(default_option(options, :manage)),
-      archive: ArchiveConfig.init(default_option(options, :archive))
+      manage: ManageConfig.init(default_option(options, :manage))
     }
   end
 
