@@ -33,7 +33,7 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
-    role :build, host.ip, workspace: "/home/#{host.user}/workspace_abs"
+    role :build, host.ip, workspace: "/home/#{host.user}/workspace_abs", port: host.port
 
     File.cd!(location, fn ->
       capture_io(fn ->
