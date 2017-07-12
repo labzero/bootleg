@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+bin/$1 start
+TRIES=0
+while [[ "`bin/$1 ping`" != "pong" ]]; do
+  sleep 0.1
+  TRIES=$(($TRIES + 1))
+  if [[ $TRIES -gt 9 ]]; then
+    exit 1
+  fi
+done

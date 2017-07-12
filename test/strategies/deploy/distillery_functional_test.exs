@@ -50,7 +50,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
   end
 
   @tag boot: 1
-  test "init/1 initializes the SSH context", %{hosts: [host]} do
+  test "init/0 initializes the SSH context", %{hosts: [host]} do
     capture_io(fn ->
       assert %SSHKit.Context{
         hosts: [%SSHKit.Host{name: hostname, options: options}], path: "workspace", user: nil
@@ -62,7 +62,7 @@ defmodule Bootleg.Strategies.Deploy.DistilleryFunctionalTest do
     end)
   end
 
-  test "init/1 raises an error if the host is not found" do
+  test "init/0 raises an error if the host is not found" do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     role :app, "bad-host-name.local"
