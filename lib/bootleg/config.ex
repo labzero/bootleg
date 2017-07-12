@@ -1,6 +1,11 @@
 defmodule Bootleg.Config do
+  @moduledoc """
+    Configuration access for Bootleg.
+  """
+
   @doc false
 
+  alias Mix.Project
   alias Bootleg.{UI, SSH, Host, Role}
 
   defmacro __using__(_) do
@@ -189,26 +194,6 @@ defmodule Bootleg.Config do
       true -> Code.eval_file(file)
       false -> {:error, "File not found"}
     end
-  end
-
-  ##################
-  ####  LEGACY  ####
-  ##################
-  @moduledoc """
-  Configuration for bootleg in general.
-
-  The configuration is defined as a `Map` in the `Mix.Config` of the target project,
-  under the key `:bootleg`. Attributes in the struct have a 1:1 relationship with
-  the keys in the `Mix.Config`.
-
-  """
-
-  alias Mix.Project
-
-  @doc false
-
-  defp default_option(config, key) do
-    Keyword.get(config, key, get_config(key))
   end
 
   def get_config(key, default \\ nil) do
