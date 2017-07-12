@@ -146,7 +146,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     app_version = Config.version
     remote_path = "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "build.tar.gz")
+    local_path = Path.join(local_archive_folder, "#{app_version}.tar.gz")
 
     UI.info "Downloading release archive"
     File.mkdir_p!(local_archive_folder)

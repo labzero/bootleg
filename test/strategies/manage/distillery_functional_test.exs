@@ -21,7 +21,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     %{conn: conn}
   end
 
-  @tag boot: 1
   test "init/0", %{hosts: [host]} do
     capture_io(fn ->
       assert %SSHKit.Context{
@@ -34,7 +33,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "init/0 failure", %{hosts: [host]} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
@@ -46,14 +44,12 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "start/1", %{conn: conn} do
     capture_io(fn ->
       assert {:ok, %SSHKit.Context{}} = Distillery.start(conn)
     end)
   end
 
-  @tag boot: 1
   test "start/1 with app running", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "bin/build_me start")
@@ -61,7 +57,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "stop/1", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
@@ -69,14 +64,12 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "stop/1 with app not running", %{conn: conn} do
     capture_io(fn ->
       assert_raise SSHError, fn -> Distillery.stop(conn) end
     end)
   end
 
-  @tag boot: 1
   test "restart/1", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
@@ -84,14 +77,12 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "restart/1 with app not running", %{conn: conn} do
     capture_io(fn ->
       assert_raise SSHError, fn -> Distillery.restart(conn) end
     end)
   end
 
-  @tag boot: 1
   test "ping/1", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
@@ -99,7 +90,6 @@ defmodule Bootleg.Strategies.Manage.DistilleryFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "ping/1 with app not running", %{conn: conn} do
     capture_io(fn ->
       assert_raise SSHError, fn -> Distillery.ping(conn) end

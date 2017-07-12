@@ -25,7 +25,6 @@ defmodule Bootleg.SSHFunctionalTest do
     ]
   end
 
-  @tag boot: 1
   test "run!/2", %{role: role} do
     capture_io(fn ->
       conn = SSH.init(role.hosts)
@@ -33,7 +32,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "init/3 raises an error if the host refuses the connection", %{hosts: hosts} do
     bootleg_hosts = Enum.map(hosts, &Host.init(&1.ip, [port: 404], []))
     capture_io(fn ->
@@ -55,7 +53,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "init/2 with Role name atom", %{hosts: [host]} do
     use Bootleg.Config
     ip = host.ip
@@ -70,7 +67,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "init/2 with Role name atom and identity", %{hosts: [host]} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
@@ -88,7 +84,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "run!/2 raises an error if the host refuses the connection", %{hosts: [host]} do
     capture_io(fn ->
       conn = SSHKit.context(SSHKit.host(host.ip))
@@ -107,7 +102,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "upload", %{role: role} do
     capture_io(fn ->
       conn = SSH.init(role)
@@ -116,7 +110,6 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag boot: 1
   test "download", %{role: role} do
     capture_io(fn ->
       path = Temp.path!("scp-download")

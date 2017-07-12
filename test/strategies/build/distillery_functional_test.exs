@@ -17,18 +17,16 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
     }
   end
 
-  @tag boot: 1
   test "builds the application", %{project_location: location} do
     File.cd!(location, fn ->
       capture_io(fn ->
         assert {:ok, filename} = Distillery.build()
         assert File.regular?(filename)
-        assert "#{File.cwd!}/releases/build.tar.gz" == filename
+        assert "#{File.cwd!}/releases/0.1.0.tar.gz" == filename
       end)
     end)
   end
 
-  @tag boot: 1
   test "builds the application with an absolute workspace path", %{hosts: [host], project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
@@ -39,7 +37,7 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
       capture_io(fn ->
         assert {:ok, filename} = Distillery.build()
         assert File.regular?(filename)
-        assert "#{File.cwd!}/releases/build.tar.gz" == filename
+        assert "#{File.cwd!}/releases/0.1.0.tar.gz" == filename
       end)
     end)
   end
