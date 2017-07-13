@@ -1,6 +1,8 @@
 defmodule Bootleg.Config.Agent do
   @moduledoc false
 
+  alias Bootleg.Tasks
+
   @typep data :: keyword
 
   @spec start_link() :: {:ok, pid}
@@ -10,6 +12,8 @@ defmodule Bootleg.Config.Agent do
     end
     case Agent.start_link(state_fn, name: Bootleg.Config.Agent) do
       {:error, {:already_started, pid}} -> {:ok, pid}
+      {:ok, pid} -> Tasks.load_tasks
+                    {:ok, pid}
       val -> val
     end
   end

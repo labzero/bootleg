@@ -1,6 +1,5 @@
 defmodule Bootleg.Tasks do
   @moduledoc false
-  @on_load :load_tasks
 
   alias Bootleg.Config
 
