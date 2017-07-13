@@ -32,7 +32,7 @@ defmodule Bootleg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:sshkit, github: "labzero/sshkit.ex"},
+      {:sshkit, "0.0.3"},
       {:ssh_client_key_api, "0.0.1"},
       {:credo, "~> 0.7", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
