@@ -56,7 +56,6 @@ defmodule Bootleg.FunctionalCase do
     chpasswd!(host, @user, @pass)
     private_key = keygen!(host, @user)
 
-    Temp.track!
     private_key_path = Temp.open!("docker-key", &IO.write(&1, private_key))
     File.chmod!(private_key_path, 0o600)
 

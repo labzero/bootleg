@@ -2,7 +2,6 @@ defmodule Bootleg.Fixtures do
   @moduledoc false
 
   def inflate_project(name \\ :build_me) do
-    Temp.track!
     project_dir = Temp.mkdir!("git-#{name}")
     File.cp_r!("./test/fixtures/#{name}", project_dir)
     File.cd!(project_dir, fn ->
