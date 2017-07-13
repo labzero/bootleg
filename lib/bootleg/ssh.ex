@@ -12,7 +12,7 @@ defmodule Bootleg.SSH do
     init(role.hosts, Keyword.merge(role_options, options))
   end
 
-  def init(nil, options) do
+  def init(nil, _options) do
     raise ArgumentError, "You must supply a %Host{}, a %Role{} or a defined role_name."
   end
 
