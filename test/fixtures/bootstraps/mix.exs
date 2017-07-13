@@ -30,7 +30,7 @@ defmodule Bootstraps.Mixfile do
   defp deps do
     [
       {:distillery, "~> 1.4", runtime: false},
-      {:bootleg, ">= 0.0.0", path: System.get_env("BOOTLEG_PATH")}
+      {:bootleg, ">= 0.0.0", path: System.get_env("BOOTLEG_PATH"), runtime: false}
     ]
   end
 end

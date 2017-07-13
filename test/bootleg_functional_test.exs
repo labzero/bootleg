@@ -56,10 +56,8 @@ defmodule Bootleg.FunctionalTest do
       end)
     end)
 
-    File.cd!(location, fn ->
-      Enum.each(["deps.get", "bootleg.build", "bootleg.deploy", "bootleg.start"], fn cmd ->
-        assert {_, 0} = System.cmd("mix", [cmd], [env: shell_env])
-      end)
+    Enum.each(["deps.get", "bootleg.build", "bootleg.deploy", "bootleg.start"], fn cmd ->
+      assert {_, 0} = System.cmd("mix", [cmd], [env: shell_env, cd: location])
     end)
   end
 
