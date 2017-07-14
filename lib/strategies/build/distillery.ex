@@ -38,17 +38,21 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
     user_host = "#{build_role.user}@#{build_host.name}"
     port = options[:port]
-    user_host = if port, do: "#{user_host}:#{port}"
+    user_host_port = if port do
+      "#{user_host}:#{port}"
+    else
+      user_host
+    end
     workspace = options[:workspace]
     host_url = case String.first(workspace) do
-      "/" -> "ssh://#{user_host}#{workspace}"
-      _   -> "ssh://#{user_host}/~/#{workspace}"
+      "/" -> "ssh://#{user_host_port}#{workspace}"
+      _   -> "ssh://#{user_host_port}/~/#{workspace}"
     end
 
     push_options = Config.get_config(:push_options, "-f")
     git_env = git_env(options)
 
-    UI.info "Pushing new commits with git to: #{user_host}"
+    UI.info "Pushing new commits with git to: #{user_host_port}"
 
     case Git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> :ok
