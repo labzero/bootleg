@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Restart do
-  use Mix.Task
+  use Bootleg.Task, :restart
 
   @shortdoc "Restarts a deployed release."
 
@@ -11,9 +11,4 @@ defmodule Mix.Tasks.Bootleg.Restart do
     * mix bootleg.start
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    use Bootleg.Config
-    invoke :restart
-  end
 end

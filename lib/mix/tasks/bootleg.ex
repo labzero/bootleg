@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg do
-  use Mix.Task
+  use Bootleg.Task
 
   @shortdoc "Build and deploy releases"
 
@@ -17,9 +17,5 @@ defmodule Mix.Tasks.Bootleg do
     * mix bootleg build release [--refspec=<git-refspec>|--tag=<git-tag>] [--branch=<git-branch>] [Options]
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    :ok
-  end
 
 end

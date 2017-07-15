@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Ping do
-  use Mix.Task
+  use Bootleg.Task, :ping
 
   @shortdoc "Pings an app."
 
@@ -11,9 +11,4 @@ defmodule Mix.Tasks.Bootleg.Ping do
     * mix bootleg.ping
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    use Bootleg.Config
-    invoke :ping
-  end
 end

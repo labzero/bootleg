@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Start do
-  use Mix.Task
+  use Bootleg.Task, :start
 
   @shortdoc "Starts a deployed release."
 
@@ -11,9 +11,4 @@ defmodule Mix.Tasks.Bootleg.Start do
     * mix bootleg.start
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    use Bootleg.Config
-    invoke :start
-  end
 end

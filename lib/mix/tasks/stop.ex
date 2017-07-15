@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Stop do
-  use Mix.Task
+  use Bootleg.Task, :stop
 
   @shortdoc "Stops a deployed release."
 
@@ -11,9 +11,4 @@ defmodule Mix.Tasks.Bootleg.Stop do
     * mix bootleg.stop
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    use Bootleg.Config
-    invoke :stop
-  end
 end
