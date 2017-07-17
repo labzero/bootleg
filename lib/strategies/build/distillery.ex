@@ -1,7 +1,7 @@
 defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
-
+  use Bootleg.Config
   alias Bootleg.{Git, UI, SSH, Config}
 
   def init do
@@ -21,8 +21,8 @@ defmodule Bootleg.Strategies.Build.Distillery do
     git_reset_remote(conn, refspec)
     git_clean_remote(conn)
     get_and_update_deps(conn, mix_env)
-    clean_compile(conn, mix_env)
-    generate_release(conn, mix_env)
+    invoke :compile
+    invoke :generate_release
     download_release_archive(conn, mix_env)
   end
 
@@ -124,25 +124,8 @@ defmodule Bootleg.Strategies.Build.Distillery do
     SSH.run!(ssh, commands)
   end
 
-  defp clean_compile(ssh, mix_env) do
-    UI.info "Compiling remote build"
-    commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(mix_env, &1)))
-    SSH.run!(ssh, commands)
-  end
-
   defp with_env_vars(mix_env, cmd) do
     "MIX_ENV=#{mix_env} #{cmd}"
-  end
-
-  defp generate_release(ssh, mix_env) do
-    UI.info "Generating release"
-
-    # build assets for phoenix apps
-    SSH.run!(ssh, "[ -f package.json ] && npm install || true")
-    SSH.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true")
-    SSH.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest") <> " || true")
-
-    SSH.run!(ssh, with_env_vars(mix_env, "mix release"))
   end
 
   defp download_release_archive(conn, mix_env) do

@@ -1,11 +1,12 @@
 defmodule Bootleg.Strategies.Build.DistilleryTest do
-  use ExUnit.Case, async: true
+  use ExUnit.Case, async: false
   import ExUnit.CaptureIO
   import Mock
-  alias Bootleg.{SSH, Git, Config, Strategies.Build.Distillery}
+  alias Bootleg.{SSH, Git, Config, Strategies.Build.Distillery, Tasks}
 
   test "building without specified port" do
     use Bootleg.Config
+    Tasks.load_tasks
     role :build, "build.example.com", user: "foo", workspace: "bar"
     ssh_host = :build
       |> Config.get_role
