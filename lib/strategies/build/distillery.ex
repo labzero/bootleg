@@ -44,9 +44,9 @@ defmodule Bootleg.Strategies.Build.Distillery do
       user_host
     end
     workspace = options[:workspace]
-    host_url = case String.first(workspace) do
-      "/" -> "ssh://#{user_host_port}#{workspace}"
-      _   -> "ssh://#{user_host_port}/~/#{workspace}"
+    host_url = case Path.type(workspace) do
+      :absolute -> "ssh://#{user_host_port}#{workspace}"
+      _         -> "ssh://#{user_host_port}/~/#{workspace}"
     end
 
     push_options = Config.get_config(:push_options, "-f")
