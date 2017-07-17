@@ -123,12 +123,9 @@ defmodule Bootleg.SSH do
 
   def ssh_opt({:identity, nil}), do: []
   def ssh_opt({:identity, identity_file}) do
-    case File.open(identity_file) do
-      {:ok, identity} ->
-        key_cb = SSHClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        [{:key_cb, key_cb}]
-      {_, msg} -> raise "Error: #{msg}"
-    end
+    identity = File.open!(identity_file)
+    key_cb = SSHClientKeyAPI.with_options(identity: identity, accept_hosts: true)
+    [{:key_cb, key_cb}]
   end
 
   def ssh_opt({_, nil}), do: []
