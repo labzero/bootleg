@@ -30,7 +30,7 @@ RUN echo "%passwordless-sudoers ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers.d/y
 ADD fixtures /fixtures
 RUN chmod -R a+x /fixtures/bin
 RUN printf 'export PATH=$PATH:/fixtures/bin\n' >> /etc/profile
-RUN printf "PATH=$PATH:/fixtures/bin\n" > /etc/skel/.ssh/environment
+RUN printf "PATH=$PATH:/fixtures/bin\nBOOTLEG_PATH=/project\n" > /etc/skel/.ssh/environment
 
 # Run SSH daemon and expose the standard SSH port.
 EXPOSE 22

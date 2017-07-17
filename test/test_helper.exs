@@ -1,3 +1,4 @@
+unless System.get_env("TEST_LEAVE_TEMP"), do: Temp.track!
 unless Docker.ready? do
   IO.puts """
   It seems like Docker isn't running?

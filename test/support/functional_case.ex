@@ -37,7 +37,7 @@ defmodule Bootleg.FunctionalCase do
   end
 
   def boot(%{image: image, cmd: cmd, args: args} = config) do
-    id = Docker.run!(["--rm", "--publish-all", "--detach"], image, cmd, args)
+    id = Docker.run!(["--rm", "--publish-all", "--detach", "-v", "#{File.cwd!}:/project"], image, cmd, args)
 
     ip = Docker.host
 
@@ -56,8 +56,7 @@ defmodule Bootleg.FunctionalCase do
     chpasswd!(host, @user, @pass)
     private_key = keygen!(host, @user)
 
-    Temp.track!
-    private_key_path = Temp.open!(nil, &IO.write(&1, private_key))
+    private_key_path = Temp.open!("docker-key", &IO.write(&1, private_key))
     File.chmod!(private_key_path, 0o600)
 
     Map.merge(host, %{user: @user, password: @pass, private_key: private_key,
