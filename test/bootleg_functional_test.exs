@@ -1,11 +1,12 @@
 defmodule Bootleg.FunctionalTest do
   use Bootleg.FunctionalCase, async: false
-  alias Bootleg.Fixtures
+  alias Bootleg.{Fixtures, Tasks}
   import ExUnit.CaptureIO
 
   @tag boot: 3
   test "build, deploy, and manage", %{hosts: hosts} do
     use Bootleg.Config
+    Tasks.load_tasks
 
     build_host = List.first(hosts)
     app_hosts = hosts -- [build_host]
@@ -23,14 +24,14 @@ defmodule Bootleg.FunctionalTest do
 
     location = Fixtures.inflate_project()
     File.cd!(location, fn ->
-      capture_io(fn ->
+      assert String.match?(capture_io(fn ->
         # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
         use Bootleg.Config
 
         invoke :build
         invoke :deploy
         invoke :start
-      end)
+      end), ~r/build_me started/)
     end)
   end
 

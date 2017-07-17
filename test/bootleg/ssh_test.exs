@@ -37,4 +37,13 @@ defmodule Bootleg.SSHTest do
     host = List.first(conn.hosts)
     assert %SSHKitHost{name: "localhost.1", options: []} == SSH.ssh_host_options(host)
   end
+
+  test "ssh_host_options/1 with a malformed identity path" do
+    capture_io(fn ->
+      assert_raise File.Error, fn ->
+        host = %Host{host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]}, options: []}
+        SSH.ssh_host_options(host)
+      end
+    end)
+  end
 end
