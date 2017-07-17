@@ -1,10 +1,6 @@
 defmodule Bootleg.Git do
   @moduledoc "Provides Git related tools for use in `Bootleg.Strategies`."
 
-  def remote(args, options \\ []) do
-    git("remote", args, options)
-  end
-
   def push(args, options \\ []) do
     git("push", args, options)
   end
