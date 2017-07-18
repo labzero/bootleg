@@ -1,6 +1,6 @@
 defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
   use Bootleg.FunctionalCase, async: false
-  alias Bootleg.{Strategies.Build.Distillery, Fixtures, Tasks}
+  alias Bootleg.{Strategies.Build.Distillery, Fixtures}
   import ExUnit.CaptureIO
 
   setup %{hosts: [host]} do
@@ -17,7 +17,6 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
   end
 
   test "builds the application", %{project_location: location} do
-    Tasks.load_tasks
     File.cd!(location, fn ->
       capture_io(fn ->
         assert {:ok, filename} = Distillery.build()
@@ -30,7 +29,6 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
   test "builds the application with an absolute workspace path", %{hosts: [host], project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
-    Tasks.load_tasks
 
     role :build, host.ip, workspace: "/home/#{host.user}/workspace_abs", port: host.port
 

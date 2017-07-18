@@ -1,7 +1,6 @@
 defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
-  use Bootleg.Config
   alias Bootleg.{Git, UI, SSH, Config}
 
   def init do
@@ -13,6 +12,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
   end
 
   def build do
+    use Bootleg.Config
     conn = init()
 
     mix_env = Config.get_config(:mix_env, "prod")
