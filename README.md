@@ -15,6 +15,28 @@ def deps do
 end
 ```
 
+## Quick Start
+
+### Configure your release parameters
+
+```elixir
+# config/deploy.exs
+use Bootleg.Config
+
+role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace "/some/build/workspace"
+role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace "/var/myapp"
+```
+
+### build and deploy
+
+```sh
+$ mix bootleg.build
+$ mix bootleg.deploy
+$ mix bootleg.start
+```
+
+also see: [Phoenix support](#phoenix-support)
+
 ## Configuration
 
 Configure Bootleg in the deploy config file:
@@ -23,17 +45,8 @@ Configure Bootleg in the deploy config file:
 # config/deploy.exs
 use Bootleg.Config
 
-config :build_at, "/usr/local/build/myapp/"
-config :deploy_to, "/var/www/#{app}" # default
-config :releases, "./releases"  # path to store releases
-config :scm, :git # only one supported right now. Need an alternative? Consider contributing!
-```
-
-```elixir
-# config/deploy/production.exs - Create one for each environment you want to build and deploy to
-role :build, "build.myapp.com", user, "build", port: "2222"
-role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin"
-role :db, ["admin@db1.myapp.com"]
+role :build, "build.myapp.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
 ## Roles
@@ -52,12 +65,19 @@ role to one host.
 
 ### Role and host options
 
-Options are set on roles and on hosts based on the order in which the roles are defined.
+Options are set on roles and on hosts based on the order in which the roles are defined. Some are used internally
+by bootleg:
+
+  * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
+  * `user` - ssh username (default to local user)
+  * `password` - ssh password
+  * `identity` - file path of an SSH private key identify file
+  * `port` - ssh port (default `22`)
 
 #### Examples
 
 ```elixir
-role :app, ["host1", "host2"], user: "deploy"
+role :app, ["host1", "host2"], user: "deploy", identity: "/home/deploy/.ssh/deploy_key.priv"
 role :app, ["host2"], port: 2222
 ```
 > In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
@@ -125,15 +145,15 @@ mix bootleg.ping production      # Check status of running nodes
 
 ## Hooks
 
-[VERY MUCH A WIP]
-
 Hooks may be defined by the user in order to perform additional (or exceptional)
 operations before or after certain actions performed by bootleg.
 
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
 before or after a task. The following tasks are provided by bootleg:
 
-1. `build` - generation of a release package
+1. `build` - build process for creating a release package
+  1. `compile` - compilation of your project
+  2. `generate_release` - generation of the release package
 2. `deploy` - deploy of a release package
 3. `start` - starting of a release
 4. `stop` - stopping of a release
@@ -212,7 +232,7 @@ before_task :build do
   invoke :custom_event
 end
 
-task :custom_task docs
+task :custom_task do
   IO.puts "World"
 end
 
@@ -275,9 +295,26 @@ remote :app do
 end
 ```
 
+## Phoenix Support
+
+Bootleg builds elixir apps, if your application has extra steps required make use of the hooks
+system to add additional functionality. A common case is for building assets for Phoenix
+applications. To build phoenix assets during your build, define an after hook handler for the
+`:compile` task and place it inside your `config/deploy.exs`.
+
+```elixir
+after :compile do
+  remote :build do
+    "[ -f package.json ] && npm install || true"
+    "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true"
+    "[ -d deps/phoenix ] && mix phoenix.digest || true"
+  end
+end
+```
+
 ## Help
 
-If something goes wrong, retry with the `--verbose` option. 
+If something goes wrong, retry with the `--verbose` option.
 For detailed information about the bootleg commands and their options, try `mix bootleg help <command>`.
 
 ## Examples
