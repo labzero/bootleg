@@ -2,13 +2,6 @@
 
 ## Distillery
 
-### Phoenix Assets
-
-When Phoenix is detected as a dependency, Bootleg will take some extra actions before building a release:
-
-* Brunch will be used to build app assets in production mode
-* `mix phoenix.digest` will be called to compress and tag assets for caching
-
 ### Runtime Configuration
 
 From the [Distillery docs](https://hexdocs.pm/distillery/runtime-configuration.html#content):
@@ -19,7 +12,7 @@ This means if you are using a 12FA-style environment variable configuration for 
 
 One solution is to set `REPLACE_OS_VARS=true` in your build environment and define shell-style variables in configuration strings that Distillery's runtime will automagically replace when first running the build on the target deployment.
 
-	config :sauce, api_url: "${SAUCE_API_URL}"
+  config :sauce, api_url: "${SAUCE_API_URL}"
 
 Another solution is to use [Confex]() or a [configuration wrapper](https://gist.github.com/bitwalker/a4f73b33aea43951fe19b242d06da7b9) that knows how to understand and read configuration values such as `{:system, "VAR"}` from the environment at runtime. However, you may still be at the mercy of your application's dependencies.
 
