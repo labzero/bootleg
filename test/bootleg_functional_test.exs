@@ -1,12 +1,11 @@
 defmodule Bootleg.FunctionalTest do
   use Bootleg.FunctionalCase, async: false
-  alias Bootleg.{Fixtures, Tasks}
+  alias Bootleg.Fixtures
   import ExUnit.CaptureIO
 
   @tag boot: 3
   test "build, deploy, and manage", %{hosts: hosts} do
     use Bootleg.Config
-    Tasks.load_tasks
 
     build_host = List.first(hosts)
     app_hosts = hosts -- [build_host]
