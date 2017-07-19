@@ -5,6 +5,12 @@ defmodule Bootleg.Config.Agent do
 
   @typep data :: keyword
 
+  @spec agent_pid() :: pid | atom
+  def agent_pid do
+    {:ok, pid} = Bootleg.Config.Agent.start_link
+    pid
+  end
+
   @spec start_link() :: {:ok, pid}
   def start_link do
     state_fn = fn ->
@@ -23,12 +29,12 @@ defmodule Bootleg.Config.Agent do
 
   @spec get(atom) :: data
   def get(name) do
-    Agent.get(Bootleg.Config.Agent, &Keyword.get(&1, name))
+    Agent.get(agent_pid(), &Keyword.get(&1, name))
   end
 
   @spec put(atom, data) :: :ok
   def put(name, data) do
-    Agent.update(Bootleg.Config.Agent, &Keyword.put(&1, name, data))
+    Agent.update(agent_pid(), &Keyword.put(&1, name, data))
   end
 
   @spec merge(atom, atom, any) :: :ok
@@ -38,7 +44,7 @@ defmodule Bootleg.Config.Agent do
 
   @spec increment(atom) :: integer()
   def increment(key) do
-    Agent.get_and_update(Bootleg.Config.Agent, fn (state) ->
+    Agent.get_and_update(agent_pid(), fn (state) ->
       {state[key], Keyword.put(state, key, state[key] + 1)}
     end)
   end
