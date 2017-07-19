@@ -12,9 +12,6 @@ defmodule Bootleg.Config do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
         after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2]
-      {:ok, agent} = Bootleg.Config.Agent.start_link
-      Code.ensure_loaded(Bootleg.Tasks)
-      :ok
     end
   end
 

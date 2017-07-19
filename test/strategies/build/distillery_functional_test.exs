@@ -5,7 +5,6 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
 
   setup %{hosts: [host]} do
     use Bootleg.Config
-
     config :app, :build_me
     config :version, "0.1.0"
 
