@@ -1,54 +1,42 @@
 defmodule Bootleg.Strategies.Build.DistilleryTest do
   use ExUnit.Case, async: false
-  alias Bootleg.Strategies.Build.Distillery
   import ExUnit.CaptureIO
+  import Mock
+  alias Bootleg.{SSH, Git, Config, Strategies.Build.Distillery}
 
-  doctest Distillery
+  test "building without specified port" do
+    use Bootleg.Config
+    role :build, "build.example.com", user: "foo", workspace: "bar"
+    ssh_host = :build
+      |> Config.get_role
+      |> Map.get(:hosts)
+      |> List.first
+      |> Map.get(:host)
 
-  setup do
-    %{
-      project: %Bootleg.Project{
-        app_name: "bootleg",
-        app_version: "1.0.0"},
-
-      config: %Bootleg.Config{
-                build: %Bootleg.Config.BuildConfig{
-                  strategy: Bootleg.Strategies.Build.Distillery,
-                  identity: "identity",
-                  workspace: "workspace",
-                  host: "host",
-                  user: "user",
-                  mix_env: "test",
-                  refspec: "master",
-                  push_options: "-f"}
-                }
-    }
-  end
-
-  test "init", %{config: config, project: project} do
-    Distillery.init(config, project)
-    assert_received({
-      Bootleg.SSH,
-      :init,
-      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
-    })
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
-  end
-
-  test "build", %{config: config, project: project} do
-    local_file = "#{File.cwd!}/releases/build.tar.gz"
-    capture_io(fn -> Distillery.build(config, project) end)
-    assert_received({
-      Bootleg.SSH,
-      :init,
-      ["host", "user", [identity: "identity", workspace: "workspace", create_workspace: true]]
-    })
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git config receive.denyCurrentBranch ignore"]})
-    assert_received({Bootleg.Git, :push,  [["--tags", "-f", "user@host:workspace", "master"], [env: [{"GIT_SSH_COMMAND", "ssh -i 'identity'"}]]]})
-    assert_received({Bootleg.SSH, :"run!", [:conn, "git reset --hard master"]})
-    assert_received({Bootleg.SSH, :run!, [:conn, ["MIX_ENV=test mix local.rebar --force", "MIX_ENV=test mix local.hex --force", "MIX_ENV=test mix deps.get --only=prod"]]})
-    assert_received({Bootleg.SSH, :run!, [:conn, ["MIX_ENV=test mix deps.compile", "MIX_ENV=test mix compile"]]})
-    assert_received({Bootleg.SSH, :run!, [:conn, "MIX_ENV=test mix release"]})
-    assert_received({Bootleg.SSH, :download, [:conn, "_build/test/rel/bootleg/releases/1.0.0/bootleg.tar.gz", ^local_file, []]})
+    with_mocks([
+      {SSH, [], [
+        init: fn _ -> %SSHKit.Context{} end,
+        run!: fn _, _ -> [{:ok, [stdout: ""], 0, ssh_host}] end,
+        ssh_host_options: fn _ -> ssh_host end,
+        download: fn _, _, _ -> :ok end
+      ]},
+      {
+        Git, [], [
+          push: fn _, _ -> {"", 0} end,
+          push: fn [_, _, host_url, _], _ ->
+            case host_url do
+              "ssh://foo@build.example.com/~/bar" -> send(self(), :git_push_with_port)
+              _ -> :ok
+            end
+            {"", 0}
+          end
+        ]
+      }
+    ]) do
+      capture_io(fn ->
+        Distillery.build()
+        assert_received :git_push_with_port
+      end)
+    end
   end
 end

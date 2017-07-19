@@ -1,7 +1,8 @@
 defmodule Bootleg.SSHTest do
   use ExUnit.Case, async: false
-  alias Bootleg.{SSH, Role}
-  alias SSHKit.{Context, Host}
+  alias Bootleg.{SSH, Host}
+  alias SSHKit.Context
+  alias SSHKit.Host, as: SSHKitHost
   import ExUnit.CaptureIO
 
   doctest SSH
@@ -9,97 +10,40 @@ defmodule Bootleg.SSHTest do
   setup do
     %{
       conn: %Context{
-        pwd: ".",
+        path: ".",
         hosts: [
-          %Host{name: "localhost.1", options: []},
-          %Host{name: "localhost.2", options: []}
+          %Host{host: %SSHKitHost{name: "localhost.1", options: []}, options: []},
+          %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
         ]
-      },
-      conn_opts: %Context{
-        pwd: ".",
-        hosts: [
-          %Host{name: "localhost.1", options: [connect_timeout: 5000, user: "admin"]},
-          %Host{name: "localhost.2", options: [connect_timeout: 5000, user: "admin"]}
-        ]
-      },
-      role: %Role{
-        hosts: ["localhost.1", "localhost.2"],
-        name: :build,
-        options: []
       }
     }
   end
 
-  test "init/1 with Bootleg.Role", %{role: role} do
+  test "init/3 raises an error if the host is not found" do
+    host = Bootleg.Host.init("bad-host-name.local", [], [])
     capture_io(fn ->
-      assert %Context{} = SSH.init(role), "Connection isn't a context"
+      assert_raise SSHError, fn -> SSH.init(host, []) end
     end)
   end
 
-  test "init/1 with Role name atom", %{role: role_fixture} do
-    use Bootleg.Config
-    role :build, "build.labzero.com"
-
+  test "run!/2 raises an error if the host is not found" do
     capture_io(fn ->
-      assert %Context{} = SSH.init(role_fixture.name)
+      conn = SSHKit.context(SSHKit.host("bad-host-name.local"))
+      assert_raise SSHError, fn -> SSH.run!(conn, "echo foo") end
     end)
   end
 
-  test "init/2", %{conn_opts: conn} do
-    capture_io(fn ->
-      context = SSH.init(["localhost.1", "localhost.2"], "admin")
-      assert conn == context
-    end)
+  test "ssh_host_options/1 returns host options", %{conn: conn} do
+    host = List.first(conn.hosts)
+    assert %SSHKitHost{name: "localhost.1", options: []} == SSH.ssh_host_options(host)
   end
 
-  test "init/2 with identity" do
+  test "ssh_host_options/1 with a malformed identity path" do
     capture_io(fn ->
-      context = SSH.init(
-        ["localhost.1", "localhost.2"],
-        "admin",
-        [identity: "test/fixtures/identity_rsa"])
-
-      assert %Context{} = context
-
-      assert {SSHKit.SSH.ClientKeyAPI, options} = context
-      |> Map.get(:hosts)
-      |> List.first
-      |> Map.get(:options)
-      |> Keyword.get(:key_cb)
-
-      assert [:known_hosts_data, :identity_data, :known_hosts, :identity, :accept_hosts]
-             = Keyword.keys(options)
-    end)
-  end
-
-  test "run!", %{conn: conn} do
-    capture_io(fn ->
-      assert [{:ok, _, 0, %{name: "localhost.1"}},
-            {:ok, _, 0, %{name: "localhost.2"}}] = SSH.run!(conn, "hello")
-    end)
-  end
-
-  test "upload", %{conn: conn} do
-    capture_io(fn ->
-      assert_raise RuntimeError, fn ->
-        SSH.upload(conn, "nonexistant_file", "new_remote_file")
+      assert_raise File.Error, fn ->
+        host = %Host{host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]}, options: []}
+        SSH.ssh_host_options(host)
       end
-    end)
-
-    capture_io(fn ->
-      assert :ok == SSH.upload(conn, "existing_local_file", "new_remote_file")
-    end)
-  end
-
-  test "download", %{conn: conn} do
-    capture_io(fn ->
-      assert_raise RuntimeError, fn ->
-        SSH.download(conn, "nonexistant_file", "new_local_file")
-      end
-    end)
-
-    capture_io(fn ->
-      assert :ok == SSH.download(conn, "existing_remote_file", "new_local_file")
     end)
   end
 end

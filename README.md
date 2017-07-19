@@ -1,10 +1,8 @@
 # Bootleg
 
-Simple deployment and server automation for Elixir.
+**Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
-**bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
-
-Out of the box, bootleg provides remote build and remote server automation for you existing distillery releases.
+Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases.
 
 ## Installation
 
@@ -15,72 +13,108 @@ def deps do
 end
 ```
 
-## Configuration
+## Quick Start
 
-Configure Bootleg in the bootleg deploy config file:
+### Configure your release parameters
 
 ```elixir
 # config/deploy.exs
 use Bootleg.Config
 
-config build_at: "/usr/local/build/myapp/",
-config deploy_to: "/var/www/#{app}", # default
-config releases: "./releases",  # path to store releases
-config scm: :git, # only one supported right now. Need an alternative? Consider contributing!
+role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace "/some/build/workspace"
+role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace "/var/myapp"
 ```
 
+### build and deploy
+
+```sh
+$ mix bootleg.build
+$ mix bootleg.deploy
+$ mix bootleg.start
+```
+
+also see: [Phoenix support](#phoenix-support)
+
+## Configuration
+
+Create and configure Bootleg's `config/deploy.exs` file:
+
 ```elixir
-# config/deploy/production.exs - Create one for each environment you want to build and deploy to
-role :build, "build.myapp.com", user, "build", port: "2222"
-role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin"
-role :db, ["admin@db1.myapp.com"]
+# config/deploy.exs
+use Bootleg.Config
+
+role :build, "build.myapp.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
 ## Roles
 
-Actions in bootleg work against roles, sometimes referred to as a context. A
-role, is simply a collection of hosts that are responsible for the
-same function, for example building a release, or running your application.
-Role names are unique so there can only be one of each defined, but
-hosts can be grouped into one or more roles.
+Actions in Bootleg are paired with roles, which are simply a collection of hosts that are responsible for the same function, for example building a release, archiving a release, or executing commands against a running application.
 
-By defining roles, you are defining responsibility groups to cross cut your
-host infrastructure. `:build` and
-`:app` have inherent meaning to the default behavior of bootleg, but you may
-also define more that you can later filter on when running commands inside a
-bootleg hook. There is another built in role `:all` which will always include
+Role names are unique so there can only be one of each defined, but hosts can be grouped into one or more roles. Roles can be declared repeatedly to provide a different set of options to different sets of hosts.
+
+By defining roles, you are defining responsibility groups to cross cut your host infrastructure. The `build` and
+`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a bootleg hook. There is another built in role `:all` which will always include
 all hosts assigned to any role.
 
 Some features or extensions may require additional roles, for example if your
 release needs to run Ecto migrations, you will need to assign the `:db`
 role to one host.
 
-To specify additional host connection options, a keyword list can be passed after
-the hosts list. Additional connection options currently supported are:
+### Role and host options
 
-1.  `user` # defaults to executing environment's current user
-1.  `port` # default 22
-1.  `timeout` # default :infinity
+Options are set on roles and on hosts based on the order in which the roles are defined. Some are used internally
+by bootleg:
 
-### More notes on roles
+  * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
+  * `user` - ssh username (default to local user)
+  * `password` - ssh password
+  * `identity` - file path of an SSH private key identify file
+  * `port` - ssh port (default `22`)
 
-Some built in roles, or some roles defined by yet-to-be-written extensions, may
-only allow ONE host to be defined and will warn or error if sent a list.
+#### Examples
 
-### Available roles
+```elixir
+role :app, ["host1", "host2"], user: "deploy", identity: "/home/deploy/.ssh/deploy_key.priv"
+role :app, ["host2"], port: 2222
+```
+> In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
 
-1. `:build` - Takes only one host. If a list is given, only the first hosts is
-used and a warning may result. If no `:build` role is set, release package will
-happen locally.
-1. `:app` -  Takes a lists of hosts, or a string with one host.
+```elixir
+role :db, ["db.example.com", "db2.example.com"], user: "datadog"
+role :db, "db.example.com", primary: true
+```
+> In this example, two hosts are declared for the `db` role but the first will receive a host-specific option for being the primary. Host options can be arbitrarily named and targeted by tasks.
 
-### Future roles provided by some yet-to-be-written extensions?
+```elixir
+role :balancer, ["lb1.example.com", "lb2.example.com"], banana: "boat"
+role :balancer, "lb3.example.com"
+```
+> In this example, two load balancers are configured with a host-specific option of *banana*. The `balancer` role itself also receives the role-specific option of *banana*. A third balancer is then configured without any specific host options.
 
-1. `:db` - host on which to run migrations and other db related functions
 
-## Versioning
+#### SSH options
 
-Bootleg uses the application version as defined in `mix.exs`. Whether your application version is set here or comes from another source (e.g. [a VERSION file](https://gist.github.com/jeffweiss/9df547a4e472e3cf5bd3)), Bootleg requires it to be a parseable [Elixir.Version](https://hexdocs.pm/elixir/Version.html).
+If you include any common `:ssh.connect` options they will not be included in role or host options and will only be used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
+
+Supported SSH options include:
+
+* user
+* port
+* timeout
+* recv_timeout
+
+> Refer to [Bootleg.SSH.supported_options/0](lib/bootleg/ssh.ex) for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
+
+### Role restrictions
+
+Bootleg extensions may impose restrictions on certain roles, such as restricting them to a certain number of hosts. See the extension documentation for more information.
+
+### Roles provided by Bootleg
+
+* `build` - Takes only one host. If a list is given, only the first hosts is
+used and a warning may result. If this role isn't set the release packaging will be done locally.
+* `app` -  Takes a lists of hosts, or a string with one host.
 
 ## Building and deploying a release
 
@@ -107,50 +141,100 @@ mix bootleg.stop production      # Stops a deployed release.
 mix bootleg.ping production      # Check status of running nodes
 ```
 
-## Hooks and Events
-
-[VERY MUCH A WIP]
+## Hooks
 
 Hooks may be defined by the user in order to perform additional (or exceptional)
 operations before or after certain actions performed by bootleg.
 
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
-before or after the following built-in events:
+before or after a task. The following tasks are provided by bootleg:
 
-1. `build` - generation of a release package
-1. `deploy` - deploy of a release package
-1. `start` - starting of a release
-1. `stop` - stopping of a release
-1. `restart` - restarting of a release
+1. `build` - build process for creating a release package
+  1. `compile` - compilation of your project
+  2. `generate_release` - generation of the release package
+2. `deploy` - deploy of a release package
+3. `start` - starting of a release
+4. `stop` - stopping of a release
+5. `restart` - restarting of a release
+6. `ping` - check connectivity to a deployed app
 
-Alternatively, custom events may be triggered inside your tasks. **Custom event
-hooks are only available as after hooks**.
+Hooks can be defined for any task (built-in or user defined), even ones that do not exist. This can be used
+to create an "event" that you want to respond to, but has no real "implementation".
 
-## `trigger`, `invoke`, `task` and events.
+To register a hook, use:
+
+ * `before_task <:task> do ... end` - Before `task` executes, execute the provided code block.
+ * `after_task <:task> do ... end` - After `task` executes, execute the provided code block.
+
+For example:
+
+```elixir
+use Bootleg.Config
+
+before_task :build do
+  IO.puts "Starting build..."
+end
+
+after_task :deploy do
+  MyAPM.notify_deploy()
+end
+```
+
+You can define multiple hooks for a task, and they will be executed in the order they are defined. For example:
+
+```elixir
+use Bootleg.Config
+
+before_task :start do
+  IO.puts "This may take a bit"
+end
+
+after_task :start do
+  IO.puts "Started app!"
+end
+
+before_task :start do
+  IO.puts "Starting app!"
+end
+```
+
+would result in:
+
+```
+$ mix bootleg.build
+This may take a bit
+Starting app!
+...
+Started app!
+$
+```
+
+## `invoke` and `task`
 
 There are a few ways for custom code to be executed during the bootleg life
 cycle. Before showing some examples, here's a quick glossary of the related
 pieces.
 
  * `task <:identifier> do ... end` - Assign a block of code to the symbol provided as `:identifier`.
- This can then be executed by using the `invoke` macro.
- * `trigger <:event>` - Trigger a custom event with the identifier provided as `:event`
- * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`
- * `after <:event> do ... end` -  Respond to `:event` and execute the provided code block.
+   This can then be executed by using the `invoke` macro.
+ * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`, as well as
+   any before/after hooks.
+
+**NOTE:** Invoking an undefined task is not an error and any registered hooks will still be executed.
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
-before :build do
+before_task :build do
   IO.puts "Hello"
-  trigger :custom_event
+  invoke :custom_event
 end
 
-task :custom_task docs
+task :custom_task do
   IO.puts "World"
 end
 
-after :custom_event do
+after_task :custom_event do
   IO.puts "Elixir"
   invoke :custom_task
 end
@@ -165,36 +249,31 @@ task :clear_cache do
   end
 end
 
-before :restart, do: :clear_cache
+before_task :restart, do: :clear_cache
 ```
 
 Alternatively:
 
 ```elixir
-before :restart do
+before_task :restart do
   {:ok, _output} = remote do
     "rm -rf /tmp/cache"
   end
 end
 ```
 
-### DSL Scratchpad
+## `remote`
 
-`remote do` and `remote :role do`
-
-Execute shell commands on a remote server
+The workhorse of the `bootleg` DSL is `remote`: it executes shell commands on remote servers and returns
+the results. It takes a role and a block of commands to execute. The commands are executed on all servers
+belonging to the role, and raises an `SSHError` if an error is encountered.
 
 ```elixir
-use Bootleg.Task
+use Bootleg.Config
 
-# basic - will run in context of role used by hook
-{:ok, output} = remote do
-  "echo hello"
-end
-
-# select role
+# basic
 remote :app do
-  "ls"
+  "echo hello"
 end
 
 # multi line
@@ -202,44 +281,38 @@ remote :app do
   "touch ~/file.txt"
   "rm file.txt"
 end
+
+# getting the result
+[{:ok, [stdout: output], _, _}] = remote :app do
+  "ls -la"
+end
+
+# raises an SSHError
+remote :app do
+  "false"
+end
 ```
 
-```
-{:ok, output} = success
-{:error, output} = error
+## Phoenix Support
 
-output = [
-          {host, output, exit_status},
-          {host, output, exit_status},
-          ...
-         ]
-```
-
-`task`
+Bootleg builds elixir apps, if your application has extra steps required make use of the hooks
+system to add additional functionality. A common case is for building assets for Phoenix
+applications. To build phoenix assets during your build, define an after hook handler for the
+`:compile` task and place it inside your `config/deploy.exs`.
 
 ```elixir
-use Bootleg.Task
-
-task :example_task do
-  IO.puts "local commands in elixir"
-  remote do
-    "echo remote commands inside remote blocks"
-  end
-  remote :app do
-    "echo more than one remote block is fine"
+after :compile do
+  remote :build do
+    "[ -f package.json ] && npm install || true"
+    "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true"
+    "[ -d deps/phoenix ] && mix phoenix.digest || true"
   end
 end
-
-task :invoke_something do
-  invoke :example_task
-end
-
-before `deploy` do: :invoke_something
 ```
 
 ## Help
 
-If something goes wrong, retry with the `--verbose` option. 
+If something goes wrong, retry with the `--verbose` option.
 For detailed information about the bootleg commands and their options, try `mix bootleg help <command>`.
 
 ## Examples
@@ -256,12 +329,6 @@ Or execute the above steps with a single command:
 
 ```sh
 mix bootleg.update production
-```
-
-# run ecto migrations manually:
-
-```sh
-mix bootleg.migrate
 ```
 -----
 

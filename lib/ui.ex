@@ -37,18 +37,6 @@ defmodule Bootleg.UI do
     puts(:info, output, setting)
   end
 
-  defp format(level, output) do
-    level_str =
-      level
-      |> Atom.to_string()
-      |> String.upcase()
-      |> String.pad_leading(6)
-      |> String.pad_trailing(7)
-
-    prefix = "[" <> level_str <> "] "
-    Bunt.puts [:bright, :blue, prefix, :reset, output]
-  end
-
   @doc """
   Get configured output verbosity and sanitize it for our uses.
   Defaults to :info
@@ -64,7 +52,7 @@ defmodule Bootleg.UI do
 
   defp verbosity_includes(setting, level)
   defp verbosity_includes(:info, :info), do: true
-  defp verbosity_includes(:warning, :info), do: true
+  defp verbosity_includes(:info, :warning), do: true
   defp verbosity_includes(:warning, :warning), do: true
   defp verbosity_includes(:debug, :info), do: true
   defp verbosity_includes(:debug, :warning), do: true
@@ -83,7 +71,7 @@ defmodule Bootleg.UI do
         ++ [:reset, :yellow, "UPLOAD", " "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ [:reset, :yellow, " -> "]
-        ++ [:reset, Path.join(context.pwd, remote_path)]
+        ++ [:reset, Path.join(context.path, remote_path)]
       |> Bunt.puts()
     end)
   end
@@ -96,7 +84,7 @@ defmodule Bootleg.UI do
       [:bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "DOWNLOAD", " "]
-        ++ [:reset, Path.join(context.pwd, remote_path)]
+        ++ [:reset, Path.join(context.path, remote_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
       |> Bunt.puts()

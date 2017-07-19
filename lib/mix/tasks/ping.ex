@@ -1,7 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Ping do
-  use Mix.Task
-
-  alias Bootleg.Config
+  use Bootleg.Task, :ping
 
   @shortdoc "Pings an app."
 
@@ -13,16 +11,4 @@ defmodule Mix.Tasks.Bootleg.Ping do
     * mix bootleg.ping
 
   """
-  @spec run(OptionParser.argv) :: :ok
-  def run(_args) do
-    config = Bootleg.config()
-
-    strategy = Config.strategy(config, :manage)
-    project = Bootleg.project()
-
-    config
-    |> strategy.init(project)
-    |> strategy.ping(config, project)
-    :ok
-  end
 end

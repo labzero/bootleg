@@ -11,7 +11,7 @@ defmodule Bootleg.UITest do
   setup do
     %{
       conn: %Context{
-        pwd: ".",
+        path: ".",
         hosts: [
           %Host{name: "localhost.1", options: []},
           %Host{name: "localhost.2", options: []}
@@ -24,11 +24,11 @@ defmodule Bootleg.UITest do
   test "puts restricts output based on verbosity level" do
     # :info is "set" as the verbosity level
     assert :ok == UI.puts(:info, "", :info)
-    assert nil == UI.puts(:warning, "", :info)
+    assert :ok == UI.puts(:warning, "", :info)
     assert nil == UI.puts(:debug, "", :info)
 
     # :warning is set now
-    assert :ok == UI.puts(:info, "", :warning)
+    assert nil == UI.puts(:info, "", :warning)
     assert :ok == UI.puts(:warning, "", :warning)
     assert nil == UI.puts(:debug, "", :warning)
 

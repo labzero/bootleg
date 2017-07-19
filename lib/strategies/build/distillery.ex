@@ -1,52 +1,60 @@
 defmodule Bootleg.Strategies.Build.Distillery do
 
   @moduledoc ""
+  use Bootleg.Config
+  alias Bootleg.{Git, UI, SSH, Config}
 
-  @ssh Application.get_env(:bootleg, :ssh, Bootleg.SSH)
-  @git Application.get_env(:bootleg, :git, Bootleg.Git)
+  def init do
 
-  alias Bootleg.{Config, Config.BuildConfig, Project, UI}
-
-  @config_keys ~w(host user workspace refspec)
-
-  def init(%Config{build: %BuildConfig{} = build_config}, %Project{} = _project) do
-    ssh_options = [
-      identity: build_config.identity,
-      workspace: build_config.workspace,
-      create_workspace: true]
-
-    with :ok <- Bootleg.check_config(build_config, @config_keys),
-         conn <- @ssh.init(build_config.host, build_config.user, ssh_options) do
-           @ssh.run!(conn, "git init")
-           @ssh.run!(conn, "git config receive.denyCurrentBranch ignore")
-           conn
-    else
-      {:error, msg} -> raise "Error: #{msg}"
-    end
+    conn = SSH.init(:build)
+    SSH.run!(conn, "git init")
+    SSH.run!(conn, "git config receive.denyCurrentBranch ignore")
+    conn
   end
 
-  def build(%Config{build: %BuildConfig{} = build_config} = config, %Project{} = project) do
-    conn = init(config, project)
+  def build do
+    conn = init()
 
-    mix_env = build_config.mix_env || "prod"
-
-    :ok = git_push conn, build_config
-    git_reset_remote(conn, build_config.refspec)
+    mix_env = Config.get_config(:mix_env, "prod")
+    refspec = Config.get_config(:refspec, "master")
+    :ok = git_push(conn, refspec)
+    git_reset_remote(conn, refspec)
     git_clean_remote(conn)
     get_and_update_deps(conn, mix_env)
-    clean_compile(conn, mix_env)
-    generate_release(conn, mix_env)
-    download_release_archive(conn, mix_env, project)
+    invoke :compile
+    invoke :generate_release
+    download_release_archive(conn, mix_env)
   end
 
-  defp git_push(conn, %BuildConfig{user: user, host: host, workspace: workspace, push_options: push_options, refspec: refspec} = build_config) do
-    user_host = "#{user}@#{host}"
-    host_url = "#{user_host}:#{workspace}"
-    git_env = if build_config.identity, do: [{"GIT_SSH_COMMAND", "ssh -i '#{build_config.identity}'"}]
+  defp git_push(conn, refspec) do
+    build_role = Config.get_role(:build)
 
-    UI.info "Pushing new commits with git to: #{user_host}"
+    build_host =
+      build_role.hosts
+      |> List.first()
+      |> SSH.ssh_host_options()
 
-    case @git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
+    options = Keyword.merge(build_host.options, build_role.options)
+
+    user_host = "#{build_role.user}@#{build_host.name}"
+    port = options[:port]
+    user_host_port = if port do
+      "#{user_host}:#{port}"
+    else
+      user_host
+    end
+    workspace = options[:workspace]
+    host_url = case Path.type(workspace) do
+      :absolute -> "ssh://#{user_host_port}#{workspace}"
+      _         -> "ssh://#{user_host_port}/~/#{workspace}"
+    end
+
+    push_options = Config.get_config(:push_options, "-f")
+    git_env = git_env(options)
+
+    UI.info "Pushing new commits with git to: #{user_host_port}"
+
+    case Git.push(["--tags", push_options, host_url, refspec], env: (git_env || [])) do
       {"", 0} -> :ok
       {result, 0} ->
         UI.puts_recv conn, result
@@ -58,10 +66,27 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
   end
 
+  defp git_env(options) do
+    git_ssh_options =
+      options
+      |> Enum.map(fn {key, value} ->
+          case key do
+            :identity -> "-i '#{value}'"
+            :silently_accept_hosts -> "-oStrictHostKeyChecking=no -oUserKnownHostsFile=/dev/null"
+            _ -> nil
+          end
+        end)
+      |> Enum.filter(fn v -> v end)
+
+    if Enum.count(git_ssh_options) > 0 do
+      [{"GIT_SSH_COMMAND", "ssh #{Enum.join(git_ssh_options, " ")}"}]
+    end
+  end
+
   defp git_reset_remote(ssh, refspec) do
     UI.info "Resetting remote hosts to refspec \"#{refspec}\""
     ssh
-    |> @ssh.run!("git reset --hard #{refspec}")
+    |> SSH.run!("git reset --hard #{refspec}")
     |> UI.puts_recv()
   end
 
@@ -96,41 +121,24 @@ defmodule Bootleg.Strategies.Build.Distillery do
     ]
     commands = Enum.map(commands, &(with_env_vars(mix_env, &1)))
     # clean fetch of dependencies on the remote build host
-    @ssh.run!(ssh, commands)
-  end
-
-  defp clean_compile(ssh, mix_env) do
-    UI.info "Compiling remote build"
-    commands = Enum.map(["mix deps.compile", "mix compile"], &(with_env_vars(mix_env, &1)))
-    @ssh.run!(ssh, commands)
+    SSH.run!(ssh, commands)
   end
 
   defp with_env_vars(mix_env, cmd) do
     "MIX_ENV=#{mix_env} #{cmd}"
   end
 
-  defp generate_release(ssh, mix_env) do
-    UI.info "Generating release"
-
-    # build assets for phoenix apps
-    @ssh.run!(ssh, "[ -f package.json ] && npm install || true")
-    @ssh.run!(ssh, "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true")
-    @ssh.run!(ssh, "[ -d deps/phoenix ] && " <> with_env_vars(mix_env, "mix phoenix.digest") <> " || true")
-
-    @ssh.run!(ssh, with_env_vars(mix_env, "mix release"))
-  end
-
-  defp download_release_archive(conn, mix_env, %Project{} = project) do
-    remote_path = "_build/#{mix_env}/rel/#{project.app_name}/releases/#{project.app_version}/#{project.app_name}.tar.gz"
+  defp download_release_archive(conn, mix_env) do
+    app_name = Config.app
+    app_version = Config.version
+    remote_path = "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
     local_archive_folder = "#{File.cwd!}/releases"
-    local_path = Path.join(local_archive_folder, "build.tar.gz")
+    local_path = Path.join(local_archive_folder, "#{app_version}.tar.gz")
 
     UI.info "Downloading release archive"
     File.mkdir_p!(local_archive_folder)
 
-    case @ssh.download(conn, remote_path, local_path) do
-      :ok -> {:ok, local_path}
-      _ -> raise "Error: downloading of release archive failed"
-    end
+    SSH.download(conn, remote_path, local_path)
+    {:ok, local_path}
   end
 end

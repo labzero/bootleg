@@ -1,34 +1,44 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
-  alias SSHKit.{Host, Context, SSH.ClientKeyAPI}
-  alias Bootleg.{UI, Role, Config}
+  alias SSHKit.Context
+  alias SSHKit.Host, as: SSHKitHost
+  alias SSHKit.SSH, as: SSHKitSSH
+  alias Bootleg.{UI, Host, Role, Config}
 
-  @runner Application.get_env(:bootleg, :sshkit, SSHKit)
-  @local_options ~w(create_workspace)a
-
-  def init(%Role{} = role) do
-    user = Keyword.get(role.options, :user, nil)
-    init(role.hosts, user, role.options)
+  def init(role, options \\ [])
+  def init(%Role{} = role, options) do
+    role_options = Keyword.merge(role.options, [user: role.user])
+    init(role.hosts, Keyword.merge(role_options, options))
   end
 
-  def init(role_name) when is_atom(role_name) do
-    init(Config.get_role(role_name))
+  def init(nil, _options) do
+    raise ArgumentError, "You must supply a %Host{}, a %Role{} or a defined role_name."
   end
 
-  def init(hosts, user, options \\ []) do
+  def init(role_name, options) when is_atom(role_name) do
+    init(Config.get_role(role_name), options)
+  end
+
+  def init(hosts, options) do
       workspace = Keyword.get(options, :workspace, ".")
-      create_workspace = Keyword.get(options, :create_workspace, false)
+      create_workspace = Keyword.get(options, :create_workspace, true)
       UI.puts "Creating remote context at '#{workspace}'"
 
-      options = Enum.filter(options, &Enum.member?(@local_options, elem(&1, 0)) == false)
       :ssh.start()
 
       hosts
       |> List.wrap
-      |> Enum.map(fn(host) -> %Host{name: host, options: ssh_opts(user, options)} end)
+      |> Enum.map(&ssh_host_options/1)
       |> SSHKit.context
       |> validate_workspace(workspace, create_workspace)
+  end
+
+  def ssh_host_options(%Host{} = host) do
+    sshkit_host = get_in(host, [Access.key!(:host)])
+    sshkit_host_options = get_in(sshkit_host, [Access.key!(:options)])
+
+    %SSHKitHost{sshkit_host | options: ssh_opts(sshkit_host_options)}
   end
 
   def run(context, cmd) do
@@ -36,9 +46,14 @@ defmodule Bootleg.SSH do
 
     run = fn host ->
       UI.puts_send host, cmd
-      {:ok, conn} = @runner.SSH.connect(host.name, host.options)
+
+      conn = case SSHKitSSH.connect(host.name, host.options) do
+        {:ok, conn} -> conn
+        {:error, err} -> raise SSHError, [err, host]
+      end
+
       conn
-      |> @runner.SSH.run(cmd, fun: &capture(&1, &2, host))
+      |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host))
       |> Tuple.append(host)
     end
 
@@ -48,14 +63,14 @@ defmodule Bootleg.SSH do
   defp validate_workspace(context, workspace, create_workspace)
   defp validate_workspace(context, workspace, false) do
     run!(context, "test -d #{workspace}")
-    SSHKit.pwd context, workspace
+    SSHKit.path context, workspace
   end
   defp validate_workspace(context, workspace, true) do
     run!(context, "mkdir -p #{workspace}")
-    SSHKit.pwd context, workspace
+    SSHKit.path context, workspace
   end
 
-  defp capture(message, state = {buffer, status}, host) do
+  defp capture(message, {buffer, status} = state, host) do
     next = case message do
       {:data, _, 0, data} ->
         UI.puts_recv host, String.trim_trailing(data)
@@ -88,34 +103,37 @@ defmodule Bootleg.SSH do
 
   def download(conn, remote_path, local_path) do
     UI.puts_download conn, remote_path, local_path
-    case @runner.download(conn, remote_path, as: local_path) do
+    case SSHKit.download(conn, remote_path, as: local_path) do
       [:ok|_] -> :ok
-      [{_, msg}|_] -> raise "SCP download error: #{inspect msg}"
+      [{_, msg}|_] -> raise "SCP download error: #{msg}"
     end
   end
 
   def upload(conn, local_path, remote_path) do
     UI.puts_upload conn, local_path, remote_path
-    case @runner.upload(conn, local_path, as: remote_path) do
+    case SSHKit.upload(conn, local_path, as: remote_path) do
       [:ok|_] -> :ok
-      [{_, msg}|_] -> raise "SCP upload error #{inspect msg}"
+      [{_, msg}|_] -> raise "SCP upload error #{msg}"
     end
   end
 
-  defp ssh_opts(user, options = [identity: identity_file]) when is_list(options) do
-    case File.open(identity_file) do
-      {:ok, identity} ->
-        key_cb = ClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-        Keyword.merge(default_opts(), [user: user, key_cb: key_cb])
-      {_, msg} -> raise "Error: #{msg}"
-    end
+  def ssh_opts(options) do
+    List.flatten(Enum.map(options, &ssh_opt/1))
   end
 
-  defp ssh_opts(user, _), do: Keyword.merge(default_opts(), [user: user])
+  def ssh_opt({:identity, nil}), do: []
+  def ssh_opt({:identity, identity_file}) do
+    identity = File.open!(identity_file)
+    key_cb = SSHClientKeyAPI.with_options(identity: identity, accept_hosts: true)
+    [{:key_cb, key_cb}]
+  end
 
-  defp default_opts do
-    [
-      connect_timeout: 5000,
-    ]
+  def ssh_opt({_, nil}), do: []
+  def ssh_opt(option), do: option
+
+  @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
+    idle_time silently_accept_hosts user_dir timeout connection_timeout identity)a
+  def supported_options do
+    @ssh_options
   end
 end
