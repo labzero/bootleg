@@ -15,6 +15,7 @@ defmodule Bootleg.Task do
         end
       else
         def run(_args) do
+          :ok
         end
       end
 
