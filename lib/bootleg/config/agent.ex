@@ -5,12 +5,6 @@ defmodule Bootleg.Config.Agent do
 
   @typep data :: keyword
 
-  @spec agent_pid() :: pid | atom
-  def agent_pid do
-    {:ok, pid} = Bootleg.Config.Agent.start_link
-    pid
-  end
-
   @spec start_link() :: {:ok, pid}
   def start_link do
     state_fn = fn ->
@@ -58,8 +52,7 @@ defmodule Bootleg.Config.Agent do
     :ok
   end
 
-  @doc false
-  @spec agent_monitor(pid) :: :ok
+  @spec agent_monitor(pid) :: true
   def agent_monitor(parent_pid) do
     ref = Process.monitor(Bootleg.Config.Agent)
     Process.register(self(), :"Bootleg.Config.Agent.monitor")
@@ -75,11 +68,13 @@ defmodule Bootleg.Config.Agent do
     end
   end
 
+  @spec unload_code(module) :: boolean
   defp unload_code(module) do
     :code.purge(module)
     :code.delete(module)
   end
 
+  @spec launch_monitor() :: :ok | nil
   defp launch_monitor do
     if Process.whereis(Bootleg.Config.Agent) do
       pid = Process.spawn(__MODULE__, :agent_monitor, [self()], [])
@@ -87,6 +82,12 @@ defmodule Bootleg.Config.Agent do
         {:monitor_up, ^pid} -> :ok
       end
     end
+  end
+
+  @spec agent_pid() :: pid | atom
+  defp agent_pid do
+    {:ok, pid} = Bootleg.Config.Agent.start_link
+    pid
   end
 
 end

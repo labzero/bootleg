@@ -43,8 +43,8 @@ Create and configure Bootleg's `config/deploy.exs` file:
 # config/deploy.exs
 use Bootleg.Config
 
-role :build, "build.myapp.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
-role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
+role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
 ## Roles
@@ -104,7 +104,7 @@ Supported SSH options include:
 * timeout
 * recv_timeout
 
-> Refer to [Bootleg.SSH.supported_options/0](lib/bootleg/ssh.ex) for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
+> Refer to `Bootleg.SSH.supported_options/0` for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
 
 ### Role restrictions
 

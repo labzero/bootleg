@@ -1,6 +1,6 @@
 defmodule Bootleg.Strategies.Build.Distillery do
+  @moduledoc false
 
-  @moduledoc ""
   use Bootleg.Config
   alias Bootleg.{Git, UI, SSH, Config}
 
