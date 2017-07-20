@@ -8,11 +8,7 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   # Usage:
 
-    * mix bootleg.build [Options]
-
-  ## Build Commands:
-
-    * mix bootleg.build release [--revision=<git-revision>|--tag=<git-tag>] [--branch=<git-branch>] [Options]
+    * mix bootleg.build
 
   """
 
