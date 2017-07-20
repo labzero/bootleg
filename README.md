@@ -1,5 +1,9 @@
 # Bootleg
 
+[![CircleCI](https://img.shields.io/circleci/project/github/labzero/bootleg.svg)](https://circleci.com/gh/labzero/bootleg) [![Hex.pm](https://img.shields.io/hexpm/v/bootleg.svg)](https://hex.pm/packages/bootleg) [![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/labzero/bootleg/blob/master/LICENSE)
+
+Simple deployment and server automation for Elixir.
+
 **Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
 Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases.
