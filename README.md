@@ -55,7 +55,7 @@ Role names are unique so there can only be one of each defined, but hosts can be
 
 By defining roles, you are defining responsibility groups to cross cut your host infrastructure. The `build` and
 `app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a bootleg hook. There is another built in role `:all` which will always include
-all hosts assigned to any role.
+all hosts assigned to any role. `:all` is only available via `remote/2`.
 
 Some features or extensions may require additional roles, for example if your
 release needs to run Ecto migrations, you will need to assign the `:db`
