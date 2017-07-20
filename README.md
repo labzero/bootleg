@@ -301,7 +301,7 @@ applications. To build phoenix assets during your build, define an after hook ha
 `:compile` task and place it inside your `config/deploy.exs`.
 
 ```elixir
-after :compile do
+after_task :compile do
   remote :build do
     "[ -f package.json ] && npm install || true"
     "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true"
