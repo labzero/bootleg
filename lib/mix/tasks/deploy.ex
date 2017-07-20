@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Bootleg.Deploy do
 
   # Usage:
 
-    * mix bootleg.deploy [cluster] [release] [Options]
+    * mix bootleg.deploy
 
   """
 end
