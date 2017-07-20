@@ -315,21 +315,6 @@ end
 If something goes wrong, retry with the `--verbose` option.
 For detailed information about the bootleg commands and their options, try `mix bootleg help <command>`.
 
-## Examples
-
-Build a release and deploy it to your production hosts:
-
-```sh
-mix bootleg.build
-mix bootleg.deploy
-mix bootleg.start
-```
-
-Or execute the above steps with a single command:
-
-```sh
-mix bootleg.update production
-```
 -----
 
 ## Contributing
