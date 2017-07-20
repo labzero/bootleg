@@ -321,6 +321,13 @@ For detailed information about the bootleg commands and their options, try `mix 
 
 -----
 
+## Acknowledgments
+
+Bootleg makes heavy use of the [bitcrowd/SSHKit.ex](https://github.com/bitcrowd/sshkit.ex)
+library under the hood. We would like to acknowledge the effort from the bitcrowd team that went into
+creating SSHKit.ex as well as for them prioritizing our requests and providing a chance to collaborate
+on ideas for both the SSHKit.ex and bootleg projects.
+
 ## Contributing
 
 We welcome everyone to contribute to Bootleg and help us tackle existing issues!
