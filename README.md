@@ -215,7 +215,7 @@ There are a few ways for custom code to be executed during the bootleg life
 cycle. Before showing some examples, here's a quick glossary of the related
 pieces.
 
- * `task <:identifier> do ... end` - Assign a block of code to the symbol provided as `:identifier`.
+ * `task <:identifier> do ... end` - Assign a block of code to the atom provided as `:identifier`.
    This can then be executed by using the `invoke` macro.
  * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`, as well as
    any before/after hooks.
