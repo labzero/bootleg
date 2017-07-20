@@ -267,7 +267,10 @@ defmodule Bootleg.ConfigTest do
     refute_received {:before, :foo}
   end
 
-  test_with_mock "remote/2", SSH, [], [init: fn(role) -> {role} end, run!: fn(_, _cmd) -> :ok end] do
+  test_with_mock "remote/2", SSH, [:passthrough], [
+      init: fn(role) -> {role} end,
+      run!: fn(_, _cmd) -> [:ok] end
+    ] do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
@@ -290,6 +293,31 @@ defmodule Bootleg.ConfigTest do
       remote :test_4, ["echo Hello", "echo World"]
     end
 
+    task :remote_test_all do
+      remote :all, do: "echo Hello World All!"
+    end
+
+    task :remote_test_all_multi do
+      remote :all do
+        "echo All Hello"
+        "echo All World" <> "!"
+      end
+    end
+
+    task :remote_test_roles do
+      remote [:foo, :bar], do: "echo Hello World Multi!"
+    end
+
+    task :remote_test_roles_multi do
+      remote [:foo, :bar] do
+        "echo Multi Hello"
+        "echo Multi World" <> "!"
+      end
+    end
+
+    role :foo, "never-used-foo.example.com"
+    role :bar, "never-used-bar.example.com"
+
     invoke :remote_test_1
 
     assert called SSH.init(:test_1)
@@ -297,12 +325,15 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_2
 
-    assert called SSH.init(nil)
-    assert called SSH.run!({nil}, "echo Hello World2!")
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World2!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World2!")
 
     invoke :remote_test_3
 
-    assert called SSH.run!({nil}, ["echo Hello", "echo World!"])
+    assert called SSH.run!({:foo}, ["echo Hello", "echo World!"])
+    assert called SSH.run!({:bar}, ["echo Hello", "echo World!"])
 
     invoke :remote_test_4
 
@@ -319,7 +350,35 @@ defmodule Bootleg.ConfigTest do
       invoke :remote_test_5
 
       assert called Time.utc_now
-      assert called SSH.run!({nil}, :now)
+      assert called SSH.run!(:_, :now)
     end
+
+    invoke :remote_test_all
+
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World All!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World All!")
+
+    invoke :remote_test_all_multi
+
+    assert called SSH.run!({:foo}, ["echo All Hello", "echo All World!"])
+    assert called SSH.run!({:bar}, ["echo All Hello", "echo All World!"])
+
+    role :car, "never-used-car.example.com"
+
+    invoke :remote_test_roles
+
+    refute called SSH.init(:car)
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World Multi!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World Multi!")
+
+    invoke :remote_test_roles_multi
+
+    refute called SSH.init(:car)
+    assert called SSH.run!({:foo}, ["echo Multi Hello", "echo Multi World!"])
+    assert called SSH.run!({:bar}, ["echo Multi Hello", "echo Multi World!"])
   end
 end

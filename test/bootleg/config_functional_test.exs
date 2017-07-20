@@ -2,12 +2,22 @@ defmodule Bootleg.ConfigFunctionalTest do
   use Bootleg.FunctionalCase, async: false
   import ExUnit.CaptureIO
 
-  setup %{hosts: [host]} do
+  setup %{hosts: hosts} do
     use Bootleg.Config
-    role :app, host.ip, port: host.port, user: host.user, password: host.password,
-      silently_accept_hosts: true, workspace: "workspace"
+
+    app_host = hd(hosts)
+    build_hosts = tl(hosts)
+
+    role :app, app_host.ip, port: app_host.port, user: app_host.user,
+      password: app_host.password, silently_accept_hosts: true, workspace: "workspace"
+
+    Enum.each(build_hosts, fn build_host ->
+      role :build, build_host.ip, port: build_host.port, user: build_host.user,
+        password: build_host.password, silently_accept_hosts: true, workspace: "workspace"
+    end)
   end
 
+  @tag boot: 3
   test "remote/2" do
     use Bootleg.Config
 
@@ -34,10 +44,78 @@ defmodule Bootleg.ConfigFunctionalTest do
       assert [{:ok, [stdout: "a single line!\n", stderr: "foo\n"], 0, _}] = out
     end
 
+    task :remote_multiple_hosts do
+      out = remote :build do
+        "echo a single line!"
+      end
+      assert [{:ok, [stdout: "a single line!\n"], 0, _}, {:ok, [stdout: "a single line!\n"], 0, _}] = out
+    end
+
+    task :remote_multiple_hosts_multiple_lines do
+      out = remote :build do
+        "echo a single line!"
+        "echo another line"
+      end
+      assert [[{:ok, [stdout: "a single line!\n"], 0, _}, {:ok, [stdout: "a single line!\n"], 0, _}],
+        [{:ok, [stdout: "another line\n"], 0, _}, {:ok, [stdout: "another line\n"], 0, _}]] = out
+    end
+
     capture_io(fn ->
       assert :ok = invoke :remote_functional_test
       assert :ok = invoke :remote_functional_single_line_test
       assert :ok = invoke :remote_functional_stderr_test
+      assert :ok = invoke :remote_multiple_hosts
+      assert :ok = invoke :remote_multiple_hosts_multiple_lines
+    end)
+  end
+
+  @tag boot: 2
+  test "remote/2 multiple roles" do
+    use Bootleg.Config
+
+    task :remote_multiple_roles do
+      out = remote [:app, :build] do
+        "echo `hostname`"
+      end
+      assert [[{:ok, [stdout: hostname_1], 0, _}, {:ok, [stdout: hostname_2], 0, _}]] = out
+      assert hostname_1 != hostname_2
+    end
+
+    task :remote_multiple_roles_multiple_commands do
+      out = remote [:app, :build] do
+        "echo `hostname`"
+        "echo foo"
+      end
+      assert [[{:ok, [stdout: hostname_1], 0, _}, {:ok, [stdout: hostname_2], 0, _}],
+        [{:ok, [stdout: foo_1], 0, _}, {:ok, [stdout: foo_2], 0, _}]] = out
+      assert hostname_1 != hostname_2
+      assert foo_1 == foo_2
+    end
+
+    task :remote_all_roles do
+      out = remote :all do
+        "echo `hostname`"
+      end
+      assert [[{:ok, [stdout: hostname_1], 0, _}, {:ok, [stdout: hostname_2], 0, _}]] = out
+      assert hostname_1 != hostname_2
+    end
+
+    task :remote_all_roles_multiple_commands do
+      out = remote :all do
+        "echo `hostname`"
+        "echo foo"
+      end
+      assert [[{:ok, [stdout: hostname_1], 0, _}, {:ok, [stdout: hostname_2], 0, _}],
+        [{:ok, [stdout: foo_1], 0, _}, {:ok, [stdout: foo_2], 0, _}]] = out
+      assert hostname_1 != hostname_2
+      assert foo_1 == foo_2
+    end
+
+    capture_io(fn ->
+      assert :ok = invoke :remote_multiple_roles
+      assert :ok = invoke :remote_multiple_roles_multiple_commands
+      assert :ok = invoke :remote_all_roles
+      assert :ok = invoke :remote_all_roles_multiple_commands
     end)
   end
 

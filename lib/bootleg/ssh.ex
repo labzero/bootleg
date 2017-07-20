@@ -136,4 +136,17 @@ defmodule Bootleg.SSH do
   def supported_options do
     @ssh_options
   end
+
+  @doc false
+  @spec merge_run_results(list, list) :: list
+  def merge_run_results(new, []) do
+    new
+  end
+  def merge_run_results(new, orig) when is_list(orig) do
+    new
+    |> Enum.zip(orig)
+    |> Enum.map(fn {n, o} ->
+      List.wrap(o) ++ List.wrap(n)
+    end)
+  end
 end

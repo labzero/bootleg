@@ -309,14 +309,17 @@ defmodule Bootleg.Config do
     invoke_task_callbacks(task, :after_hooks)
   end
 
-  @doc false
+  @doc """
+  Executes commands on all remote hosts.
+
+  This is equivalent to calling `remote/2` with a role of `:all`.
+  """
   defmacro remote(do: block) do
-    quote do: remote(nil, do: unquote(block))
+    quote do: remote(:all, do: unquote(block))
   end
 
-  @doc false
   defmacro remote(lines) do
-    quote do: remote(nil, unquote(lines))
+    quote do: remote(:all, unquote(lines))
   end
 
   defmacro remote(role, do: {:__block__, _, lines}) do
@@ -338,6 +341,10 @@ defmodule Bootleg.Config do
   used as a command. Each command will be simulataneously executed on all hosts in the role. Once
   all hosts have finished executing the command, the next command in the list will be sent.
 
+  `role` can be a single role, a list of roles, or the special role `:all` (all roles). If the same host
+  exists in multiple roles, the commands will be run once for each role where the host shows up. In the
+  case of multiple roles, each role is processed sequentially.
+
   Returns the results to the caller, per command and per host. See `Bootleg.SSH.run!` for more details.
 
   ```
@@ -351,13 +358,28 @@ defmodule Bootleg.Config do
 
   # will raise an error since `false` exits with a non-zero status
   remote :build, ["false", "touch never_gonna_happen"]
+
+  # runs for hosts found in all roles
+  remote do: "hostname"
+  remote :all, do: "hostname"
+
+  # runs for hosts found in :build first, then for hosts in :app
+  remote [:build, :app], do: "hostname"
   ```
   """
   defmacro remote(role, lines) do
+    roles = if role == :all do
+      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
+    else
+      quote do: List.wrap(unquote(role))
+    end
     quote do
-      unquote(role)
-      |> SSH.init
-      |> SSH.run!(unquote(lines))
+      Enum.reduce(unquote(roles), [], fn role, outputs ->
+        role
+        |> SSH.init
+        |> SSH.run!(unquote(lines))
+        |> SSH.merge_run_results(outputs)
+      end)
     end
   end
 
