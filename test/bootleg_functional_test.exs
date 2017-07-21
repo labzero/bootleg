@@ -90,4 +90,14 @@ defmodule Bootleg.FunctionalTest do
     end)
   end
 
+  @tag boot: 0
+  test "init" do
+    shell_env = [{"BOOTLEG_PATH", File.cwd!}]
+    location = Fixtures.inflate_project(:n00b)
+    Enum.each(["deps.get", "bootleg.init"], fn cmd ->
+      assert {_, 0} = System.cmd("mix", [cmd], [env: shell_env, cd: location])
+    end)
+    assert File.regular?(Path.join([location, "config", "deploy.exs"]))
+  end
+
 end

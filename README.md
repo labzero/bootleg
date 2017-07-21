@@ -19,6 +19,12 @@ end
 
 ## Quick Start
 
+### Initalize your project
+
+```sh
+$ mix bootleg.init
+```
+
 ### Configure your release parameters
 
 ```elixir
