@@ -14,12 +14,13 @@ defmodule Bootleg.ConfigTest do
 
   defmacro assert_next_received(pattern, failure_message \\ nil) do
     quote do
+      failure_message = unquote(failure_message) ||
+        "The next message does not match #{unquote(Macro.to_string(pattern))}, or the process mailbox is empty."
       receive do
         unquote(pattern) -> true
+        _ -> flunk(failure_message)
       after 0 ->
-        flunk(unquote(failure_message) ||
-          "The next message does not match #{unquote(Macro.to_string(pattern))}, or the process mailbox is empty."
-        )
+        flunk(failure_message)
       end
     end
   end
@@ -73,6 +74,27 @@ defmodule Bootleg.ConfigTest do
     role :build, "build.labzero.com", port: 123, user: "foo"
     assert [build: %Bootleg.Role{hosts: hosts}] = roles()
     assert Enum.count(hosts) == 2
+  end
+
+  test "role/2,3 only unquote the name once" do
+    use Bootleg.Config
+
+    role_name = fn ->
+      send(self(), :role_name_excuted)
+      :foo
+    end
+
+    role role_name.(), "foo.example.com"
+    send(self(), :next)
+
+    assert_next_received :role_name_excuted
+    assert_next_received :next
+
+    role role_name.(), "foo.example.com", an_option: :foo
+    send(self(), :next)
+
+    assert_next_received :role_name_excuted
+    assert_next_received :next
   end
 
   test "get_role/1", %{local_user: local_user} do
