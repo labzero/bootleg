@@ -6,7 +6,9 @@ Simple deployment and server automation for Elixir.
 
 **Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
-Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases.
+Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a `git` repository and some of the build steps use this assumption
+to handle code in some steps of the build process. If you are using an scm other than git, please consider contributing to Bootleg to
+add additional support.
 
 ## Installation
 
@@ -17,9 +19,18 @@ def deps do
 end
 ```
 
+## Build server setup
+
+In order to build your project, Bootleg requires that your build server be set up to compile
+Elixir code. Make sure you have already installed Elixir on any build server you define. The remote
+
+
 ## Quick Start
 
-### Initalize your project
+### Initialize your project
+
+This step is optional but if run will create an example `config/deploy.exs` file that you
+can use as a starting point.
 
 ```sh
 $ mix bootleg.init
@@ -64,7 +75,7 @@ Actions in Bootleg are paired with roles, which are simply a collection of hosts
 Role names are unique so there can only be one of each defined, but hosts can be grouped into one or more roles. Roles can be declared repeatedly to provide a different set of options to different sets of hosts.
 
 By defining roles, you are defining responsibility groups to cross cut your host infrastructure. The `build` and
-`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a bootleg hook. There is another built in role `:all` which will always include
+`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a Bootleg hook. There is another built in role `:all` which will always include
 all hosts assigned to any role. `:all` is only available via `remote/2`.
 
 Some features or extensions may require additional roles, for example if your
@@ -74,7 +85,7 @@ role to one host.
 ### Role and host options
 
 Options are set on roles and on hosts based on the order in which the roles are defined. Some are used internally
-by bootleg:
+by Bootleg:
 
   * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
   * `user` - ssh username (default to local user)
@@ -142,7 +153,7 @@ mix bootleg.update production
 
 ## Admin Commands
 
-bootleg has a set of commands to check up on your running nodes:
+Bootleg has a set of commands to check up on your running nodes:
 
 ```console
 mix bootleg.restart production  # Restarts a deployed release.
@@ -154,10 +165,10 @@ mix bootleg.ping production      # Check status of running nodes
 ## Hooks
 
 Hooks may be defined by the user in order to perform additional (or exceptional)
-operations before or after certain actions performed by bootleg.
+operations before or after certain actions performed by Bootleg.
 
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
-before or after a task. The following tasks are provided by bootleg:
+before or after a task. The following tasks are provided by Bootleg:
 
 1. `build` - build process for creating a release package
   1. `compile` - compilation of your project
@@ -221,7 +232,7 @@ $
 
 ## `invoke` and `task`
 
-There are a few ways for custom code to be executed during the bootleg life
+There are a few ways for custom code to be executed during the Bootleg life
 cycle. Before showing some examples, here's a quick glossary of the related
 pieces.
 
@@ -274,7 +285,7 @@ end
 
 ## `remote`
 
-The workhorse of the `bootleg` DSL is `remote`: it executes shell commands on remote servers and returns
+The workhorse of the Bootleg DSL is `remote`: it executes shell commands on remote servers and returns
 the results. It takes a role and a block of commands to execute. The commands are executed on all servers
 belonging to the role, and raises an `SSHError` if an error is encountered.
 
@@ -323,7 +334,7 @@ end
 ## Help
 
 If something goes wrong, retry with the `--verbose` option.
-For detailed information about the bootleg commands and their options, try `mix bootleg help <command>`.
+For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
 
 -----
 
@@ -332,7 +343,7 @@ For detailed information about the bootleg commands and their options, try `mix 
 Bootleg makes heavy use of the [bitcrowd/SSHKit.ex](https://github.com/bitcrowd/sshkit.ex)
 library under the hood. We would like to acknowledge the effort from the bitcrowd team that went into
 creating SSHKit.ex as well as for them prioritizing our requests and providing a chance to collaborate
-on ideas for both the SSHKit.ex and bootleg projects.
+on ideas for both the SSHKit.ex and Bootleg projects.
 
 ## Contributing
 
