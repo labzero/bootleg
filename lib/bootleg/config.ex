@@ -50,27 +50,27 @@ defmodule Bootleg.Config do
       |> Keyword.put(:identity, ssh_options[:identity])
       |> Enum.filter(fn {_, v} -> v end)
 
-    quote do
+    quote bind_quoted: binding() do
       hosts =
-        unquote(hosts)
+        hosts
         |> List.wrap()
-        |> Enum.map(&Host.init(&1, unquote(ssh_options), unquote(role_options)))
+        |> Enum.map(&Host.init(&1, ssh_options, role_options))
 
       new_role = %Role{
-        name: unquote(name),
-        user: unquote(user),
+        name: name,
+        user: user,
         hosts: [],
-        options: unquote(role_options)
+        options: role_options
       }
       role =
         :roles
         |> Bootleg.Config.Agent.get()
-        |> Keyword.get(unquote(name), new_role)
+        |> Keyword.get(name, new_role)
         |> Role.combine_hosts(hosts)
 
       Bootleg.Config.Agent.merge(
         :roles,
-        unquote(name),
+        name,
         role
       )
     end
@@ -105,11 +105,11 @@ defmodule Bootleg.Config do
   config :version, "1.0.0"
   """
   defmacro config(key, value) do
-    quote do
+    quote bind_quoted: binding() do
       Bootleg.Config.Agent.merge(
         :config,
-        unquote(key),
-        unquote(value)
+        key,
+        value
       )
     end
   end
@@ -373,11 +373,11 @@ defmodule Bootleg.Config do
     else
       quote do: List.wrap(unquote(role))
     end
-    quote do
-      Enum.reduce(unquote(roles), [], fn role, outputs ->
+    quote bind_quoted: binding() do
+      Enum.reduce(roles, [], fn role, outputs ->
         role
         |> SSH.init
-        |> SSH.run!(unquote(lines))
+        |> SSH.run!(lines)
         |> SSH.merge_run_results(outputs)
       end)
     end
