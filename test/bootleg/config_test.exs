@@ -202,16 +202,16 @@ defmodule Bootleg.ConfigTest do
       end
     end
 
-    Module.create(Bootleg.Tasks.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
+    Module.create(Bootleg.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
 
     Config.Agent.merge(:before_hooks, :taskinvoketest, [
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_1],
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_2]
+      [Bootleg.DynamicTasks.Taskinvoketest, :before_hook_1],
+      [Bootleg.DynamicTasks.Taskinvoketest, :before_hook_2]
     ])
 
     Config.Agent.merge(:after_hooks, :taskinvoketest, [
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_1],
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_2]
+      [Bootleg.DynamicTasks.Taskinvoketest, :after_hook_1],
+      [Bootleg.DynamicTasks.Taskinvoketest, :after_hook_2]
     ])
 
     invoke :taskinvoketest
@@ -250,7 +250,7 @@ defmodule Bootleg.ConfigTest do
 
     task :task_test, do: true
 
-    module = Bootleg.Tasks.DynamicTasks.TaskTest
+    module = Bootleg.DynamicTasks.TaskTest
     assert apply(module, :execute, [])
     assert {file, line} = module.location
     assert file == __ENV__.file

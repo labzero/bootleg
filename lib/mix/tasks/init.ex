@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Init do
-  use Bootleg.Task
+  use Bootleg.MixTask
   require Mix.Generator
   alias Mix.Generator
 

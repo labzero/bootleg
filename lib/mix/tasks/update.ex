@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Update do
-  use Bootleg.Task, :update
+  use Bootleg.MixTask, :update
 
   @shortdoc "Build, deploy, and start a release all in one command."
 
