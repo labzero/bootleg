@@ -1,5 +1,5 @@
 defmodule SSHErrorTest do
-  use ExUnit.Case, async: true
+  use Bootleg.TestCase, async: true
   doctest SSHError
 
   test "exception([cmd, output, status, host])" do

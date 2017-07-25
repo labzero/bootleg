@@ -1,5 +1,5 @@
 defmodule Bootleg.RoleTest do
-  use ExUnit.Case, async: true
+  use Bootleg.TestCase, async: true
   alias Bootleg.{Host, Role}
   alias SSHKit.Host, as: SSHKitHost
 

@@ -1,5 +1,5 @@
 defmodule Bootleg.TasksFunctionalTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   alias Bootleg.Fixtures
 
   setup do
