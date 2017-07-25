@@ -1,5 +1,5 @@
 defmodule Bootleg.ConfigTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   alias Bootleg.{Config, UI, SSH}
   alias Mix.Project
   import Mock

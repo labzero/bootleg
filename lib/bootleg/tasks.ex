@@ -33,7 +33,12 @@ defmodule Bootleg.Tasks do
 
   defp list_third_party do
     :code.get_path()
-    |> Enum.map(&File.ls!/1)
+    |> Enum.map(fn dir ->
+      case File.ls(dir) do
+        {:ok, files} -> files
+        {:error, _} -> []
+      end
+    end)
     |> List.flatten
     |> Enum.uniq
     |> Enum.map(fn file ->

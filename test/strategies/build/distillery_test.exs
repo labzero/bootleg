@@ -1,5 +1,5 @@
 defmodule Bootleg.Strategies.Build.DistilleryTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   import ExUnit.CaptureIO
   import Mock
   alias Bootleg.{SSH, Git, Config, Strategies.Build.Distillery}

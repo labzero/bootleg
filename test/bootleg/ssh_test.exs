@@ -1,5 +1,5 @@
 defmodule Bootleg.SSHTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   alias Bootleg.{SSH, Host}
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost

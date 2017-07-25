@@ -1,5 +1,5 @@
 defmodule Bootleg.UITest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
 
   import ExUnit.CaptureIO
 
