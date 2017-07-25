@@ -331,6 +331,27 @@ after_task :compile do
 end
 ```
 
+## Sharing Tasks
+
+Sharing is a good thing. We love to share, espically awesome code we write. Bootleg supports loading
+tasks from packages in a manner very similar to `Mix.Task`. Just define your module under `Bootleg.Tasks`,
+`use Bootleg.Task` and pass it a block of Bootleg DSL. The contents will be discovered and executed
+automatically at launch.
+
+```elixir
+defmodule Bootleg.Tasks.Foo do
+  use Bootleg.Task do
+    task :foo do
+      IO.puts "Foo!!"
+    end
+
+    before_task :build, :foo
+  end
+end
+```
+
+See `Bootleg.Task` for more details.
+
 ## Help
 
 If something goes wrong, retry with the `--verbose` option.

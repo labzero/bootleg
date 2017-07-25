@@ -231,8 +231,10 @@ defmodule Bootleg.Config do
     module_name = module_for_task(task)
 
     quote do
-      if Code.ensure_compiled?(unquote(module_name)) do
-        {orig_file, orig_line} = unquote(module_name).location
+      module_name = unquote(module_name)
+
+      if Code.ensure_compiled?(module_name) do
+        {orig_file, orig_line} = module_name.location
         UI.warn "warning: task '#{unquote(task)}' is being redefined. " <>
         "The most recent definition will win, but this is probably not what you meant to do. " <>
         "The previous definition was at: #{orig_file}:#{orig_line}"
@@ -242,7 +244,7 @@ defmodule Bootleg.Config do
       Code.compiler_options(Map.put(original_opts, :ignore_module_conflict, true))
 
       try do
-        defmodule unquote(module_name) do
+        defmodule module_name do
           @file unquote(file)
           def execute, do: unquote(block)
           def location, do: {unquote(file), unquote(line)}
@@ -264,7 +266,7 @@ defmodule Bootleg.Config do
 
   @spec module_for_task(atom) :: atom
   defp module_for_task(task) do
-    :"Elixir.Bootleg.Tasks.DynamicTasks.#{Macro.camelize("#{task}")}"
+    :"Elixir.Bootleg.DynamicTasks.#{Macro.camelize("#{task}")}"
   end
 
   @doc """

@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg do
-  use Bootleg.Task
+  use Bootleg.MixTask
 
   @shortdoc "Build and deploy releases"
 

@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Ping do
-  use Bootleg.Task, :ping
+  use Bootleg.MixTask, :ping
 
   @shortdoc "Pings an app."
 

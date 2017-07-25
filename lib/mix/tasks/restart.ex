@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Restart do
-  use Bootleg.Task, :restart
+  use Bootleg.MixTask, :restart
 
   @shortdoc "Restarts a deployed release."
 
