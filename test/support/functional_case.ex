@@ -1,7 +1,6 @@
 defmodule Bootleg.FunctionalCase do
   @moduledoc false
-
-  use ExUnit.CaseTemplate
+  use Bootleg.TestCase
 
   import Bootleg.FunctionalCaseHelpers
   require Logger
