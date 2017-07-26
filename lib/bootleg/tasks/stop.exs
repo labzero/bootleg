@@ -1,8 +1,11 @@
+alias Bootleg.{UI, Config}
 use Bootleg.Config
 
 task :stop do
-  alias Bootleg.Strategies.Manage.Distillery
-  Distillery.init()
-  |> Distillery.stop()
+  app_name = Config.app
+  remote :app do
+    "bin/#{app_name} stop"
+  end
+  UI.info "#{app_name} stopped"
   :ok
 end
