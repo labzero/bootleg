@@ -1,10 +1,10 @@
 defmodule Bootleg.TestCase do
   @moduledoc false
-  defmacro __using__(args) do
-    quote bind_quoted: binding() do
-      use ExUnit.Case, args
+  use ExUnit.CaseTemplate
 
-      unless args[:async] do
+  using args do
+    quote do
+      unless unquote(args)[:async] do
         setup do
           Bootleg.Config.Agent.wait_cleanup()
         end
