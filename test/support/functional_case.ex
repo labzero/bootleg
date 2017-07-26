@@ -1,6 +1,6 @@
 defmodule Bootleg.FunctionalCase do
   @moduledoc false
-  use Bootleg.TestCase
+  use ExUnit.CaseTemplate
 
   import Bootleg.FunctionalCaseHelpers
   require Logger
@@ -12,9 +12,14 @@ defmodule Bootleg.FunctionalCase do
   @user "me"
   @pass "pass"
 
-  using do
+  using args do
     quote do
       @moduletag :functional
+      unless unquote(args)[:async] do
+        setup do
+          Bootleg.Config.Agent.wait_cleanup()
+        end
+      end
     end
   end
 
