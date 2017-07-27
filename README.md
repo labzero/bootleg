@@ -318,18 +318,20 @@ end
 
 Bootleg builds elixir apps, if your application has extra steps required make use of the hooks
 system to add additional functionality. A common case is for building assets for Phoenix
-applications. To build phoenix assets during your build, define an after hook handler for the
-`:compile` task and place it inside your `config/deploy.exs`.
+applications. To build phoenix assets during your build, include the additional package
+`bootleg_phoenix` to your `deps` list. This will automatically perform the additional steps required
+for building phoenix releases.
 
 ```elixir
-after_task :compile do
-  remote :build do
-    "[ -f package.json ] && npm install || true"
-    "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true"
-    "[ -d deps/phoenix ] && mix phoenix.digest || true"
-  end
+# mix.exs
+def deps do
+  [{:distillery, "~> 1.3"},
+  {:bootleg, "~> 0.2.0"},
+  {:bootleg_phoenix, "~> 0.1.0"}]
 end
 ```
+
+For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
 
 ## Sharing Tasks
 
