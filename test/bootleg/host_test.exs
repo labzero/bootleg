@@ -1,5 +1,5 @@
 defmodule Bootleg.HostTest do
-  use ExUnit.Case, async: true
+  use Bootleg.TestCase, async: true
   alias Bootleg.Host
 
   doctest Bootleg.Host

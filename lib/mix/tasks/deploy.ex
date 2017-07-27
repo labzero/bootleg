@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Deploy do
-  use Bootleg.Task, :deploy
+  use Bootleg.MixTask, :deploy
 
   @shortdoc "Deploy a release from the local cache"
 
@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Bootleg.Deploy do
 
   # Usage:
 
-    * mix bootleg.deploy [cluster] [release] [Options]
+    * mix bootleg.deploy
 
   """
 end

@@ -1,5 +1,5 @@
 defmodule Bootleg.Strategies.Deploy.Distillery do
-  @moduledoc ""
+  @moduledoc false
 
   alias Bootleg.{Config, UI, SSH}
 

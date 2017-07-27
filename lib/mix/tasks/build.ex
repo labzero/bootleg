@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Build do
-  use Bootleg.Task, :build
+  use Bootleg.MixTask, :build
 
   @shortdoc "Build a release"
 
@@ -8,11 +8,7 @@ defmodule Mix.Tasks.Bootleg.Build do
 
   # Usage:
 
-    * mix bootleg.build [Options]
-
-  ## Build Commands:
-
-    * mix bootleg.build release [--revision=<git-revision>|--tag=<git-tag>] [--branch=<git-branch>] [Options]
+    * mix bootleg.build
 
   """
 

@@ -1,8 +1,14 @@
 # Bootleg
 
+[![CircleCI](https://img.shields.io/circleci/project/github/labzero/bootleg/master.svg)](https://circleci.com/gh/labzero/bootleg) [![Hex.pm](https://img.shields.io/hexpm/v/bootleg.svg)](https://hex.pm/packages/bootleg) [![Packagist](https://img.shields.io/packagist/l/doctrine/orm.svg)](https://github.com/labzero/bootleg/blob/master/LICENSE)
+
+Simple deployment and server automation for Elixir.
+
 **Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
-Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases.
+Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a `git` repository and some of the build steps use this assumption
+to handle code in some steps of the build process. If you are using an scm other than git, please consider contributing to Bootleg to
+add additional support.
 
 ## Installation
 
@@ -13,7 +19,22 @@ def deps do
 end
 ```
 
+## Build server setup
+
+In order to build your project, Bootleg requires that your build server be set up to compile
+Elixir code. Make sure you have already installed Elixir on any build server you define. The remote
+
+
 ## Quick Start
+
+### Initialize your project
+
+This step is optional but if run will create an example `config/deploy.exs` file that you
+can use as a starting point.
+
+```sh
+$ mix bootleg.init
+```
 
 ### Configure your release parameters
 
@@ -43,8 +64,8 @@ Create and configure Bootleg's `config/deploy.exs` file:
 # config/deploy.exs
 use Bootleg.Config
 
-role :build, "build.myapp.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
-role :app, ["web1.myapp.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
+role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
 ## Roles
@@ -54,8 +75,8 @@ Actions in Bootleg are paired with roles, which are simply a collection of hosts
 Role names are unique so there can only be one of each defined, but hosts can be grouped into one or more roles. Roles can be declared repeatedly to provide a different set of options to different sets of hosts.
 
 By defining roles, you are defining responsibility groups to cross cut your host infrastructure. The `build` and
-`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a bootleg hook. There is another built in role `:all` which will always include
-all hosts assigned to any role.
+`app` roles have inherent meaning to the default behavior of Bootleg, but you may also define more that you can later filter on when running commands inside a Bootleg hook. There is another built in role `:all` which will always include
+all hosts assigned to any role. `:all` is only available via `remote/2`.
 
 Some features or extensions may require additional roles, for example if your
 release needs to run Ecto migrations, you will need to assign the `:db`
@@ -64,7 +85,7 @@ role to one host.
 ### Role and host options
 
 Options are set on roles and on hosts based on the order in which the roles are defined. Some are used internally
-by bootleg:
+by Bootleg:
 
   * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
   * `user` - ssh username (default to local user)
@@ -104,7 +125,7 @@ Supported SSH options include:
 * timeout
 * recv_timeout
 
-> Refer to [Bootleg.SSH.supported_options/0](lib/bootleg/ssh.ex) for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
+> Refer to `Bootleg.SSH.supported_options/0` for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
 
 ### Role restrictions
 
@@ -132,7 +153,7 @@ mix bootleg.update production
 
 ## Admin Commands
 
-bootleg has a set of commands to check up on your running nodes:
+Bootleg has a set of commands to check up on your running nodes:
 
 ```console
 mix bootleg.restart production  # Restarts a deployed release.
@@ -144,10 +165,10 @@ mix bootleg.ping production      # Check status of running nodes
 ## Hooks
 
 Hooks may be defined by the user in order to perform additional (or exceptional)
-operations before or after certain actions performed by bootleg.
+operations before or after certain actions performed by Bootleg.
 
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
-before or after a task. The following tasks are provided by bootleg:
+before or after a task. The following tasks are provided by Bootleg:
 
 1. `build` - build process for creating a release package
   1. `compile` - compilation of your project
@@ -211,11 +232,11 @@ $
 
 ## `invoke` and `task`
 
-There are a few ways for custom code to be executed during the bootleg life
+There are a few ways for custom code to be executed during the Bootleg life
 cycle. Before showing some examples, here's a quick glossary of the related
 pieces.
 
- * `task <:identifier> do ... end` - Assign a block of code to the symbol provided as `:identifier`.
+ * `task <:identifier> do ... end` - Assign a block of code to the atom provided as `:identifier`.
    This can then be executed by using the `invoke` macro.
  * `invoke <:identifier>` - Execute the `task` code blocked identified by `:identifier`, as well as
    any before/after hooks.
@@ -264,7 +285,7 @@ end
 
 ## `remote`
 
-The workhorse of the `bootleg` DSL is `remote`: it executes shell commands on remote servers and returns
+The workhorse of the Bootleg DSL is `remote`: it executes shell commands on remote servers and returns
 the results. It takes a role and a block of commands to execute. The commands are executed on all servers
 belonging to the role, and raises an `SSHError` if an error is encountered.
 
@@ -297,40 +318,55 @@ end
 
 Bootleg builds elixir apps, if your application has extra steps required make use of the hooks
 system to add additional functionality. A common case is for building assets for Phoenix
-applications. To build phoenix assets during your build, define an after hook handler for the
-`:compile` task and place it inside your `config/deploy.exs`.
+applications. To build phoenix assets during your build, include the additional package
+`bootleg_phoenix` to your `deps` list. This will automatically perform the additional steps required
+for building phoenix releases.
 
 ```elixir
-after :compile do
-  remote :build do
-    "[ -f package.json ] && npm install || true"
-    "[ -f brunch-config.js ] && [ -d node_modules ] && ./node_modules/brunch/bin/brunch b -p || true"
-    "[ -d deps/phoenix ] && mix phoenix.digest || true"
+# mix.exs
+def deps do
+  [{:distillery, "~> 1.3"},
+  {:bootleg, "~> 0.2.0"},
+  {:bootleg_phoenix, "~> 0.1.0"}]
+end
+```
+
+For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
+
+## Sharing Tasks
+
+Sharing is a good thing. We love to share, espically awesome code we write. Bootleg supports loading
+tasks from packages in a manner very similar to `Mix.Task`. Just define your module under `Bootleg.Tasks`,
+`use Bootleg.Task` and pass it a block of Bootleg DSL. The contents will be discovered and executed
+automatically at launch.
+
+```elixir
+defmodule Bootleg.Tasks.Foo do
+  use Bootleg.Task do
+    task :foo do
+      IO.puts "Foo!!"
+    end
+
+    before_task :build, :foo
   end
 end
 ```
 
+See `Bootleg.Task` for more details.
+
 ## Help
 
 If something goes wrong, retry with the `--verbose` option.
-For detailed information about the bootleg commands and their options, try `mix bootleg help <command>`.
+For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
 
-## Examples
-
-Build a release and deploy it to your production hosts:
-
-```sh
-mix bootleg.build
-mix bootleg.deploy
-mix bootleg.start
-```
-
-Or execute the above steps with a single command:
-
-```sh
-mix bootleg.update production
-```
 -----
+
+## Acknowledgments
+
+Bootleg makes heavy use of the [bitcrowd/SSHKit.ex](https://github.com/bitcrowd/sshkit.ex)
+library under the hood. We would like to acknowledge the effort from the bitcrowd team that went into
+creating SSHKit.ex as well as for them prioritizing our requests and providing a chance to collaborate
+on ideas for both the SSHKit.ex and Bootleg projects.
 
 ## Contributing
 

@@ -1,5 +1,5 @@
 defmodule Bootleg.SSHTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   alias Bootleg.{SSH, Host}
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
@@ -45,5 +45,12 @@ defmodule Bootleg.SSHTest do
         SSH.ssh_host_options(host)
       end
     end)
+  end
+
+  test "merge_run_results/2" do
+    assert [[2, 4, 1, 2]] = SSH.merge_run_results([[1, 2]], [[2, 4]])
+    assert [[2, 4, 1, 2], [5, 6, 3, 4]] = SSH.merge_run_results([[1, 2], [3, 4]], [[2, 4], [5, 6]])
+    assert [1, 2] = SSH.merge_run_results([1, 2], [])
+    assert [[1, 2]] = SSH.merge_run_results([[1, 2]], [])
   end
 end

@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Stop do
-  use Bootleg.Task, :stop
+  use Bootleg.MixTask, :stop
 
   @shortdoc "Stops a deployed release."
 

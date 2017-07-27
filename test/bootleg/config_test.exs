@@ -1,5 +1,5 @@
 defmodule Bootleg.ConfigTest do
-  use ExUnit.Case, async: false
+  use Bootleg.TestCase, async: false
   alias Bootleg.{Config, UI, SSH}
   alias Mix.Project
   import Mock
@@ -14,12 +14,13 @@ defmodule Bootleg.ConfigTest do
 
   defmacro assert_next_received(pattern, failure_message \\ nil) do
     quote do
+      failure_message = unquote(failure_message) ||
+        "The next message does not match #{unquote(Macro.to_string(pattern))}, or the process mailbox is empty."
       receive do
         unquote(pattern) -> true
+        _ -> flunk(failure_message)
       after 0 ->
-        flunk(unquote(failure_message) ||
-          "The next message does not match #{unquote(Macro.to_string(pattern))}, or the process mailbox is empty."
-        )
+        flunk(failure_message)
       end
     end
   end
@@ -73,6 +74,27 @@ defmodule Bootleg.ConfigTest do
     role :build, "build.labzero.com", port: 123, user: "foo"
     assert [build: %Bootleg.Role{hosts: hosts}] = roles()
     assert Enum.count(hosts) == 2
+  end
+
+  test "role/2,3 only unquote the name once" do
+    use Bootleg.Config
+
+    role_name = fn ->
+      send(self(), :role_name_excuted)
+      :foo
+    end
+
+    role role_name.(), "foo.example.com"
+    send(self(), :next)
+
+    assert_next_received :role_name_excuted
+    assert_next_received :next
+
+    role role_name.(), "foo.example.com", an_option: :foo
+    send(self(), :next)
+
+    assert_next_received :role_name_excuted
+    assert_next_received :next
   end
 
   test "get_role/1", %{local_user: local_user} do
@@ -180,16 +202,16 @@ defmodule Bootleg.ConfigTest do
       end
     end
 
-    Module.create(Bootleg.Tasks.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
+    Module.create(Bootleg.DynamicTasks.Taskinvoketest, quoted, Macro.Env.location(__ENV__))
 
     Config.Agent.merge(:before_hooks, :taskinvoketest, [
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_1],
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :before_hook_2]
+      [Bootleg.DynamicTasks.Taskinvoketest, :before_hook_1],
+      [Bootleg.DynamicTasks.Taskinvoketest, :before_hook_2]
     ])
 
     Config.Agent.merge(:after_hooks, :taskinvoketest, [
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_1],
-      [Bootleg.Tasks.DynamicTasks.Taskinvoketest, :after_hook_2]
+      [Bootleg.DynamicTasks.Taskinvoketest, :after_hook_1],
+      [Bootleg.DynamicTasks.Taskinvoketest, :after_hook_2]
     ])
 
     invoke :taskinvoketest
@@ -228,7 +250,7 @@ defmodule Bootleg.ConfigTest do
 
     task :task_test, do: true
 
-    module = Bootleg.Tasks.DynamicTasks.TaskTest
+    module = Bootleg.DynamicTasks.TaskTest
     assert apply(module, :execute, [])
     assert {file, line} = module.location
     assert file == __ENV__.file
@@ -267,7 +289,10 @@ defmodule Bootleg.ConfigTest do
     refute_received {:before, :foo}
   end
 
-  test_with_mock "remote/2", SSH, [], [init: fn(role) -> {role} end, run!: fn(_, _cmd) -> :ok end] do
+  test_with_mock "remote/2", SSH, [:passthrough], [
+      init: fn(role) -> {role} end,
+      run!: fn(_, _cmd) -> [:ok] end
+    ] do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
@@ -290,6 +315,31 @@ defmodule Bootleg.ConfigTest do
       remote :test_4, ["echo Hello", "echo World"]
     end
 
+    task :remote_test_all do
+      remote :all, do: "echo Hello World All!"
+    end
+
+    task :remote_test_all_multi do
+      remote :all do
+        "echo All Hello"
+        "echo All World" <> "!"
+      end
+    end
+
+    task :remote_test_roles do
+      remote [:foo, :bar], do: "echo Hello World Multi!"
+    end
+
+    task :remote_test_roles_multi do
+      remote [:foo, :bar] do
+        "echo Multi Hello"
+        "echo Multi World" <> "!"
+      end
+    end
+
+    role :foo, "never-used-foo.example.com"
+    role :bar, "never-used-bar.example.com"
+
     invoke :remote_test_1
 
     assert called SSH.init(:test_1)
@@ -297,12 +347,15 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_2
 
-    assert called SSH.init(nil)
-    assert called SSH.run!({nil}, "echo Hello World2!")
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World2!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World2!")
 
     invoke :remote_test_3
 
-    assert called SSH.run!({nil}, ["echo Hello", "echo World!"])
+    assert called SSH.run!({:foo}, ["echo Hello", "echo World!"])
+    assert called SSH.run!({:bar}, ["echo Hello", "echo World!"])
 
     invoke :remote_test_4
 
@@ -319,7 +372,35 @@ defmodule Bootleg.ConfigTest do
       invoke :remote_test_5
 
       assert called Time.utc_now
-      assert called SSH.run!({nil}, :now)
+      assert called SSH.run!(:_, :now)
     end
+
+    invoke :remote_test_all
+
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World All!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World All!")
+
+    invoke :remote_test_all_multi
+
+    assert called SSH.run!({:foo}, ["echo All Hello", "echo All World!"])
+    assert called SSH.run!({:bar}, ["echo All Hello", "echo All World!"])
+
+    role :car, "never-used-car.example.com"
+
+    invoke :remote_test_roles
+
+    refute called SSH.init(:car)
+    assert called SSH.init(:foo)
+    assert called SSH.run!({:foo}, "echo Hello World Multi!")
+    assert called SSH.init(:bar)
+    assert called SSH.run!({:bar}, "echo Hello World Multi!")
+
+    invoke :remote_test_roles_multi
+
+    refute called SSH.init(:car)
+    assert called SSH.run!({:foo}, ["echo Multi Hello", "echo Multi World!"])
+    assert called SSH.run!({:bar}, ["echo Multi Hello", "echo Multi World!"])
   end
 end

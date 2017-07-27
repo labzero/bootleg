@@ -1,5 +1,5 @@
 defmodule Mix.Tasks.Bootleg.Start do
-  use Bootleg.Task, :start
+  use Bootleg.MixTask, :start
 
   @shortdoc "Starts a deployed release."
 
