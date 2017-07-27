@@ -37,6 +37,10 @@ defmodule Bootleg.UI do
     puts(:info, output, setting)
   end
 
+  def error(output, setting \\ nil) do
+    puts(:error, output, setting)
+  end
+
   @doc """
   Get configured output verbosity and sanitize it for our uses.
   Defaults to :info
@@ -53,10 +57,14 @@ defmodule Bootleg.UI do
   defp verbosity_includes(setting, level)
   defp verbosity_includes(:info, :info), do: true
   defp verbosity_includes(:info, :warning), do: true
+  defp verbosity_includes(:info, :error), do: true
   defp verbosity_includes(:warning, :warning), do: true
+  defp verbosity_includes(:warning, :error), do: true
+  defp verbosity_includes(:error, :error), do: true
   defp verbosity_includes(:debug, :info), do: true
   defp verbosity_includes(:debug, :warning), do: true
   defp verbosity_includes(:debug, :debug), do: true
+  defp verbosity_includes(:debug, :error), do: true
   defp verbosity_includes(_, _), do: false
 
   ### SSH formatting functions
