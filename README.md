@@ -162,6 +162,15 @@ mix bootleg.stop production      # Stops a deployed release.
 mix bootleg.ping production      # Check status of running nodes
 ```
 
+## Other Comamnds
+
+Bootleg has a few utility commands to help streamline its usage:
+
+```console
+mix bootleg.init             # Initializes a project for use with Bootleg
+mix bootleg.invoke <task>    # Calls an arbitrary Bootleg task
+```
+
 ## Hooks
 
 Hooks may be defined by the user in order to perform additional (or exceptional)
