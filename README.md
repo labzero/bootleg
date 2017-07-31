@@ -296,7 +296,8 @@ end
 
 The workhorse of the Bootleg DSL is `remote`: it executes shell commands on remote servers and returns
 the results. It takes a role and a block of commands to execute. The commands are executed on all servers
-belonging to the role, and raises an `SSHError` if an error is encountered.
+belonging to the role, and raises an `SSHError` if an error is encountered. Optionally, a list of options
+can be provided to filter the hosts where the commands are run.
 
 ```elixir
 use Bootleg.Config
@@ -320,6 +321,11 @@ end
 # raises an SSHError
 remote :app do
   "false"
+end
+
+# filtering - only runs on app hosts with an option of primary set to true
+remote :app, primary: true do
+  "migrate-task"
 end
 ```
 

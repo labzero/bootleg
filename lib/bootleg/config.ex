@@ -9,7 +9,7 @@ defmodule Bootleg.Config do
   defmacro __using__(_) do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, load: 1]
+        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1]
     end
   end
 
@@ -325,11 +325,28 @@ defmodule Bootleg.Config do
   end
 
   defmacro remote(role, do: {:__block__, _, lines}) do
-    quote do: remote(unquote(role), unquote(lines))
+    quote do: remote(unquote(role), [], unquote(lines))
   end
 
   defmacro remote(role, do: lines) do
-    quote do: remote(unquote(role), unquote(lines))
+    quote do: remote(unquote(role), [], unquote(lines))
+  end
+
+  @doc """
+  Executes commands on all remote hosts within a role.
+
+  This is equivalent to calling `remote/3` with a `filter` of `[]`.
+  """
+  defmacro remote(role, lines) do
+    quote do: remote(unquote(role), [], unquote(lines))
+  end
+
+  defmacro remote(role, filter, do: {:__block__, _, lines}) do
+    quote do: remote(unquote(role), unquote(filter), unquote(lines))
+  end
+
+  defmacro remote(role, filter, do: lines) do
+    quote do: remote(unquote(role), unquote(filter), unquote(lines))
   end
 
   @doc """
@@ -342,6 +359,10 @@ defmodule Bootleg.Config do
   `lines` can be a `List` of commands to execute, or a code block where each line's return value is
   used as a command. Each command will be simulataneously executed on all hosts in the role. Once
   all hosts have finished executing the command, the next command in the list will be sent.
+
+  `filter` is an optional `Keyword` list of host options to filter with. Any host whose options match
+  the filter will be included in the remote execution. A host matches if it has all of the filtering
+  options defined and the values match (via `==/2`) the filter.
 
   `role` can be a single role, a list of roles, or the special role `:all` (all roles). If the same host
   exists in multiple roles, the commands will be run once for each role where the host shows up. In the
@@ -367,9 +388,17 @@ defmodule Bootleg.Config do
 
   # runs for hosts found in :build first, then for hosts in :app
   remote [:build, :app], do: "hostname"
+
+  # only runs on `host1.example.com`
+  role :build, "host2.example.com"
+  role :build, "host1.example.com", primary: true, another_attr: :cat
+
+  remote :build, primary: true do
+    "hostname"
+  end
   ```
   """
-  defmacro remote(role, lines) do
+  defmacro remote(role, filter, lines) do
     roles = if role == :all do
       quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
     else
@@ -378,7 +407,7 @@ defmodule Bootleg.Config do
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
-        |> SSH.init
+        |> SSH.init(filter)
         |> SSH.run!(lines)
         |> SSH.merge_run_results(outputs)
       end)

@@ -68,7 +68,6 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/2 with Role name atom and identity", %{hosts: [host]} do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     ip = host.ip
     role :build, ip, port: host.port, user: host.user,
@@ -81,6 +80,23 @@ defmodule Bootleg.SSHFunctionalTest do
       assert options[:user] == host.user
       assert {SSHClientKeyAPI, key_details} = options[:key_cb]
       assert key_details[:identity_data] == host.private_key
+    end)
+  end
+
+  @tag boot: 2
+  test "init/3 host filtering for roles", %{hosts: [host_1, host_2]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    ip_1 = host_1.ip
+    ip_2 = host_2.ip
+    role :build, ip_1, port: host_1.port, user: host_1.user, foo: :car,
+      workspace: "/", silently_accept_hosts: true, identity: host_1.private_key_path
+    role :build, ip_2, port: host_2.port, user: host_2.user, foo: :bar,
+      workspace: "/", silently_accept_hosts: true, identity: host_2.private_key_path
+    capture_io(fn ->
+      assert %SSHKitContext{hosts: [%SSHKitHost{name: ^ip_2}]} = SSH.init(:build, [], foo: :bar)
+      assert %SSHKitContext{hosts: [%SSHKitHost{name: ^ip_1}]} = SSH.init(:build, [], foo: :car)
     end)
   end
 
