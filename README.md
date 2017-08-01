@@ -325,7 +325,7 @@ end
 
 # filtering - only runs on app hosts with an option of primary set to true
 remote :app, primary: true do
-  "migrate-task"
+  "mix ecto.migrate"
 end
 ```
 
