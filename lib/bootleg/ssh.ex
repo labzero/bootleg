@@ -6,32 +6,46 @@ defmodule Bootleg.SSH do
   alias SSHKit.SSH, as: SSHKitSSH
   alias Bootleg.{UI, Host, Role, Config}
 
-  def init(role, options \\ [])
-  def init(%Role{} = role, options) do
+  def init(%Role{} = role, options, filter) do
     role_options = Keyword.merge(role.options, [user: role.user])
-    init(role.hosts, Keyword.merge(role_options, options))
+    role.hosts
+    |> Enum.reduce([], fn host, acc ->
+      if filter_match?(host.options, filter) do
+        acc ++ [host]
+      else
+        acc
+      end
+    end)
+    |> init(Keyword.merge(role_options, options))
   end
 
-  def init(nil, _options) do
+  def init(nil, _options, _filter) do
     raise ArgumentError, "You must supply a %Host{}, a %Role{} or a defined role_name."
   end
 
-  def init(role_name, options) when is_atom(role_name) do
-    init(Config.get_role(role_name), options)
+  def init(role_name, options, filter) when is_atom(role_name) do
+    init(Config.get_role(role_name), options, filter)
   end
 
+  def init(role, options \\ [])
+  def init(role, options) when is_atom(role) do
+    init(role, options, [])
+  end
+  def init(%Role{} = role, options) do
+    init(role, options, [])
+  end
   def init(hosts, options) do
-      workspace = Keyword.get(options, :workspace, ".")
-      create_workspace = Keyword.get(options, :create_workspace, true)
-      UI.puts "Creating remote context at '#{workspace}'"
+    workspace = Keyword.get(options, :workspace, ".")
+    create_workspace = Keyword.get(options, :create_workspace, true)
+    UI.puts "Creating remote context at '#{workspace}'"
 
-      :ssh.start()
+    :ssh.start()
 
-      hosts
-      |> List.wrap
-      |> Enum.map(&ssh_host_options/1)
-      |> SSHKit.context
-      |> validate_workspace(workspace, create_workspace)
+    hosts
+    |> List.wrap
+    |> Enum.map(&ssh_host_options/1)
+    |> SSHKit.context
+    |> validate_workspace(workspace, create_workspace)
   end
 
   def ssh_host_options(%Host{} = host) do
@@ -147,6 +161,16 @@ defmodule Bootleg.SSH do
     |> Enum.zip(orig)
     |> Enum.map(fn {n, o} ->
       List.wrap(o) ++ List.wrap(n)
+    end)
+  end
+
+  defp filter_match?(list, filter) do
+    Enum.reduce(filter, true, fn {key, value}, match ->
+      if match do
+        list[key] == value
+      else
+        match
+      end
     end)
   end
 end
