@@ -22,7 +22,7 @@ defmodule Bootleg.Config do
 
   `name` is the name of the role, and is globally unique. Calling `role/3` multiple times with
   the same name will result in the host lists being merged. If the same host shows up mutliple
-  times, it will have its `options` merged.
+  times, it will have its `options` merged. The name `:all` is reserved and cannot be used here.
 
   `hosts` can be a single hostname, or a `List` of hostnames.
 
@@ -41,6 +41,9 @@ defmodule Bootleg.Config do
   """
   defmacro role(name, hosts, options \\ []) do
     # user is in the role options for scm
+    if name == :all do
+      raise ArgumentError, ":all is reserved by bootleg and refers to all defined roles."
+    end
     user = Keyword.get(options, :user, System.get_env("USER"))
     ssh_options = Enum.filter(options, &Enum.member?(SSH.supported_options, elem(&1, 0)) == true)
     role_options =

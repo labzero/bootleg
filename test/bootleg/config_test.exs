@@ -25,6 +25,19 @@ defmodule Bootleg.ConfigTest do
     end
   end
 
+  # credit: https://gist.github.com/henrik/1054546364ac68da4102
+  defmacro assert_compile_time_raise(expected_exception, fun) do
+    # At compile-time, the fun is in AST form and thus cannot raise.
+    # At run-time, we will evaluate this AST, and it may raise.
+    fun_quoted_at_runtime = Macro.escape(fun)
+
+    quote do
+      assert_raise unquote(expected_exception), fn ->
+        Code.eval_quoted(unquote(fun_quoted_at_runtime))
+      end
+    end
+  end
+
   setup do
     %{
       local_user: System.get_env("USER")
@@ -95,6 +108,18 @@ defmodule Bootleg.ConfigTest do
 
     assert_next_received :role_name_excuted
     assert_next_received :next
+  end
+
+  test "role/2,3 do not allow a name of :all" do
+    assert_compile_time_raise ArgumentError, fn ->
+      use Bootleg.Config
+      role :all, "build1.example.com"
+    end
+
+    assert_compile_time_raise ArgumentError, fn ->
+      use Bootleg.Config
+      role :all, "build2.example.com", an_option: true
+    end
   end
 
   test "get_role/1", %{local_user: local_user} do
