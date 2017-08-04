@@ -156,6 +156,9 @@ defmodule Bootleg.SSH do
   def merge_run_results(new, []) do
     new
   end
+  def merge_run_results([], orig) do
+    orig
+  end
   def merge_run_results(new, orig) when is_list(orig) do
     new
     |> Enum.zip(orig)

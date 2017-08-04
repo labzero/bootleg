@@ -290,7 +290,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test_with_mock "remote/2", SSH, [:passthrough], [
-      init: fn(role, _filter) -> {role} end,
+      init: fn(role, _options, _filter) -> {role} end,
       run!: fn(_, _cmd) -> [:ok] end
     ] do
     use Bootleg.Config
@@ -341,14 +341,14 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_1
 
-    assert called SSH.init(:test_1, :_)
+    assert called SSH.init(:test_1, :_, :_)
     assert called SSH.run!({:test_1}, "echo Hello World!")
 
     invoke :remote_test_2
 
-    assert called SSH.init(:foo, :_)
+    assert called SSH.init(:foo, :_, :_)
     assert called SSH.run!({:foo}, "echo Hello World2!")
-    assert called SSH.init(:bar, :_)
+    assert called SSH.init(:bar, :_, :_)
     assert called SSH.run!({:bar}, "echo Hello World2!")
 
     invoke :remote_test_3
@@ -358,7 +358,7 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_4
 
-    assert called SSH.init(:test_4, :_)
+    assert called SSH.init(:test_4, :_, :_)
     assert called SSH.run!({:test_4}, ["echo Hello", "echo World"])
 
     with_mock Time, [], [utc_now: fn -> :now end] do
@@ -376,9 +376,9 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_all
 
-    assert called SSH.init(:foo, :_)
+    assert called SSH.init(:foo, :_, :_)
     assert called SSH.run!({:foo}, "echo Hello World All!")
-    assert called SSH.init(:bar, :_)
+    assert called SSH.init(:bar, :_, :_)
     assert called SSH.run!({:bar}, "echo Hello World All!")
 
     invoke :remote_test_all_multi
@@ -390,21 +390,21 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_roles
 
-    refute called SSH.init(:car, :_)
-    assert called SSH.init(:foo, :_)
+    refute called SSH.init(:car, :_, :_)
+    assert called SSH.init(:foo, :_, :_)
     assert called SSH.run!({:foo}, "echo Hello World Multi!")
-    assert called SSH.init(:bar, :_)
+    assert called SSH.init(:bar, :_, :_)
     assert called SSH.run!({:bar}, "echo Hello World Multi!")
 
     invoke :remote_test_roles_multi
 
-    refute called SSH.init(:car, :_)
+    refute called SSH.init(:car, :_, :_)
     assert called SSH.run!({:foo}, ["echo Multi Hello", "echo Multi World!"])
     assert called SSH.run!({:bar}, ["echo Multi Hello", "echo Multi World!"])
   end
 
   test_with_mock "remote/3 filtering", SSH, [:passthrough], [
-      init: fn(role, filter) -> {role, filter} end,
+      init: fn(role, options, filter) -> {role, options, filter} end,
       run!: fn(_, _cmd) -> [:ok] end
     ] do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
@@ -432,19 +432,19 @@ defmodule Bootleg.ConfigTest do
 
     invoke :remote_test_role_one_line_filtered
 
-    assert called SSH.init(:one_line, a_filter: true)
+    assert called SSH.init(:one_line, [], a_filter: true)
 
     invoke :remote_test_role_inline_filtered
 
-    assert called SSH.init(:inline, b_filter: true)
+    assert called SSH.init(:inline, [], b_filter: true)
 
     invoke :remote_test_role_filtered
 
-    assert called SSH.init(:car, passenger: true)
+    assert called SSH.init(:car, [], passenger: true)
 
     invoke :remote_test_roles_filtered
 
-    assert called SSH.init(:foo, [primary: true])
-    assert called SSH.init(:bar, [primary: true])
+    assert called SSH.init(:foo, [], [primary: true])
+    assert called SSH.init(:bar, [], [primary: true])
   end
 end

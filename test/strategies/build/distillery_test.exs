@@ -17,6 +17,7 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
       {
         SSH, [:passthrough], [
           init: fn role -> SSH.init(role, []) end,
+          init: fn role, _, _ -> SSH.init(role, []) end,
           init: fn _, _ -> %SSHKit.Context{} end,
           run!: fn _, _ -> [{:ok, [stdout: ""], 0, ssh_host}] end,
           ssh_host_options: fn _ -> ssh_host end,

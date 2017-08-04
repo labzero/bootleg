@@ -407,7 +407,7 @@ defmodule Bootleg.Config do
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
-        |> SSH.init(filter)
+        |> SSH.init([], filter)
         |> SSH.run!(lines)
         |> SSH.merge_run_results(outputs)
       end)
