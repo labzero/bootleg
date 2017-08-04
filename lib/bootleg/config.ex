@@ -9,7 +9,7 @@ defmodule Bootleg.Config do
   defmacro __using__(_) do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1]
+        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1, upload: 3]
     end
   end
 
@@ -402,11 +402,7 @@ defmodule Bootleg.Config do
   ```
   """
   defmacro remote(role, filter, lines) do
-    roles = if role == :all do
-      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
-    else
-      quote do: List.wrap(unquote(role))
-    end
+    roles = unpack_role(role)
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
@@ -433,6 +429,56 @@ defmodule Bootleg.Config do
     end
   end
 
+  @doc """
+  Uploads a local file to remote hosts.
+
+  Uploading works much like `remote/3`, but instead of transferring shell commands over SSH,
+  it transfers files via SCP. The remote host does need to support SCP, which should be provided
+  by most SSH implementations automatically.
+
+  `role` can either be a single role name, a list of roles, or a list of roles and filter
+  attributes. The special `:all` role is also supported. See `remote/3` for details.
+
+  `local_path` can either be a file or directory found on the local machine. If its a directory,
+  the entire directory will be recursively copied to the remote hosts. Relative paths are resolved
+  relative to the root of the local project.
+
+  `remote_path` is the file or directory where the transfered files should be placed. The semantics
+  of how `remote_path` is treated vary depending on what `local_path` refers to. If `local_path` points
+  to a file, `remote_path` is treated as a file unless it's `.` or ends in `/`, in which case it's
+  treated as a directory and the filename of the local file will be used. If `local_path` is a directory,
+  `remote_path` is treated as a directory as well. Relative paths are resolved relative to the projects
+  remote `workspace`. Missing directories are not implicilty created.
+
+  The files on the remote server are created using the authenticating user's `uid`/`gid` and `umask`.
+
+  ```
+  use Bootleg.Config
+
+  # copies ./my_file to ./new_name on the remote host
+  upload :app, "my_file", "new_name"
+
+  # copies ./my_file to ./a_dir/my_file on the remote host. ./a_dir must already exist
+  upload :app, "my_file", "a_dir/"
+
+  # recursively copies ./some_dir to ./new_dir on the remote host. ./new_dir will be created if missing
+  upload :app, "some_dir", "new_dir"
+
+  # copies ./my_file to /tmp/foo on the remote host
+  upload :app, "my_file", "/tmp/foo"
+  """
+  defmacro upload(role, local_path, remote_path) do
+    {roles, filters} = split_roles_and_filters(role)
+    roles = unpack_role(roles)
+    quote bind_quoted: binding() do
+      Enum.each(roles, fn role ->
+        role
+        |> SSH.init([], filters)
+        |> SSH.upload(local_path, remote_path)
+      end)
+    end
+  end
+
   @doc false
   @spec get_config(atom, any) :: any
   def get_config(key, default \\ nil) do
@@ -449,5 +495,24 @@ defmodule Bootleg.Config do
   @spec version() :: any
   def version do
     get_config(:version, Project.config[:version])
+  end
+
+  @doc false
+  @spec split_roles_and_filters(atom | keyword) :: {[atom], keyword}
+  defp split_roles_and_filters(role) do
+    role
+    |> List.wrap
+    |> Enum.split_while(fn term -> !is_tuple(term) end)
+  end
+
+  @doc false
+  @spec unpack_role(atom | keyword) :: tuple
+  defp unpack_role(role) do
+    wrapped_role = List.wrap(role)
+    if Enum.any?(wrapped_role, fn role -> role == :all end) do
+      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
+    else
+      quote do: unquote(wrapped_role)
+    end
   end
 end

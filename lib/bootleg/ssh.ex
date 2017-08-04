@@ -125,8 +125,9 @@ defmodule Bootleg.SSH do
 
   def upload(conn, local_path, remote_path) do
     UI.puts_upload conn, local_path, remote_path
-    case SSHKit.upload(conn, local_path, as: remote_path) do
+    case SSHKit.upload(conn, local_path, as: remote_path, recursive: true) do
       [:ok|_] -> :ok
+      [] -> :ok
       [{_, msg}|_] -> raise "SCP upload error #{msg}"
     end
   end

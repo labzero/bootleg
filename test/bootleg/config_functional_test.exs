@@ -138,7 +138,6 @@ defmodule Bootleg.ConfigFunctionalTest do
   @tag boot: 3
   test "remote/3 filtering" do
     capture_io(fn ->
-      # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
       use Bootleg.Config
 
       assert [{:ok, out_0, 0, _}] = remote :build, [foo: 0], "hostname"
@@ -153,4 +152,86 @@ defmodule Bootleg.ConfigFunctionalTest do
     end)
   end
 
+  @tag boot: 3
+  test "upload/3" do
+    capture_io(fn ->
+      use Bootleg.Config
+
+      task :upload_single_role_single_host do
+        path = Temp.open!("upload", &IO.write(&1, "upload_single_role"))
+        upload :app, path, "single_role"
+      end
+
+      task :upload_single_role_multi_host do
+        path = Temp.open!("upload", &IO.write(&1, "upload_single_role_multi"))
+        upload :build, path, "single_role_multi"
+      end
+
+      task :upload_multi_role do
+        path = Temp.open!("upload", &IO.write(&1, "upload_multi_role"))
+        upload [:app, :build], path, "multi_role"
+      end
+
+      task :upload_all_role do
+        path = Temp.open!("upload", &IO.write(&1, "upload_all_role"))
+        upload :all, path, "all_role"
+      end
+
+      task :upload_role_filtered do
+        path = Temp.open!("upload", &IO.write(&1, "upload_role_filtered"))
+        upload [:all, primary: true], path, "role_filtered"
+      end
+
+      task :upload_directory do
+        path = Temp.mkdir!("upload")
+        File.write!(Path.join(path, "foo"), "some data")
+        File.write!(Path.join(path, "bar"), "more data")
+        File.mkdir!(Path.join(path, "some_dir"))
+        File.write!(Path.join([path, "some_dir", "war"]), "different data")
+        upload :app, path, "should_be_dir"
+      end
+
+      task :upload_absolute do
+        path = Temp.open!("upload", &IO.write(&1, "absolute"))
+        upload :app, path, "/tmp/absolute"
+      end
+
+      task :upload_preserve_name do
+        path = Temp.open!("upload", &IO.write(&1, "same name"))
+        upload :app, path, "."
+        remote :app, do: "grep '^same name$' #{Path.basename(path)}"
+      end
+
+      invoke :upload_single_role_single_host
+      remote :app, do: "grep '^upload_single_role$' single_role"
+
+      invoke :upload_single_role_multi_host
+      remote :build, do: "grep '^upload_single_role_multi$' single_role_multi"
+
+      invoke :upload_multi_role
+      remote [:app, :build], do: "grep '^upload_multi_role$' multi_role"
+
+      invoke :upload_all_role
+      remote :all, do: "grep '^upload_all_role$' all_role"
+
+      invoke :upload_role_filtered
+      assert_raise SSHError, fn ->
+        # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+        use Bootleg.Config
+        remote :all, do: "grep '^upload_role_filtered$' role_filtered"
+      end
+
+      invoke :upload_directory
+      remote :app, do: "[ -d should_be_dir ]"
+      remote :app, do: "[ -d should_be_dir/some_dir ]"
+      remote :app, do: "grep '^some data$' should_be_dir/foo"
+      remote :app, do: "grep '^more data$' should_be_dir/bar"
+      remote :app, do: "grep '^different data$' should_be_dir/some_dir/war"
+
+      invoke :upload_absolute
+      remote :app, do: "grep '^absolute$' /tmp/absolute"
+
+      invoke :upload_preserve_name
+    end)
+  end
 end
