@@ -9,11 +9,13 @@ defmodule Bootleg.ConfigFunctionalTest do
     build_hosts = tl(hosts)
 
     role :app, app_host.ip, port: app_host.port, user: app_host.user,
-      password: app_host.password, silently_accept_hosts: true, workspace: "workspace"
+      password: app_host.password, silently_accept_hosts: true, workspace: "workspace", foo: :bar
 
-    Enum.each(build_hosts, fn build_host ->
+    build_hosts
+    |> Enum.with_index
+    |> Enum.each(fn {build_host, index} ->
       role :build, build_host.ip, port: build_host.port, user: build_host.user,
-        password: build_host.password, silently_accept_hosts: true, workspace: "workspace"
+        password: build_host.password, silently_accept_hosts: true, workspace: "workspace", foo: index
     end)
   end
 
@@ -120,7 +122,6 @@ defmodule Bootleg.ConfigFunctionalTest do
   end
 
   test "remote/2 fails remotely" do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     task :remote_functional_negative_test do
@@ -133,4 +134,23 @@ defmodule Bootleg.ConfigFunctionalTest do
       assert_raise SSHError, fn -> invoke :remote_functional_negative_test end
     end)
   end
+
+  @tag boot: 3
+  test "remote/3 filtering" do
+    capture_io(fn ->
+      # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+      use Bootleg.Config
+
+      assert [{:ok, out_0, 0, _}] = remote :build, [foo: 0], "hostname"
+      assert [{:ok, out_1, 0, _}] = remote :build, [foo: 1], do: "hostname"
+      assert out_1 != out_0
+
+      assert [] = remote :build, [foo: :bar], "hostname"
+      assert [{:ok, out_all, 0, _}] = remote :all, [foo: :bar], "hostname"
+      assert out_1 != out_0 != out_all
+
+      remote :all, [foo: :bar] do "hostname" end
+    end)
+  end
+
 end
