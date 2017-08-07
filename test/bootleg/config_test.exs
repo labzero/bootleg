@@ -25,6 +25,19 @@ defmodule Bootleg.ConfigTest do
     end
   end
 
+  # credit: https://gist.github.com/henrik/1054546364ac68da4102
+  defmacro assert_compile_time_raise(expected_exception, fun) do
+    # At compile-time, the fun is in AST form and thus cannot raise.
+    # At run-time, we will evaluate this AST, and it may raise.
+    fun_quoted_at_runtime = Macro.escape(fun)
+
+    quote do
+      assert_raise unquote(expected_exception), fn ->
+        Code.eval_quoted(unquote(fun_quoted_at_runtime))
+      end
+    end
+  end
+
   setup do
     %{
       local_user: System.get_env("USER")
@@ -95,6 +108,18 @@ defmodule Bootleg.ConfigTest do
 
     assert_next_received :role_name_excuted
     assert_next_received :next
+  end
+
+  test "role/2,3 do not allow a name of :all" do
+    assert_compile_time_raise ArgumentError, fn ->
+      use Bootleg.Config
+      role :all, "build1.example.com"
+    end
+
+    assert_compile_time_raise ArgumentError, fn ->
+      use Bootleg.Config
+      role :all, "build2.example.com", an_option: true
+    end
   end
 
   test "get_role/1", %{local_user: local_user} do
@@ -407,7 +432,6 @@ defmodule Bootleg.ConfigTest do
       init: fn(role, options, filter) -> {role, options, filter} end,
       run!: fn(_, _cmd) -> [:ok] end
     ] do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     task :remote_test_role_one_line_filtered do
@@ -446,5 +470,89 @@ defmodule Bootleg.ConfigTest do
 
     assert called SSH.init(:foo, [], [primary: true])
     assert called SSH.init(:bar, [], [primary: true])
+  end
+
+  test_with_mock "upload/3", SSH, [:passthrough], [
+      init: fn(role, options, filter) -> {role, options, filter} end,
+      upload: fn(_conn, _local, _remote) -> :ok end,
+    ] do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    role :foo, "never-used-foo.example.com"
+    role :car, "never-used-bar.example.com"
+
+    task :upload_single_role do
+      upload :foo, "the/local/path", "some/remote/path"
+    end
+
+    task :upload_multi_role do
+      upload [:foo, :bar], "the/local/path", "some/remote/path"
+    end
+
+    task :upload_all_role do
+      upload :all, "the/local/path", "some/remote/path"
+    end
+
+    task :upload_single_role_filter do
+      upload [:foo, primary: true], "the/local/path", "some/remote/path"
+    end
+
+    task :upload_multi_role_filter do
+      upload [:foo, :bar, primary: true], "the/local/path", "some/remote/path"
+    end
+
+    task :upload_multi_role_complex_filter do
+      upload [:foo, :bar, primary: true, db: :mysql], "the/local/path", "some/remote/path"
+    end
+
+    task :upload_all_role_filter do
+      upload [:all, db: :mysql], "the/local/path", "some/remote/path"
+    end
+
+    invoke :upload_single_role
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.upload({:foo, [], []}, "the/local/path", "some/remote/path")
+
+    invoke :upload_multi_role
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.init(:bar, [], [])
+    assert called SSH.upload({:foo, [], []}, "the/local/path", "some/remote/path")
+    assert called SSH.upload({:bar, [], []}, "the/local/path", "some/remote/path")
+
+    invoke :upload_all_role
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.init(:car, [], [])
+    assert called SSH.upload({:foo, [], []}, "the/local/path", "some/remote/path")
+    assert called SSH.upload({:car, [], []}, "the/local/path", "some/remote/path")
+
+    invoke :upload_single_role_filter
+
+    assert called SSH.init(:foo, [], [primary: true])
+    assert called SSH.upload({:foo, [], [primary: true]}, "the/local/path", "some/remote/path")
+
+    invoke :upload_multi_role_filter
+
+    assert called SSH.init(:foo, [], [primary: true])
+    assert called SSH.init(:bar, [], [primary: true])
+    assert called SSH.upload({:foo, [], [primary: true]}, "the/local/path", "some/remote/path")
+    assert called SSH.upload({:bar, [], [primary: true]}, "the/local/path", "some/remote/path")
+
+    invoke :upload_multi_role_complex_filter
+
+    assert called SSH.init(:foo, [], [primary: true, db: :mysql])
+    assert called SSH.init(:bar, [], [primary: true, db: :mysql])
+    assert called SSH.upload({:foo, [], [primary: true, db: :mysql]}, "the/local/path", "some/remote/path")
+    assert called SSH.upload({:bar, [], [primary: true, db: :mysql]}, "the/local/path", "some/remote/path")
+
+    invoke :upload_all_role_filter
+
+    assert called SSH.init(:foo, [], [db: :mysql])
+    assert called SSH.init(:car, [], [db: :mysql])
+    assert called SSH.upload({:foo, [], [db: :mysql]}, "the/local/path", "some/remote/path")
+    assert called SSH.upload({:car, [], [db: :mysql]}, "the/local/path", "some/remote/path")
   end
 end
