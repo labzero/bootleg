@@ -60,6 +60,32 @@ defmodule Bootleg.FunctionalTest do
 
         invoke :update
       end), ~r/build_me started/)
+
+      capture_io(fn ->
+        # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+        use Bootleg.Config
+
+        remote :app do
+          "wait-for-app build_me"
+        end
+
+        [{:ok, [stdout: pid_1], 0, _}, {:ok, [stdout: pid_2], 0, _}] = remote :app do
+          "bin/build_me pid"
+        end
+
+        invoke :update
+
+        remote :app do
+          "wait-for-app build_me"
+        end
+
+        [{:ok, [stdout: new_pid_1], 0, _}, {:ok, [stdout: new_pid_2], 0, _}] = remote :app do
+          "bin/build_me pid"
+        end
+
+        assert pid_1 != new_pid_1
+        assert pid_2 != new_pid_2
+      end)
     end)
   end
 
