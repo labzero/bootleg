@@ -183,8 +183,9 @@ Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
 before or after a task. The following tasks are provided by Bootleg:
 
 1. `build` - build process for creating a release package
-  1. `compile` - compilation of your project
-  2. `generate_release` - generation of the release package
+  1. `clean` - cleans the remote workspace
+  2. `compile` - compilation of your project
+  3. `generate_release` - generation of the release package
 2. `deploy` - deploy of a release package
 3. `start` - starting of a release
 4. `stop` - stopping of a release

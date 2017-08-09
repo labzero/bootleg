@@ -17,6 +17,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
 
     mix_env = Config.get_config(:mix_env, "prod")
     refspec = Config.get_config(:refspec, "master")
+    invoke :clean
     :ok = git_push(conn, refspec)
     git_reset_remote(conn, refspec)
     git_clean_remote(conn)
