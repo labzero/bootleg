@@ -15,7 +15,7 @@ add additional support.
 ```elixir
 def deps do
   [{:distillery, "~> 1.3",
-   {:bootleg, "~> 0.1.0"}]
+   {:bootleg, "~> 0.3"}]
 end
 ```
 
@@ -345,8 +345,8 @@ for building phoenix releases.
 # mix.exs
 def deps do
   [{:distillery, "~> 1.3"},
-  {:bootleg, "~> 0.2.0"},
-  {:bootleg_phoenix, "~> 0.1.0"}]
+  {:bootleg, "~> 0.3"},
+  {:bootleg_phoenix, "~> 0.1"}]
 end
 ```
 
