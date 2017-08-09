@@ -151,6 +151,9 @@ Alternatively the above commands can be rolled into one with:
 mix bootleg.update production
 ```
 
+Note that `bootleg.update` will stop any running nodes and then perform a cold start. The stop is performed with
+the task `stop_silent`, which differs from `stop` in that it does not fail if the node is already stopped.
+
 ## Admin Commands
 
 Bootleg has a set of commands to check up on your running nodes:
