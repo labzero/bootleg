@@ -15,7 +15,7 @@ add additional support.
 ```elixir
 def deps do
   [{:distillery, "~> 1.3",
-   {:bootleg, "~> 0.1.0"}]
+   {:bootleg, "~> 0.3"}]
 end
 ```
 
@@ -151,6 +151,9 @@ Alternatively the above commands can be rolled into one with:
 mix bootleg.update production
 ```
 
+Note that `bootleg.update` will stop any running nodes and then perform a cold start. The stop is performed with
+the task `stop_silent`, which differs from `stop` in that it does not fail if the node is already stopped.
+
 ## Admin Commands
 
 Bootleg has a set of commands to check up on your running nodes:
@@ -160,6 +163,15 @@ mix bootleg.restart production  # Restarts a deployed release.
 mix bootleg.start production      # Starts a deployed release.
 mix bootleg.stop production      # Stops a deployed release.
 mix bootleg.ping production      # Check status of running nodes
+```
+
+## Other Comamnds
+
+Bootleg has a few utility commands to help streamline its usage:
+
+```console
+mix bootleg.init             # Initializes a project for use with Bootleg
+mix bootleg.invoke <task>    # Calls an arbitrary Bootleg task
 ```
 
 ## Hooks
@@ -287,7 +299,8 @@ end
 
 The workhorse of the Bootleg DSL is `remote`: it executes shell commands on remote servers and returns
 the results. It takes a role and a block of commands to execute. The commands are executed on all servers
-belonging to the role, and raises an `SSHError` if an error is encountered.
+belonging to the role, and raises an `SSHError` if an error is encountered. Optionally, a list of options
+can be provided to filter the hosts where the commands are run.
 
 ```elixir
 use Bootleg.Config
@@ -312,6 +325,11 @@ end
 remote :app do
   "false"
 end
+
+# filtering - only runs on app hosts with an option of primary set to true
+remote :app, primary: true do
+  "mix ecto.migrate"
+end
 ```
 
 ## Phoenix Support
@@ -326,8 +344,8 @@ for building phoenix releases.
 # mix.exs
 def deps do
   [{:distillery, "~> 1.3"},
-  {:bootleg, "~> 0.2.0"},
-  {:bootleg_phoenix, "~> 0.1.0"}]
+  {:bootleg, "~> 0.3"},
+  {:bootleg_phoenix, "~> 0.1"}]
 end
 ```
 

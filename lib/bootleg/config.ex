@@ -9,7 +9,7 @@ defmodule Bootleg.Config do
   defmacro __using__(_) do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, load: 1]
+        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1, upload: 3]
     end
   end
 
@@ -22,7 +22,7 @@ defmodule Bootleg.Config do
 
   `name` is the name of the role, and is globally unique. Calling `role/3` multiple times with
   the same name will result in the host lists being merged. If the same host shows up mutliple
-  times, it will have its `options` merged.
+  times, it will have its `options` merged. The name `:all` is reserved and cannot be used here.
 
   `hosts` can be a single hostname, or a `List` of hostnames.
 
@@ -41,6 +41,9 @@ defmodule Bootleg.Config do
   """
   defmacro role(name, hosts, options \\ []) do
     # user is in the role options for scm
+    if name == :all do
+      raise ArgumentError, ":all is reserved by bootleg and refers to all defined roles."
+    end
     user = Keyword.get(options, :user, System.get_env("USER"))
     ssh_options = Enum.filter(options, &Enum.member?(SSH.supported_options, elem(&1, 0)) == true)
     role_options =
@@ -325,11 +328,28 @@ defmodule Bootleg.Config do
   end
 
   defmacro remote(role, do: {:__block__, _, lines}) do
-    quote do: remote(unquote(role), unquote(lines))
+    quote do: remote(unquote(role), [], unquote(lines))
   end
 
   defmacro remote(role, do: lines) do
-    quote do: remote(unquote(role), unquote(lines))
+    quote do: remote(unquote(role), [], unquote(lines))
+  end
+
+  @doc """
+  Executes commands on all remote hosts within a role.
+
+  This is equivalent to calling `remote/3` with a `filter` of `[]`.
+  """
+  defmacro remote(role, lines) do
+    quote do: remote(unquote(role), [], unquote(lines))
+  end
+
+  defmacro remote(role, filter, do: {:__block__, _, lines}) do
+    quote do: remote(unquote(role), unquote(filter), unquote(lines))
+  end
+
+  defmacro remote(role, filter, do: lines) do
+    quote do: remote(unquote(role), unquote(filter), unquote(lines))
   end
 
   @doc """
@@ -342,6 +362,10 @@ defmodule Bootleg.Config do
   `lines` can be a `List` of commands to execute, or a code block where each line's return value is
   used as a command. Each command will be simulataneously executed on all hosts in the role. Once
   all hosts have finished executing the command, the next command in the list will be sent.
+
+  `filter` is an optional `Keyword` list of host options to filter with. Any host whose options match
+  the filter will be included in the remote execution. A host matches if it has all of the filtering
+  options defined and the values match (via `==/2`) the filter.
 
   `role` can be a single role, a list of roles, or the special role `:all` (all roles). If the same host
   exists in multiple roles, the commands will be run once for each role where the host shows up. In the
@@ -367,18 +391,22 @@ defmodule Bootleg.Config do
 
   # runs for hosts found in :build first, then for hosts in :app
   remote [:build, :app], do: "hostname"
+
+  # only runs on `host1.example.com`
+  role :build, "host2.example.com"
+  role :build, "host1.example.com", primary: true, another_attr: :cat
+
+  remote :build, primary: true do
+    "hostname"
+  end
   ```
   """
-  defmacro remote(role, lines) do
-    roles = if role == :all do
-      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
-    else
-      quote do: List.wrap(unquote(role))
-    end
+  defmacro remote(role, filter, lines) do
+    roles = unpack_role(role)
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
-        |> SSH.init
+        |> SSH.init([], filter)
         |> SSH.run!(lines)
         |> SSH.merge_run_results(outputs)
       end)
@@ -401,6 +429,56 @@ defmodule Bootleg.Config do
     end
   end
 
+  @doc """
+  Uploads a local file to remote hosts.
+
+  Uploading works much like `remote/3`, but instead of transferring shell commands over SSH,
+  it transfers files via SCP. The remote host does need to support SCP, which should be provided
+  by most SSH implementations automatically.
+
+  `role` can either be a single role name, a list of roles, or a list of roles and filter
+  attributes. The special `:all` role is also supported. See `remote/3` for details.
+
+  `local_path` can either be a file or directory found on the local machine. If its a directory,
+  the entire directory will be recursively copied to the remote hosts. Relative paths are resolved
+  relative to the root of the local project.
+
+  `remote_path` is the file or directory where the transfered files should be placed. The semantics
+  of how `remote_path` is treated vary depending on what `local_path` refers to. If `local_path` points
+  to a file, `remote_path` is treated as a file unless it's `.` or ends in `/`, in which case it's
+  treated as a directory and the filename of the local file will be used. If `local_path` is a directory,
+  `remote_path` is treated as a directory as well. Relative paths are resolved relative to the projects
+  remote `workspace`. Missing directories are not implicilty created.
+
+  The files on the remote server are created using the authenticating user's `uid`/`gid` and `umask`.
+
+  ```
+  use Bootleg.Config
+
+  # copies ./my_file to ./new_name on the remote host
+  upload :app, "my_file", "new_name"
+
+  # copies ./my_file to ./a_dir/my_file on the remote host. ./a_dir must already exist
+  upload :app, "my_file", "a_dir/"
+
+  # recursively copies ./some_dir to ./new_dir on the remote host. ./new_dir will be created if missing
+  upload :app, "some_dir", "new_dir"
+
+  # copies ./my_file to /tmp/foo on the remote host
+  upload :app, "my_file", "/tmp/foo"
+  """
+  defmacro upload(role, local_path, remote_path) do
+    {roles, filters} = split_roles_and_filters(role)
+    roles = unpack_role(roles)
+    quote bind_quoted: binding() do
+      Enum.each(roles, fn role ->
+        role
+        |> SSH.init([], filters)
+        |> SSH.upload(local_path, remote_path)
+      end)
+    end
+  end
+
   @doc false
   @spec get_config(atom, any) :: any
   def get_config(key, default \\ nil) do
@@ -417,5 +495,24 @@ defmodule Bootleg.Config do
   @spec version() :: any
   def version do
     get_config(:version, Project.config[:version])
+  end
+
+  @doc false
+  @spec split_roles_and_filters(atom | keyword) :: {[atom], keyword}
+  defp split_roles_and_filters(role) do
+    role
+    |> List.wrap
+    |> Enum.split_while(fn term -> !is_tuple(term) end)
+  end
+
+  @doc false
+  @spec unpack_role(atom | keyword) :: tuple
+  defp unpack_role(role) do
+    wrapped_role = List.wrap(role)
+    if Enum.any?(wrapped_role, fn role -> role == :all end) do
+      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
+    else
+      quote do: unquote(wrapped_role)
+    end
   end
 end

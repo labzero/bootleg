@@ -16,7 +16,9 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
     with_mocks([
       {
         SSH, [:passthrough], [
-          init: fn _ -> %SSHKit.Context{} end,
+          init: fn role -> SSH.init(role, []) end,
+          init: fn role, _, _ -> SSH.init(role, []) end,
+          init: fn _, _ -> %SSHKit.Context{} end,
           run!: fn _, _ -> [{:ok, [stdout: ""], 0, ssh_host}] end,
           ssh_host_options: fn _ -> ssh_host end,
           download: fn _, _, _ -> :ok end

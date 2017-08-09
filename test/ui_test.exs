@@ -26,16 +26,25 @@ defmodule Bootleg.UITest do
     assert :ok == UI.puts(:info, "", :info)
     assert :ok == UI.puts(:warning, "", :info)
     assert nil == UI.puts(:debug, "", :info)
+    assert :ok == UI.puts(:error, "", :info)
 
     # :warning is set now
     assert nil == UI.puts(:info, "", :warning)
     assert :ok == UI.puts(:warning, "", :warning)
     assert nil == UI.puts(:debug, "", :warning)
+    assert :ok == UI.puts(:error, "", :warning)
+
+    # :error is set now
+    assert nil == UI.puts(:info, "", :error)
+    assert nil == UI.puts(:warning, "", :error)
+    assert nil == UI.puts(:debug, "", :error)
+    assert :ok == UI.puts(:error, "", :error)
 
     # :debug is set now and should unrestrict output
     assert :ok == UI.puts(:info, "", :debug)
     assert :ok == UI.puts(:warning, "", :debug)
     assert :ok == UI.puts(:debug, "", :debug)
+    assert :ok == UI.puts(:error, "", :debug)
   end
 
   test "verbosity is validated and defaults to :info" do
@@ -54,6 +63,10 @@ defmodule Bootleg.UITest do
     assert capture_io(fn ->
       UI.debug("baz", :debug)
     end) == "baz\n"
+
+    assert capture_io(fn ->
+      UI.error("caz", :error)
+    end) == "caz\n"
   end
 
   # SSH-specific output tests

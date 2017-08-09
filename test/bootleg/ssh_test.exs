@@ -52,5 +52,6 @@ defmodule Bootleg.SSHTest do
     assert [[2, 4, 1, 2], [5, 6, 3, 4]] = SSH.merge_run_results([[1, 2], [3, 4]], [[2, 4], [5, 6]])
     assert [1, 2] = SSH.merge_run_results([1, 2], [])
     assert [[1, 2]] = SSH.merge_run_results([[1, 2]], [])
+    assert [[1, 2]] = SSH.merge_run_results([], [[1, 2]])
   end
 end
