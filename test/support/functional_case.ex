@@ -1,6 +1,7 @@
 defmodule Bootleg.FunctionalCase do
   @moduledoc false
   use ExUnit.CaseTemplate
+  alias Bootleg.UI
 
   import Bootleg.FunctionalCaseHelpers
   require Logger
@@ -25,6 +26,7 @@ defmodule Bootleg.FunctionalCase do
 
   setup tags do
     count = Map.get(tags, :boot, 1)
+    verbosity = Map.get(tags, :ui_verbosity, :silent)
 
     conf = %{image: @image, cmd: @cmd, args: @args}
     hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
@@ -35,6 +37,12 @@ defmodule Bootleg.FunctionalCase do
 
     unless Map.get(tags, :leave_vm, System.get_env("TEST_LEAVE_CONTAINER")) do
       on_exit fn -> kill(hosts) end
+    end
+
+    current_verbosity = UI.verbosity
+    if current_verbosity != verbosity do
+      Application.put_env(:bootleg, :verbosity, verbosity)
+      on_exit fn -> Application.put_env(:bootleg, :verbosity, current_verbosity) end
     end
 
     {:ok, hosts: hosts}

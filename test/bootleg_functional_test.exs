@@ -3,26 +3,26 @@ defmodule Bootleg.FunctionalTest do
   alias Bootleg.Fixtures
   import ExUnit.CaptureIO
 
-  @tag boot: 3
+  @tag boot: 3, ui_verbosity: :info, timeout: 120_000
   test "build, deploy, and manage", %{hosts: hosts} do
-    use Bootleg.Config
-
-    build_host = List.first(hosts)
-    app_hosts = hosts -- [build_host]
-
-    role :build, build_host.ip, port: build_host.port, user: build_host.user,
-      silently_accept_hosts: true, workspace: "workspace", identity: build_host.private_key_path
-
-    Enum.each(app_hosts, fn host ->
-      role :app, host.ip, port: host.port, user: host.user,
-        silently_accept_hosts: true, workspace: "workspace", identity: host.private_key_path
-    end)
-
-    config :app, :build_me
-    config :version, "0.1.0"
-
     location = Fixtures.inflate_project()
     File.cd!(location, fn ->
+      use Bootleg.Config
+
+      build_host = List.first(hosts)
+      app_hosts = hosts -- [build_host]
+
+      role :build, build_host.ip, port: build_host.port, user: build_host.user,
+        silently_accept_hosts: true, workspace: "workspace", identity: build_host.private_key_path
+
+      Enum.each(app_hosts, fn host ->
+        role :app, host.ip, port: host.port, user: host.user,
+          silently_accept_hosts: true, workspace: "workspace", identity: host.private_key_path
+      end)
+
+      config :app, :build_me
+      config :version, "0.1.0"
+
       assert String.match?(capture_io(fn ->
         # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
         use Bootleg.Config
@@ -34,26 +34,26 @@ defmodule Bootleg.FunctionalTest do
     end)
   end
 
-  @tag boot: 3
+  @tag boot: 3, ui_verbosity: :info, timeout: 120_000
   test "update: build, deploy, manage roll-up", %{hosts: hosts} do
-    use Bootleg.Config
-
-    build_host = List.first(hosts)
-    app_hosts = hosts -- [build_host]
-
-    role :build, build_host.ip, port: build_host.port, user: build_host.user,
-      silently_accept_hosts: true, workspace: "workspace", identity: build_host.private_key_path
-
-    Enum.each(app_hosts, fn host ->
-      role :app, host.ip, port: host.port, user: host.user,
-        silently_accept_hosts: true, workspace: "workspace", identity: host.private_key_path
-    end)
-
-    config :app, :build_me
-    config :version, "0.1.0"
-
     location = Fixtures.inflate_project()
     File.cd!(location, fn ->
+      use Bootleg.Config
+
+      build_host = List.first(hosts)
+      app_hosts = hosts -- [build_host]
+
+      role :build, build_host.ip, port: build_host.port, user: build_host.user,
+        silently_accept_hosts: true, workspace: "workspace", identity: build_host.private_key_path
+
+      Enum.each(app_hosts, fn host ->
+        role :app, host.ip, port: host.port, user: host.user,
+          silently_accept_hosts: true, workspace: "workspace", identity: host.private_key_path
+      end)
+
+      config :app, :build_me
+      config :version, "0.1.0"
+
       assert String.match?(capture_io(fn ->
         # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
         use Bootleg.Config
@@ -89,7 +89,7 @@ defmodule Bootleg.FunctionalTest do
     end)
   end
 
-  @tag boot: 3
+  @tag boot: 3, timeout: 120_000
   test "bootleg as a dependency", %{hosts: hosts} do
     shell_env = [{"BOOTLEG_PATH", File.cwd!}]
     build_host = List.first(hosts)
