@@ -200,6 +200,14 @@ mix bootleg.update production
 Note that `bootleg.update` will stop any running nodes and then perform a cold start. The stop is performed with
 the task `stop_silent`, which differs from `stop` in that it does not fail if the node is already stopped.
 
+`bootleg.build` will clean the remote workspace prior to copying the code over, to ensure that any files left from
+a previous build do not cause issues. The entire contents of the remote workspace are removed via `rm -rf *` from
+the root of the workspace. You can configure this behavior by setting the config option `clean_locations`, which
+takes a list of locations and passes them to `rm -rf` on the remote server. Relative paths will be interpreted relative
+to the workspace, absolute paths will be treated as is. This does mean that `config :clean_locations, ["/"]` will
+try and erase the entire root file system of your remote server. Be careful when altering `clean_locations` and never
+use a priviallaged user on your build server.
+
 ## Admin Commands
 
 Bootleg has a set of commands to check up on your running nodes:

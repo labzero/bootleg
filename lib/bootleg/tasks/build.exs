@@ -23,7 +23,13 @@ task :compile do
 end
 
 task :clean do
-  remote :build do
-    "rm -rvf *"
+  locations = config()
+    |> Keyword.get(:clean_locations, ["*"])
+    |> List.wrap
+    |> Enum.join(" ")
+  if locations != "" do
+    remote :build do
+      "rm -rvf #{locations}"
+    end
   end
 end
