@@ -6,9 +6,9 @@ defmodule Bootleg.Config.Agent do
   @typep data :: keyword
 
   @spec start_link() :: {:ok, pid}
-  def start_link do
+  def start_link(env \\ :production) do
     state_fn = fn ->
-      [roles: [], config: [], before_hooks: [], after_hooks: [], next_hook_number: 0]
+      [roles: [], config: [env: env], before_hooks: [], after_hooks: [], next_hook_number: 0]
     end
     case Agent.start_link(state_fn, name: Bootleg.Config.Agent) do
       {:error, {:already_started, pid}} -> {:ok, pid}

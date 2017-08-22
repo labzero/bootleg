@@ -68,6 +68,52 @@ role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/
 role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
+### Environments
+
+Bootleg has its own concept of environments, which is analogous to but different than `MIX_ENV`. Bootleg environments
+are used if you have multiple clusters that you deploy your code to, such as a QA or staging clutser, in addition to
+your `production` cluster. You main Bootleg config still goes in `config/deploy.exs`, and environment specific details
+goes in `config/deploy/your_bootleg_env.exs`. The selected environment config file gets loaded immediately after
+`config/deploy.exs`. To invoke a Bootleg command with a specific environment, simply pass it as the first argument to
+any bootleg Mix command.
+
+For example, say you have both a `production` and a `staging` cluster. Your configuration might look like:
+
+```elixir
+# config/deploy.exs
+use Bootleg.Config
+
+task :my_nifty_thing do
+  Some.jazz()
+end
+
+after_task :deploy, :my_nifty_thing
+
+role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+```
+
+```elixir
+# config/deploy/production.exs
+use Bootleg.Config
+
+role :app, ["web1.example.com", "web2.example.com"], user: "admin", workspace: "/var/www/myapp"
+```
+
+```elixir
+# config/deploy/staging.exs
+use Bootleg.Config
+
+role :app, ["stage1.example.com", "stage2.example.com"], user: "admin", workspace: "/var/www/myapp"
+```
+
+
+Then if you wanted to update staging, you would `mix bootleg.update staging`. If you wanted to update production,
+it would be `mix bootleg.update production`, or just `mix bootleg.update` (the default environment is `production`).
+
+It is not a requirement that you define an environment file for each environment, but you will get a warning if
+a specific environment file can't be found. It is strongly encouraged to have an environment file per environment.
+
+
 ## Roles
 
 Actions in Bootleg are paired with roles, which are simply a collection of hosts that are responsible for the same function, for example building a release, archiving a release, or executing commands against a running application.

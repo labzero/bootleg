@@ -4,7 +4,9 @@ FROM bitwalker/alpine-elixir:latest
 # Autogenerate missing host keys.
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories
-RUN apk add --update --no-cache openssh sudo perl-utils git
+RUN apk update
+RUN apk upgrade
+RUN apk add --update --no-cache openssh sudo git perl-utils bash
 RUN ssh-keygen -A
 RUN printf "PermitUserEnvironment yes\n" >> /etc/ssh/sshd_config
 

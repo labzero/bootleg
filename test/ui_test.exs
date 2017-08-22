@@ -45,6 +45,12 @@ defmodule Bootleg.UITest do
     assert :ok == UI.puts(:warning, "", :debug)
     assert :ok == UI.puts(:debug, "", :debug)
     assert :ok == UI.puts(:error, "", :debug)
+
+    # :silent is "set" as the verbosity level
+    assert nil == UI.puts(:info, "", :silent)
+    assert nil == UI.puts(:warning, "", :silent)
+    assert nil == UI.puts(:debug, "", :silent)
+    assert nil == UI.puts(:error, "", :silent)
   end
 
   test "verbosity is validated and defaults to :info" do
