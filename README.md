@@ -22,7 +22,7 @@ end
 ## Build server setup
 
 In order to build your project, Bootleg requires that your build server be set up to compile
-Elixir code. Make sure you have already installed Elixir on any build server you define. The remote
+Elixir code. Make sure you have already installed Elixir on any build server you define.
 
 
 ## Quick Start
