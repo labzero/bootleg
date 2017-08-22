@@ -1,6 +1,7 @@
 defmodule Bootleg.ConfigTest do
   use Bootleg.TestCase, async: false
   alias Bootleg.{Config, UI, SSH}
+  alias Config.Agent
   alias Mix.Project
   import Mock
 
@@ -139,10 +140,10 @@ defmodule Bootleg.ConfigTest do
 
   test "config/2" do
     use Bootleg.Config
-    assert config() == []
+    assert config() == [env: :production]
 
     config :build_at, "some path"
-    assert config() == [build_at: "some path"]
+    assert config() == [env: :production, build_at: "some path"]
   end
 
   test "load/1" do
@@ -204,6 +205,24 @@ defmodule Bootleg.ConfigTest do
     assert Project.config[:version] == Config.version
     config :version, "1.2.3"
     assert "1.2.3" == Config.version
+  end
+
+  test "env/0" do
+    use Bootleg.Config
+
+    assert :production == Config.env
+    config :env, :foo
+    assert :foo == Config.env
+  end
+
+  test "env/1" do
+    Config.env(:bar)
+    assert :bar == Config.env
+  end
+
+  test_with_mock "env/1 starts the agent", Agent, [:passthrough], [] do
+    Config.env(:bar)
+    assert called Agent.start_link(:bar)
   end
 
   test "invoke/1" do

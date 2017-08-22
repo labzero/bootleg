@@ -498,6 +498,19 @@ defmodule Bootleg.Config do
   end
 
   @doc false
+  @spec env() :: any
+  def env do
+    get_config(:env, :production)
+  end
+
+  @doc false
+  @spec env(any) :: :ok
+  def env(env) do
+    {:ok, _} = Bootleg.Config.Agent.start_link(env)
+    config(:env, env)
+  end
+
+  @doc false
   @spec split_roles_and_filters(atom | keyword) :: {[atom], keyword}
   defp split_roles_and_filters(role) do
     role
