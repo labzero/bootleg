@@ -42,8 +42,8 @@ $ mix bootleg.init
 # config/deploy.exs
 use Bootleg.Config
 
-role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace "/some/build/workspace"
-role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace "/var/myapp"
+role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace: "/some/build/workspace"
+role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace: "/var/myapp"
 ```
 
 ### build and deploy
