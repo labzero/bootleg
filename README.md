@@ -70,9 +70,9 @@ role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/v
 
 ### Environments
 
-Bootleg has its own concept of environments, which is analogous to but different than `MIX_ENV`. Bootleg environments
-are used if you have multiple clusters that you deploy your code to, such as a QA or staging clutser, in addition to
-your `production` cluster. You main Bootleg config still goes in `config/deploy.exs`, and environment specific details
+Bootleg has its own concept of environments, which is analogous to but different from `MIX_ENV`. Bootleg environments
+are used if you have multiple clusters that you deploy your code to, such as a QA or staging cluster, in addition to
+your `production` cluster. Your main Bootleg config still goes in `config/deploy.exs`, and environment specific details
 goes in `config/deploy/your_bootleg_env.exs`. The selected environment config file gets loaded immediately after
 `config/deploy.exs`. To invoke a Bootleg command with a specific environment, simply pass it as the first argument to
 any bootleg Mix command.
@@ -181,7 +181,7 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 
 * `build` - Takes only one host. If a list is given, only the first hosts is
 used and a warning may result. If this role isn't set the release packaging will be done locally.
-* `app` -  Takes a lists of hosts, or a string with one host.
+* `app` -  Takes a list of hosts, or a string with one host.
 
 ## Building and deploying a release
 
@@ -400,7 +400,7 @@ For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
 
 ## Sharing Tasks
 
-Sharing is a good thing. We love to share, espically awesome code we write. Bootleg supports loading
+Sharing is a good thing. We love to share, especially awesome code we write. Bootleg supports loading
 tasks from packages in a manner very similar to `Mix.Task`. Just define your module under `Bootleg.Tasks`,
 `use Bootleg.Task` and pass it a block of Bootleg DSL. The contents will be discovered and executed
 automatically at launch.
