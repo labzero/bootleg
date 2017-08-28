@@ -15,14 +15,14 @@ add additional support.
 ```elixir
 def deps do
   [{:distillery, "~> 1.3",
-   {:bootleg, "~> 0.3"}]
+   {:bootleg, "~> 0.4"}]
 end
 ```
 
 ## Build server setup
 
 In order to build your project, Bootleg requires that your build server be set up to compile
-Elixir code. Make sure you have already installed Elixir on any build server you define. The remote
+Elixir code. Make sure you have already installed Elixir on any build server you define.
 
 
 ## Quick Start
@@ -42,8 +42,8 @@ $ mix bootleg.init
 # config/deploy.exs
 use Bootleg.Config
 
-role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace "/some/build/workspace"
-role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace "/var/myapp"
+role :build, "your-build-server.local", user: "develop", password: "bu1ldm3", workspace: "/some/build/workspace"
+role :app, ["web1", "web2", "web3"], user: "admin", password: "d3pl0y", workspace: "/var/myapp"
 ```
 
 ### build and deploy
@@ -67,6 +67,52 @@ use Bootleg.Config
 role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
 role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
+
+### Environments
+
+Bootleg has its own concept of environments, which is analogous to but different from `MIX_ENV`. Bootleg environments
+are used if you have multiple clusters that you deploy your code to, such as a QA or staging cluster, in addition to
+your `production` cluster. Your main Bootleg config still goes in `config/deploy.exs`, and environment specific details
+goes in `config/deploy/your_bootleg_env.exs`. The selected environment config file gets loaded immediately after
+`config/deploy.exs`. To invoke a Bootleg command with a specific environment, simply pass it as the first argument to
+any bootleg Mix command.
+
+For example, say you have both a `production` and a `staging` cluster. Your configuration might look like:
+
+```elixir
+# config/deploy.exs
+use Bootleg.Config
+
+task :my_nifty_thing do
+  Some.jazz()
+end
+
+after_task :deploy, :my_nifty_thing
+
+role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+```
+
+```elixir
+# config/deploy/production.exs
+use Bootleg.Config
+
+role :app, ["web1.example.com", "web2.example.com"], user: "admin", workspace: "/var/www/myapp"
+```
+
+```elixir
+# config/deploy/staging.exs
+use Bootleg.Config
+
+role :app, ["stage1.example.com", "stage2.example.com"], user: "admin", workspace: "/var/www/myapp"
+```
+
+
+Then if you wanted to update staging, you would `mix bootleg.update staging`. If you wanted to update production,
+it would be `mix bootleg.update production`, or just `mix bootleg.update` (the default environment is `production`).
+
+It is not a requirement that you define an environment file for each environment, but you will get a warning if
+a specific environment file can't be found. It is strongly encouraged to have an environment file per environment.
+
 
 ## Roles
 
@@ -135,7 +181,7 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 
 * `build` - Takes only one host. If a list is given, only the first hosts is
 used and a warning may result. If this role isn't set the release packaging will be done locally.
-* `app` -  Takes a lists of hosts, or a string with one host.
+* `app` -  Takes a list of hosts, or a string with one host.
 
 ## Building and deploying a release
 
@@ -153,6 +199,14 @@ mix bootleg.update production
 
 Note that `bootleg.update` will stop any running nodes and then perform a cold start. The stop is performed with
 the task `stop_silent`, which differs from `stop` in that it does not fail if the node is already stopped.
+
+`bootleg.build` will clean the remote workspace prior to copying the code over, to ensure that any files left from
+a previous build do not cause issues. The entire contents of the remote workspace are removed via `rm -rf *` from
+the root of the workspace. You can configure this behavior by setting the config option `clean_locations`, which
+takes a list of locations and passes them to `rm -rf` on the remote server. Relative paths will be interpreted relative
+to the workspace, absolute paths will be treated as is. Warning: this means that `config :clean_locations, ["/"]` would
+attempt to erase the entire root file system of your remote server. Be careful when altering `clean_locations` and never
+use a privileged user on your build server.
 
 ## Admin Commands
 
@@ -183,8 +237,9 @@ Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
 before or after a task. The following tasks are provided by Bootleg:
 
 1. `build` - build process for creating a release package
-  1. `compile` - compilation of your project
-  2. `generate_release` - generation of the release package
+  1. `clean` - cleans the remote workspace
+  2. `compile` - compilation of your project
+  3. `generate_release` - generation of the release package
 2. `deploy` - deploy of a release package
 3. `start` - starting of a release
 4. `stop` - stopping of a release
@@ -344,7 +399,7 @@ for building phoenix releases.
 # mix.exs
 def deps do
   [{:distillery, "~> 1.3"},
-  {:bootleg, "~> 0.3"},
+  {:bootleg, "~> 0.4"},
   {:bootleg_phoenix, "~> 0.1"}]
 end
 ```
@@ -353,7 +408,7 @@ For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
 
 ## Sharing Tasks
 
-Sharing is a good thing. We love to share, espically awesome code we write. Bootleg supports loading
+Sharing is a good thing. We love to share, especially awesome code we write. Bootleg supports loading
 tasks from packages in a manner very similar to `Mix.Task`. Just define your module under `Bootleg.Tasks`,
 `use Bootleg.Task` and pass it a block of Bootleg DSL. The contents will be discovered and executed
 automatically at launch.

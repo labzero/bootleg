@@ -1,6 +1,7 @@
 defmodule Bootleg.TasksFunctionalTest do
   use Bootleg.TestCase, async: false
-  alias Bootleg.Fixtures
+  alias Bootleg.{Fixtures, UI, Config}
+  import Mock
 
   setup do
     %{
@@ -19,5 +20,23 @@ defmodule Bootleg.TasksFunctionalTest do
     assert {out, _} = System.cmd("mix", ["bootleg.build"], [env: shell_env, cd: consumer, stderr_to_stdout: true])
     assert String.match?(out, ~r/~~OTHER TASK~~/)
     assert String.match?(out, ~r/~~EXAMPLE TASK~~/)
+  end
+
+  test_with_mock "tasks issue a warning if no bootleg environment file is found",
+    %{consumer_location: consumer}, UI, [], [warn: fn(_string) -> :ok end] do
+    File.cd!(consumer, fn ->
+      Config.env(:bar)
+
+      assert called UI.warn(:_)
+    end)
+  end
+
+  test_with_mock "tasks issue no warning if a bootleg environment file is found",
+    %{consumer_location: consumer}, UI, [], [warn: fn(_string) -> :ok end] do
+    File.cd!(consumer, fn ->
+      Config.env(:production)
+
+      refute called UI.warn(:_)
+    end)
   end
 end

@@ -52,6 +52,7 @@ defmodule Bootleg.UI do
   defp validate_verbosity(verbosity)
   defp validate_verbosity(:warning), do: :warning
   defp validate_verbosity(:debug), do: :debug
+  defp validate_verbosity(:silent), do: :silent
   defp validate_verbosity(_), do: :info
 
   defp verbosity_includes(setting, level)

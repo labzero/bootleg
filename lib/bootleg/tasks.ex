@@ -1,6 +1,6 @@
 defmodule Bootleg.Tasks do
   @moduledoc false
-  alias Bootleg.Config
+  alias Bootleg.{Config, UI}
 
   def load_tasks do
     use Config
@@ -16,7 +16,14 @@ defmodule Bootleg.Tasks do
 
     load_third_party()
 
-    Config.load("config/deploy.exs")
+    Config.load(Path.join("config", "deploy.exs"))
+    case Config.load(Path.join(["config", "deploy", "#{Config.env}.exs"])) do
+      {:error, :enoent} -> UI.warn("You are running in the `#{Config.env}` bootleg " <>
+        "environment but there is no configuration defined for that environment. " <>
+        "Create one at `config/deploy/#{Config.env}.exs` if you want to do additional " <>
+        "customization.")
+      val -> val
+    end
     :ok
   end
 

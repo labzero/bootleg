@@ -8,13 +8,15 @@ defmodule Bootleg.MixTask do
 
       @spec run(OptionParser.argv) :: :ok
       if is_atom(unquote(task)) && unquote(task) do
-        def run(_args) do
+        def run(args) do
+          Config.env(List.first(args) || :production)
           use Config
 
           invoke unquote(task)
         end
       else
-        def run(_args) do
+        def run(args) do
+          Config.env(List.first(args) || :production)
           :ok
         end
       end
