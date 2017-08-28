@@ -204,9 +204,9 @@ the task `stop_silent`, which differs from `stop` in that it does not fail if th
 a previous build do not cause issues. The entire contents of the remote workspace are removed via `rm -rf *` from
 the root of the workspace. You can configure this behavior by setting the config option `clean_locations`, which
 takes a list of locations and passes them to `rm -rf` on the remote server. Relative paths will be interpreted relative
-to the workspace, absolute paths will be treated as is. This does mean that `config :clean_locations, ["/"]` will
-try and erase the entire root file system of your remote server. Be careful when altering `clean_locations` and never
-use a priviallaged user on your build server.
+to the workspace, absolute paths will be treated as is. Warning: this means that `config :clean_locations, ["/"]` would
+attempt to erase the entire root file system of your remote server. Be careful when altering `clean_locations` and never
+use a privileged user on your build server.
 
 ## Admin Commands
 
