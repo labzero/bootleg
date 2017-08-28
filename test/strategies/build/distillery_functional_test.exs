@@ -53,4 +53,29 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
       end)
     end)
   end
+
+  test "cleans the customized locations before building", %{project_location: location} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    File.cd!(location, fn ->
+      capture_io(fn ->
+        remote :build, "touch /tmp/foo.bar"
+        remote :build, "touch foo.car"
+        remote :build, "touch bar.foo"
+        remote :build, "mkdir woo"
+        remote :build, "touch woo/foo"
+        remote :build, "[ -f /tmp/foo.bar ]"
+        remote :build, "[ -f foo.car ]"
+        remote :build, "[ -f bar.foo ]"
+        remote :build, "[ -d woo ]"
+        config :clean_locations, ["foo.car", "/tmp/foo.bar", "woo"]
+        assert {:ok, _} = Distillery.build()
+        assert [{:ok, _, 0, _}] = remote :build, "[ ! -f /foo.bar ]"
+        assert [{:ok, _, 0, _}] = remote :build, "[ ! -f foo.car ]"
+        assert [{:ok, _, 0, _}] = remote :build, "[ -f bar.foo ]"
+        assert [{:ok, _, 0, _}] = remote :build, "[ ! -d woo ]"
+      end)
+    end)
+  end
 end
