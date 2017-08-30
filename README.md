@@ -136,7 +136,7 @@ by Bootleg:
   * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
   * `user` - ssh username (default to local user)
   * `password` - ssh password
-  * `identity` - file path of an SSH private key identify file
+  * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
 
 #### Examples
