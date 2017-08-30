@@ -488,13 +488,29 @@ defmodule Bootleg.Config do
   @doc false
   @spec app() :: any
   def app do
-    get_config(:app, Project.config[:app])
+    :config
+    |> Bootleg.Config.Agent.get()
+    |> Keyword.get_lazy(:app, fn -> cache_project_config(:app) end)
   end
 
   @doc false
   @spec version() :: any
   def version do
-    get_config(:version, Project.config[:version])
+    :config
+    |> Bootleg.Config.Agent.get()
+    |> Keyword.get_lazy(:version, fn -> cache_project_config(:version) end)
+  end
+
+  @doc false
+  @spec cache_project_config(atom) :: any
+  def cache_project_config(prop) do
+    unless Project.umbrella? do
+      val = Project.config[prop]
+      Bootleg.Config.Agent.merge(:config, prop, val)
+      val
+    else
+      nil
+    end
   end
 
   @doc false
