@@ -75,13 +75,14 @@ defmodule Bootleg.UI do
   """
   def puts_upload(%SSHKit.Context{} = context, local_path, remote_path) do
     Enum.each(context.hosts, fn(host) ->
-      [:bright, :green]
+      [:reset, :bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "UPLOAD", " "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.join(context.path, remote_path)]
-      |> Bunt.puts()
+      |> IO.ANSI.format(coloring_enabled())
+      |> IO.puts()
     end)
   end
 
@@ -90,13 +91,14 @@ defmodule Bootleg.UI do
   """
   def puts_download(%SSHKit.Context{} = context, remote_path, local_path) do
     Enum.each(context.hosts, fn(host) ->
-      [:bright, :green]
+      [:reset, :bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "DOWNLOAD", " "]
         ++ [:reset, Path.join(context.path, remote_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
-      |> Bunt.puts()
+      |> IO.ANSI.format(coloring_enabled())
+      |> IO.puts()
     end)
   end
 
@@ -114,7 +116,9 @@ defmodule Bootleg.UI do
   """
   def puts_send(%SSHKit.Host{} = host, command) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
-    Bunt.puts [:bright, :green, prefix, :reset, command]
+    [:reset, :bright, :green, prefix, :reset, command]
+    |> IO.ANSI.format(coloring_enabled())
+    |> IO.puts()
   end
 
   @doc """
@@ -158,7 +162,9 @@ defmodule Bootleg.UI do
     |> Enum.map(&([:reset, :bright, :blue, prefix, :reset, &1]))
     |> drop_last_line()
     |> Enum.intersperse("\n")
-    |> Bunt.puts
+    |> List.flatten()
+    |> IO.ANSI.format(coloring_enabled())
+    |> IO.puts()
   end
 
   defp drop_last_line(lines) do
@@ -166,5 +172,9 @@ defmodule Bootleg.UI do
       true  -> lines
       false -> Enum.drop(lines, -1)
     end
+  end
+
+  defp coloring_enabled do
+    Application.get_env(:bootleg, :output_coloring, true)
   end
 end
