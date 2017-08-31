@@ -158,12 +158,25 @@ defmodule Bootleg.UI do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
     text
     |> String.split(["\r\n", "\n"])
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.map(&([:reset, :bright, :blue, prefix, :reset, &1]))
-    |> Enum.intersperse("\n")
-    |> List.flatten()
+    |> Enum.map(&format_line(&1, prefix))
+    |> output_chunk()
+  end
+
+  defp format_line(line, prefix) do
+    [:reset, :bright, :blue, prefix, :reset, String.trim_trailing(line), "\n"]
+  end
+
+  @chunksize 5
+  defp output_chunk(lines) when length(lines) > @chunksize do
+    lines
+    |> Enum.chunk(@chunksize)
+    |> Enum.each(&output_chunk/1)
+  end
+
+  defp output_chunk(lines) do
+    lines
     |> IO.ANSI.format(coloring_enabled())
-    |> IO.puts()
+    |> IO.binwrite()
   end
 
   defp coloring_enabled do

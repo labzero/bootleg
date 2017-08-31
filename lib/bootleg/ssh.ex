@@ -45,6 +45,7 @@ defmodule Bootleg.SSH do
     |> List.wrap
     |> Enum.map(&ssh_host_options/1)
     |> SSHKit.context
+    |> SSHKit.env(%{"LANG" => "C", "LC_ALL" => "C"})
     |> validate_workspace(workspace, create_workspace)
   end
 

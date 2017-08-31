@@ -29,7 +29,7 @@ task :clean do
     |> Enum.join(" ")
   if locations != "" do
     remote :build do
-      "rm -rf #{locations}"
+      "rm -rvf #{locations}"
     end
   end
 end
