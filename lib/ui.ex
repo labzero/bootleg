@@ -160,18 +160,10 @@ defmodule Bootleg.UI do
     |> String.split(["\r\n", "\n"])
     |> Enum.map(&String.trim_trailing/1)
     |> Enum.map(&([:reset, :bright, :blue, prefix, :reset, &1]))
-    |> drop_last_line()
     |> Enum.intersperse("\n")
     |> List.flatten()
     |> IO.ANSI.format(coloring_enabled())
     |> IO.puts()
-  end
-
-  defp drop_last_line(lines) do
-    case length(lines) < 2 do
-      true  -> lines
-      false -> Enum.drop(lines, -1)
-    end
   end
 
   defp coloring_enabled do
