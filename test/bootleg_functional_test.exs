@@ -117,7 +117,7 @@ defmodule Bootleg.FunctionalTest do
   end
 
   @tag boot: 0
-  test "init" do
+  test "init normal project" do
     shell_env = [{"BOOTLEG_PATH", File.cwd!}]
     location = Fixtures.inflate_project(:n00b)
     Enum.each(["deps.get", "bootleg.init"], fn cmd ->
@@ -126,4 +126,39 @@ defmodule Bootleg.FunctionalTest do
     assert File.regular?(Path.join([location, "config", "deploy.exs"]))
   end
 
+  @tag boot: 1, timeout: 60_000
+  test "init umbrella project", %{hosts: hosts} do
+    shell_env = [{"BOOTLEG_PATH", File.cwd!}]
+    build_host = List.first(hosts)
+    location = Fixtures.inflate_project(:umbra)
+
+    File.open!(Path.join([location, "config", "deploy.exs"]), [:write], fn file ->
+      IO.write(file, """
+        use Bootleg.Config
+
+        role :build, "#{build_host.ip}", port: #{build_host.port}, user: "#{build_host.user}",
+          silently_accept_hosts: true, workspace: "workspace", identity: "#{build_host.private_key_path}"
+      """)
+    end)
+
+    assert {_, 0} = System.cmd("mix", ["deps.get"], [env: shell_env, cd: location])
+    assert {output, 1} = System.cmd("mix", ["bootleg.invoke", "build"],
+      [stderr_to_stdout: true, env: shell_env, cd: location])
+    assert String.match?(output, ~r/app or version to deploy is not set./i)
+    assert String.match?(output, ~r/If this is an umbrella app/m)
+
+    File.open!(Path.join([location, "config", "deploy.exs"]), [:append], fn file ->
+      IO.write(file, """
+        config :app, :foo
+        config :version, "0.0.1"
+
+        task :build do
+          IO.puts "Build done"
+        end
+      """)
+    end)
+
+    assert {output, 0} = System.cmd("mix", ["bootleg.invoke", "build"], [env: shell_env, cd: location])
+    assert String.match?(output, ~r/Build done/)
+  end
 end
