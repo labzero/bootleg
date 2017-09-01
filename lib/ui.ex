@@ -81,8 +81,9 @@ defmodule Bootleg.UI do
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.join(context.path, remote_path)]
+        ++ ["\n"]
       |> IO.ANSI.format(coloring_enabled())
-      |> IO.puts()
+      |> IO.binwrite()
     end)
   end
 
@@ -97,8 +98,9 @@ defmodule Bootleg.UI do
         ++ [:reset, Path.join(context.path, remote_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
+        ++ ["\n"]
       |> IO.ANSI.format(coloring_enabled())
-      |> IO.puts()
+      |> IO.binwrite()
     end)
   end
 
@@ -116,9 +118,9 @@ defmodule Bootleg.UI do
   """
   def puts_send(%SSHKit.Host{} = host, command) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
-    [:reset, :bright, :green, prefix, :reset, command]
+    [:reset, :bright, :green, prefix, :reset, command, "\n"]
     |> IO.ANSI.format(coloring_enabled())
-    |> IO.puts()
+    |> IO.binwrite()
   end
 
   @doc """
