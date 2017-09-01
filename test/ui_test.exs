@@ -9,6 +9,7 @@ defmodule Bootleg.UITest do
   doctest UI
 
   setup do
+    Application.put_env(:bootleg, :output_coloring, true)
     %{
       conn: %Context{
         path: ".",
@@ -89,6 +90,8 @@ defmodule Bootleg.UITest do
     assert capture_io(fn ->
       UI.puts_upload(conn, local_path, remote_path)
     end) == "[localhost.1] UPLOAD /tmp/foo -> ./tmp/bar\n[localhost.2] UPLOAD /tmp/foo -> ./tmp/bar\n"
+
+    Application.put_env(:bootleg, :output_coloring, true)
   end
 
   test "ssh puts download", %{conn: conn} do
@@ -103,6 +106,8 @@ defmodule Bootleg.UITest do
     assert capture_io(fn ->
       UI.puts_download(conn, remote_path, local_path)
     end) == "[localhost.1] DOWNLOAD ./tmp/bar -> /tmp/foo\n[localhost.2] DOWNLOAD ./tmp/bar -> /tmp/foo\n"
+
+    Application.put_env(:bootleg, :output_coloring, true)
   end
 
   test "ssh puts send to context", %{conn: conn} do
@@ -115,6 +120,8 @@ defmodule Bootleg.UITest do
     assert capture_io(fn ->
       UI.puts_send(conn, "ls -l")
     end) == "[localhost.1] ls -l\n[localhost.2] ls -l\n"
+
+    Application.put_env(:bootleg, :output_coloring, true)
   end
 
   test "ssh puts send to host" do
@@ -127,6 +134,8 @@ defmodule Bootleg.UITest do
     assert capture_io(fn ->
       UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
     end) == "[localhost.1] hostname\n"
+
+    Application.put_env(:bootleg, :output_coloring, true)
   end
 
   test "ssh puts receive list", %{conn: conn} do
