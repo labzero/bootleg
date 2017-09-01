@@ -142,7 +142,8 @@ defmodule Bootleg.FunctionalTest do
     end)
 
     assert {_, 0} = System.cmd("mix", ["deps.get"], [env: shell_env, cd: location])
-    assert {output, 1} = System.cmd("mix", ["bootleg.invoke", "build"], [stderr_to_stdout: true, env: shell_env, cd: location])
+    assert {output, 1} = System.cmd("mix", ["bootleg.invoke", "build"],
+      [stderr_to_stdout: true, env: shell_env, cd: location])
     assert String.match?(output, ~r/app or version to deploy is not set./i)
     assert String.match?(output, ~r/If this is an umbrella app/m)
 
