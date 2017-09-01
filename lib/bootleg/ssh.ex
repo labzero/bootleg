@@ -42,9 +42,9 @@ defmodule Bootleg.SSH do
     :ssh.start()
 
     hosts
-    |> List.wrap
+    |> List.wrap()
     |> Enum.map(&ssh_host_options/1)
-    |> SSHKit.context
+    |> SSHKit.context()
     |> validate_workspace(workspace, create_workspace)
   end
 

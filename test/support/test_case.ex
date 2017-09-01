@@ -8,7 +8,18 @@ defmodule Bootleg.TestCase do
     current_verbosity = UI.verbosity
     if current_verbosity != verbosity do
       Application.put_env(:bootleg, :verbosity, verbosity)
-      on_exit fn -> Application.put_env(:bootleg, :verbosity, current_verbosity) end
+      on_exit fn ->
+        Application.put_env(:bootleg, :verbosity, current_verbosity)
+      end
+    end
+
+    coloring = Map.get(tags, :ui_color, true)
+    current_coloring = UI.output_coloring
+    if current_coloring != coloring do
+      Application.put_env(:bootleg, :output_coloring, coloring)
+      on_exit fn ->
+        Application.put_env(:bootleg, :output_coloring, current_coloring)
+      end
     end
 
     :ok
