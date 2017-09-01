@@ -82,7 +82,7 @@ defmodule Bootleg.UI do
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.join(context.path, remote_path)]
         ++ ["\n"]
-      |> IO.ANSI.format(coloring_enabled())
+      |> IO.ANSI.format(output_coloring())
       |> IO.binwrite()
     end)
   end
@@ -99,7 +99,7 @@ defmodule Bootleg.UI do
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ ["\n"]
-      |> IO.ANSI.format(coloring_enabled())
+      |> IO.ANSI.format(output_coloring())
       |> IO.binwrite()
     end)
   end
@@ -119,7 +119,7 @@ defmodule Bootleg.UI do
   def puts_send(%SSHKit.Host{} = host, command) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
     [:reset, :bright, :green, prefix, :reset, command, "\n"]
-    |> IO.ANSI.format(coloring_enabled())
+    |> IO.ANSI.format(output_coloring())
     |> IO.binwrite()
   end
 
@@ -161,7 +161,7 @@ defmodule Bootleg.UI do
     text
     |> String.split(["\r\n", "\n"])
     |> Enum.map(&format_line(&1, prefix))
-    |> IO.ANSI.format(coloring_enabled())
+    |> IO.ANSI.format(output_coloring())
     |> IO.binwrite()
   end
 
@@ -169,7 +169,11 @@ defmodule Bootleg.UI do
     [:reset, :bright, :blue, prefix, :reset, String.trim_trailing(line), "\n"]
   end
 
-  defp coloring_enabled do
+  @doc """
+  Get configured output coloring enabled
+  Defaults to true
+  """
+  def output_coloring do
     Application.get_env(:bootleg, :output_coloring, true)
   end
 end

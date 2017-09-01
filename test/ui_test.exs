@@ -9,7 +9,6 @@ defmodule Bootleg.UITest do
   doctest UI
 
   setup do
-    Application.put_env(:bootleg, :output_coloring, true)
     %{
       conn: %Context{
         path: ".",
@@ -78,64 +77,79 @@ defmodule Bootleg.UITest do
 
   # SSH-specific output tests
 
-  test "ssh puts upload", %{conn: conn} do
-    local_path = "/tmp/foo"
-    remote_path = "/tmp/bar"
-    assert capture_io(fn ->
-      UI.puts_upload(conn, local_path, remote_path)
-    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\n\e[0m"
+  describe "ssh puts upload" do
+    @tag ui_color: false
+    test "without coloring", %{conn: conn} do
+      local_path = "/tmp/foo"
+      remote_path = "/tmp/bar"
 
-    Application.put_env(:bootleg, :output_coloring, false)
+      assert capture_io(fn ->
+        UI.puts_upload(conn, local_path, remote_path)
+      end) == "[localhost.1] UPLOAD /tmp/foo -> ./tmp/bar\n[localhost.2] UPLOAD /tmp/foo -> ./tmp/bar\n"
+    end
 
-    assert capture_io(fn ->
-      UI.puts_upload(conn, local_path, remote_path)
-    end) == "[localhost.1] UPLOAD /tmp/foo -> ./tmp/bar\n[localhost.2] UPLOAD /tmp/foo -> ./tmp/bar\n"
-
-    Application.put_env(:bootleg, :output_coloring, true)
+    @tag ui_color: true
+    test "with color", %{conn: conn} do
+      local_path = "/tmp/foo"
+      remote_path = "/tmp/bar"
+      assert capture_io(fn ->
+        UI.puts_upload(conn, local_path, remote_path)
+      end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\n\e[0m"
+    end
   end
 
-  test "ssh puts download", %{conn: conn} do
-    remote_path = "/tmp/bar"
-    local_path = "/tmp/foo"
-    assert capture_io(fn ->
-      UI.puts_download(conn, remote_path, local_path)
-    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\n\e[0m"
+  describe "ssh puts download" do
+    @tag ui_color: false
+    test "without color", %{conn: conn} do
+      remote_path = "/tmp/bar"
+      local_path = "/tmp/foo"
 
-    Application.put_env(:bootleg, :output_coloring, false)
+      assert capture_io(fn ->
+        UI.puts_download(conn, remote_path, local_path)
+      end) == "[localhost.1] DOWNLOAD ./tmp/bar -> /tmp/foo\n[localhost.2] DOWNLOAD ./tmp/bar -> /tmp/foo\n"
+    end
 
-    assert capture_io(fn ->
-      UI.puts_download(conn, remote_path, local_path)
-    end) == "[localhost.1] DOWNLOAD ./tmp/bar -> /tmp/foo\n[localhost.2] DOWNLOAD ./tmp/bar -> /tmp/foo\n"
+    @tag ui_color: true
+    test "with color", %{conn: conn} do
+      remote_path = "/tmp/bar"
+      local_path = "/tmp/foo"
 
-    Application.put_env(:bootleg, :output_coloring, true)
+      assert capture_io(fn ->
+        UI.puts_download(conn, remote_path, local_path)
+      end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\n\e[0m"
+    end
   end
 
-  test "ssh puts send to context", %{conn: conn} do
-    assert capture_io(fn ->
-      UI.puts_send(conn, "ls -l")
-    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mls -l\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0mls -l\n\e[0m"
+  describe "ssh puts send to context" do
+    @tag ui_color: false
+    test "without color", %{conn: conn} do
+      assert capture_io(fn ->
+        UI.puts_send(conn, "ls -l")
+      end) == "[localhost.1] ls -l\n[localhost.2] ls -l\n"
+    end
 
-    Application.put_env(:bootleg, :output_coloring, false)
-
-    assert capture_io(fn ->
-      UI.puts_send(conn, "ls -l")
-    end) == "[localhost.1] ls -l\n[localhost.2] ls -l\n"
-
-    Application.put_env(:bootleg, :output_coloring, true)
+    @tag ui_color: true
+    test "with color", %{conn: conn} do
+      assert capture_io(fn ->
+        UI.puts_send(conn, "ls -l")
+      end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mls -l\n\e[0m\e[0m\e[1m\e[32m[localhost.2] \e[0mls -l\n\e[0m"
+    end
   end
 
-  test "ssh puts send to host" do
-    assert capture_io(fn ->
-      UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
-    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mhostname\n\e[0m"
+  describe "ssh puts send to host" do
+    @tag ui_color: false
+    test "without color" do
+      assert capture_io(fn ->
+        UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
+      end) == "[localhost.1] hostname\n"
+    end
 
-    Application.put_env(:bootleg, :output_coloring, false)
-
-    assert capture_io(fn ->
-      UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
-    end) == "[localhost.1] hostname\n"
-
-    Application.put_env(:bootleg, :output_coloring, true)
+    @tag ui_color: true
+    test "with color" do
+      assert capture_io(fn ->
+        UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
+      end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mhostname\n\e[0m"
+    end
   end
 
   test "ssh puts receive list", %{conn: conn} do
