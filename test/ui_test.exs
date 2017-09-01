@@ -82,7 +82,7 @@ defmodule Bootleg.UITest do
     remote_path = "/tmp/bar"
     assert capture_io(fn ->
       UI.puts_upload(conn, local_path, remote_path)
-    end) == "\e[1m\e[32m[localhost.1] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\e[0m\n\e[1m\e[32m[localhost.2] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\e[0m\n"
+    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\e[0m\n\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mUPLOAD \e[0m/tmp/foo\e[0m\e[33m -> \e[0m./tmp/bar\e[0m\n"
   end
 
   test "ssh puts download", %{conn: conn} do
@@ -90,45 +90,53 @@ defmodule Bootleg.UITest do
     local_path = "/tmp/foo"
     assert capture_io(fn ->
       UI.puts_download(conn, remote_path, local_path)
-    end) == "\e[1m\e[32m[localhost.1] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\e[0m\n\e[1m\e[32m[localhost.2] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\e[0m\n"
+    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\e[0m\n\e[0m\e[1m\e[32m[localhost.2] \e[0m\e[33mDOWNLOAD \e[0m./tmp/bar\e[0m\e[33m -> \e[0m/tmp/foo\e[0m\n"
   end
 
   test "ssh puts send to context", %{conn: conn} do
     assert capture_io(fn ->
       UI.puts_send(conn, "ls -l")
-    end) == "\e[1m\e[32m[localhost.1] \e[0mls -l\e[0m\n\e[1m\e[32m[localhost.2] \e[0mls -l\e[0m\n"
+    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mls -l\e[0m\n\e[0m\e[1m\e[32m[localhost.2] \e[0mls -l\e[0m\n"
   end
 
   test "ssh puts send to host" do
     assert capture_io(fn ->
       UI.puts_send(%SSHKit.Host{name: "localhost.1"}, "hostname")
-    end) == "\e[1m\e[32m[localhost.1] \e[0mhostname\e[0m\n"
+    end) == "\e[0m\e[1m\e[32m[localhost.1] \e[0mhostname\e[0m\n"
   end
 
   test "ssh puts receive list", %{conn: conn} do
     data = [{:ok, [stdout: "hello world!"], 0, List.first(conn.hosts)}]
     assert capture_io(fn ->
       UI.puts_recv(data)
-    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\e[0m\n"
+    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\n\e[0m"
   end
 
   test "ssh puts receive tuple", %{conn: conn} do
     data = {:ok, [stdout: "hello world!"], 0, List.first(conn.hosts)}
     assert capture_io(fn ->
       UI.puts_recv(data)
-    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\e[0m\n"
+    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\n\e[0m"
   end
 
   test "ssh puts receive from context", %{conn: conn} do
     assert capture_io(fn ->
       UI.puts_recv(conn, "hello world!")
-    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\e[0m\n\e[0m\e[1m\e[34m[localhost.2] \e[0mhello world!\e[0m\n"
+    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\n\e[0m\e[0m\e[1m\e[34m[localhost.2] \e[0mhello world!\n\e[0m"
   end
 
   test "ssh puts receive from host", %{conn: conn} do
     host = List.first(conn.hosts)
     assert capture_io(fn ->
       UI.puts_recv(host, "hello world!")
-    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\e[0m\n"
+    end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\n\e[0m"
+  end
+
+  test "ssh puts ignores non-UTF8 data", %{conn: conn} do
+    file = File.read!("./test/fixtures/encoding/utf8.data")
+    host = List.first(conn.hosts)
+    assert byte_size( capture_io(fn ->
+      UI.puts_recv(host, file)
+    end)) == 285036, "Received data not in expected form."
   end
 end
