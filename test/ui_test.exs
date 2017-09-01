@@ -135,8 +135,8 @@ defmodule Bootleg.UITest do
   test "ssh puts ignores non-UTF8 data", %{conn: conn} do
     file = File.read!("./test/fixtures/encoding/utf8.data")
     host = List.first(conn.hosts)
-    assert byte_size( capture_io(fn ->
+    assert byte_size(capture_io(fn ->
       UI.puts_recv(host, file)
-    end)) == 285036, "Received data not in expected form."
+    end)) == 285_036, "Received data not in expected form."
   end
 end
