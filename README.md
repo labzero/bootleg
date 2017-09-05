@@ -382,8 +382,14 @@ remote :app do
 end
 
 # filtering - only runs on app hosts with an option of primary set to true
-remote :app, primary: true do
+remote :app, filter: [primary: true] do
   "mix ecto.migrate"
+end
+
+# change working directory - creates a file `/tmp/foo`, regardless of the role
+# workspace configuration
+remote :app, cd: "/tmp" do
+  "touch ./foo"
 end
 ```
 
