@@ -122,7 +122,7 @@ defmodule Bootleg.Config do
     line = caller.line()
     quote do
       hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
-      module_name = String.to_atom("Elixir.Bootleg.Tasks.DynamicCallbacks." <>
+      module_name = String.to_atom("Elixir.Bootleg.DynamicCallbacks." <>
         String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
         "#{hook_number}")
       defmodule module_name do
