@@ -180,7 +180,7 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 ### Roles provided by Bootleg
 
 * `build` - Takes only one host. If a list is given, only the first hosts is
-used and a warning may result. If this role isn't set the release packaging will be done locally.
+used and a warning may result.
 * `app` -  Takes a list of hosts, or a string with one host.
 
 ## Building and deploying a release
