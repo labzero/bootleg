@@ -60,7 +60,8 @@ defmodule Bootleg.Config.Agent do
     receive do
       {:DOWN, ^ref, :process, _pid, _reason} ->
         Enum.each(:code.all_loaded(), fn {module, _file} ->
-          if String.starts_with?(Atom.to_string(module), "Elixir.Bootleg.DynamicTasks.") do
+          if String.starts_with?(Atom.to_string(module), "Elixir.Bootleg.DynamicTasks.") ||
+            String.starts_with?(Atom.to_string(module), "Elixir.Bootleg.DynamicCallbacks.")do
             unload_code(module)
           end
         end)
