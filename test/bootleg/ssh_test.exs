@@ -54,4 +54,8 @@ defmodule Bootleg.SSHTest do
     assert [[1, 2]] = SSH.merge_run_results([[1, 2]], [])
     assert [[1, 2]] = SSH.merge_run_results([], [[1, 2]])
   end
+
+  test "supported_options/0" do
+    assert Enum.member?(SSH.supported_options, :quiet_mode)
+  end
 end
