@@ -85,7 +85,6 @@ defmodule Bootleg.SSHFunctionalTest do
 
   @tag boot: 2
   test "init/3 host filtering for roles", %{hosts: [host_1, host_2]} do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     ip_1 = host_1.ip
@@ -97,6 +96,23 @@ defmodule Bootleg.SSHFunctionalTest do
     capture_io(fn ->
       assert %SSHKitContext{hosts: [%SSHKitHost{name: ^ip_2}]} = SSH.init(:build, [], foo: :bar)
       assert %SSHKitContext{hosts: [%SSHKitHost{name: ^ip_1}]} = SSH.init(:build, [], foo: :car)
+    end)
+  end
+
+  test "init/3 working directory option", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    role :valid_workspace, host.ip, port: host.port, user: host.user,
+      workspace: "./woo/bar", silently_accept_hosts: true, identity: host.private_key_path
+    role :bad_workspace, host.ip, port: host.port, user: host.user,
+      workspace: "/woo/bar", silently_accept_hosts: true, identity: host.private_key_path
+    capture_io(fn ->
+      assert %SSHKitContext{path: "/foo"} = SSH.init(:valid_workspace, [cd: "/foo"])
+      assert %SSHKitContext{path: "./woo/bar/foo"} = SSH.init(:valid_workspace, [cd: "foo"])
+      assert %SSHKitContext{path: "./woo/bar"} = SSH.init(:valid_workspace, [cd: nil])
+      assert_raise SSHError, fn -> SSH.init(:bad_workspace, [cd: "/foo"]) end
+      assert_raise SSHError, fn -> SSH.init(:bad_workspace, [cd: "foo"]) end
     end)
   end
 

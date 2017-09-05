@@ -136,19 +136,22 @@ defmodule Bootleg.ConfigFunctionalTest do
   end
 
   @tag boot: 3
-  test "remote/3 filtering" do
+  test "remote/3 options" do
     capture_io(fn ->
       use Bootleg.Config
 
-      assert [{:ok, out_0, 0, _}] = remote :build, [foo: 0], "hostname"
-      assert [{:ok, out_1, 0, _}] = remote :build, [foo: 1], do: "hostname"
+      assert [{:ok, out_0, 0, _}] = remote :build, [filter: [foo: 0]], "hostname"
+      assert [{:ok, out_1, 0, _}] = remote :build, [filter: [foo: 1]], do: "hostname"
       assert out_1 != out_0
 
-      assert [] = remote :build, [foo: :bar], "hostname"
-      assert [{:ok, out_all, 0, _}] = remote :all, [foo: :bar], "hostname"
+      assert [] = remote :build, [filter: [foo: :bar]], "hostname"
+      assert [{:ok, out_all, 0, _}] = remote :all, [filter: [foo: :bar]], "hostname"
       assert out_1 != out_0 != out_all
 
-      remote :all, [foo: :bar] do "hostname" end
+      remote :all, filter: [foo: :bar] do "hostname" end
+
+      [{:ok, [stdout: "/tmp\n"], 0, _}] = remote :app, cd: "/tmp" do "pwd" end
+      [{:ok, [stdout: "/home\n"], 0, _}] = remote :app, cd: "../.." do "pwd" end
     end)
   end
 
