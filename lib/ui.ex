@@ -75,13 +75,15 @@ defmodule Bootleg.UI do
   """
   def puts_upload(%SSHKit.Context{} = context, local_path, remote_path) do
     Enum.each(context.hosts, fn(host) ->
-      [:bright, :green]
+      [:reset, :bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "UPLOAD", " "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.join(context.path, remote_path)]
-      |> Bunt.puts()
+        ++ ["\n"]
+      |> IO.ANSI.format(output_coloring())
+      |> IO.binwrite()
     end)
   end
 
@@ -90,13 +92,15 @@ defmodule Bootleg.UI do
   """
   def puts_download(%SSHKit.Context{} = context, remote_path, local_path) do
     Enum.each(context.hosts, fn(host) ->
-      [:bright, :green]
+      [:reset, :bright, :green]
         ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
         ++ [:reset, :yellow, "DOWNLOAD", " "]
         ++ [:reset, Path.join(context.path, remote_path)]
         ++ [:reset, :yellow, " -> "]
         ++ [:reset, Path.relative_to_cwd(local_path)]
-      |> Bunt.puts()
+        ++ ["\n"]
+      |> IO.ANSI.format(output_coloring())
+      |> IO.binwrite()
     end)
   end
 
@@ -114,7 +118,9 @@ defmodule Bootleg.UI do
   """
   def puts_send(%SSHKit.Host{} = host, command) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
-    Bunt.puts [:bright, :green, prefix, :reset, command]
+    [:reset, :bright, :green, prefix, :reset, command, "\n"]
+    |> IO.ANSI.format(output_coloring())
+    |> IO.binwrite()
   end
 
   @doc """
@@ -154,17 +160,20 @@ defmodule Bootleg.UI do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
     text
     |> String.split(["\r\n", "\n"])
-    |> Enum.map(&String.trim_trailing/1)
-    |> Enum.map(&([:reset, :bright, :blue, prefix, :reset, &1]))
-    |> drop_last_line()
-    |> Enum.intersperse("\n")
-    |> Bunt.puts
+    |> Enum.map(&format_line(&1, prefix))
+    |> IO.ANSI.format(output_coloring())
+    |> IO.binwrite()
   end
 
-  defp drop_last_line(lines) do
-    case length(lines) < 2 do
-      true  -> lines
-      false -> Enum.drop(lines, -1)
-    end
+  defp format_line(line, prefix) do
+    [:reset, :bright, :blue, prefix, :reset, String.trim_trailing(line), "\n"]
+  end
+
+  @doc """
+  Get configured output coloring enabled
+  Defaults to true
+  """
+  def output_coloring do
+    Application.get_env(:bootleg, :output_coloring, true)
   end
 end

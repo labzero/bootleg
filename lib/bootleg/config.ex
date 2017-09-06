@@ -122,7 +122,7 @@ defmodule Bootleg.Config do
     line = caller.line()
     quote do
       hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
-      module_name = String.to_atom("Elixir.Bootleg.Tasks.DynamicCallbacks." <>
+      module_name = String.to_atom("Elixir.Bootleg.DynamicCallbacks." <>
         String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
         "#{hook_number}")
       defmodule module_name do
@@ -338,18 +338,18 @@ defmodule Bootleg.Config do
   @doc """
   Executes commands on all remote hosts within a role.
 
-  This is equivalent to calling `remote/3` with a `filter` of `[]`.
+  This is equivalent to calling `remote/3` with an `options` of `[]`.
   """
   defmacro remote(role, lines) do
     quote do: remote(unquote(role), [], unquote(lines))
   end
 
-  defmacro remote(role, filter, do: {:__block__, _, lines}) do
-    quote do: remote(unquote(role), unquote(filter), unquote(lines))
+  defmacro remote(role, options, do: {:__block__, _, lines}) do
+    quote do: remote(unquote(role), unquote(options), unquote(lines))
   end
 
-  defmacro remote(role, filter, do: lines) do
-    quote do: remote(unquote(role), unquote(filter), unquote(lines))
+  defmacro remote(role, options, do: lines) do
+    quote do: remote(unquote(role), unquote(options), unquote(lines))
   end
 
   @doc """
@@ -363,9 +363,16 @@ defmodule Bootleg.Config do
   used as a command. Each command will be simulataneously executed on all hosts in the role. Once
   all hosts have finished executing the command, the next command in the list will be sent.
 
-  `filter` is an optional `Keyword` list of host options to filter with. Any host whose options match
+  `options` is an optional `Keyword` list of options to customize the remote invocation. Currently two
+  keys are supported:
+  
+    * `filter` takes a `Keyword` list of host options to filter with. Any host whose options match
   the filter will be included in the remote execution. A host matches if it has all of the filtering
   options defined and the values match (via `==/2`) the filter.
+    * `cd` changes the working directory of the remote shell prior to executing the remote
+    commands. The options takes either an absolute or relative path, with relative paths being
+    defined relative to the workspace configured for the role, or the default working directory
+    of the shell if no workspace is defined.
 
   `role` can be a single role, a list of roles, or the special role `:all` (all roles). If the same host
   exists in multiple roles, the commands will be run once for each role where the host shows up. In the
@@ -394,19 +401,24 @@ defmodule Bootleg.Config do
 
   # only runs on `host1.example.com`
   role :build, "host2.example.com"
-  role :build, "host1.example.com", primary: true, another_attr: :cat
+  role :build, "host1.example.com", filter: [primary: true, another_attr: :cat]
 
-  remote :build, primary: true do
+  remote :build, filter: [primary: true] do
+    "hostname"
+  end
+
+  # runs on `host1.example.com` inside the `tmp` directory found in the workspace
+  remote :build, filter: [primary: true], cd: "tmp/" do
     "hostname"
   end
   ```
   """
-  defmacro remote(role, filter, lines) do
+  defmacro remote(role, options, lines) do
     roles = unpack_role(role)
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
-        |> SSH.init([], filter)
+        |> SSH.init([cd: options[:cd]], Keyword.get(options, :filter, []))
         |> SSH.run!(lines)
         |> SSH.merge_run_results(outputs)
       end)
@@ -488,13 +500,29 @@ defmodule Bootleg.Config do
   @doc false
   @spec app() :: any
   def app do
-    get_config(:app, Project.config[:app])
+    :config
+    |> Bootleg.Config.Agent.get()
+    |> Keyword.get_lazy(:app, fn -> cache_project_config(:app) end)
   end
 
   @doc false
   @spec version() :: any
   def version do
-    get_config(:version, Project.config[:version])
+    :config
+    |> Bootleg.Config.Agent.get()
+    |> Keyword.get_lazy(:version, fn -> cache_project_config(:version) end)
+  end
+
+  @doc false
+  @spec cache_project_config(atom) :: any
+  def cache_project_config(prop) do
+    unless Project.umbrella? do
+      val = Project.config[prop]
+      Bootleg.Config.Agent.merge(:config, prop, val)
+      val
+    else
+      nil
+    end
   end
 
   @doc false

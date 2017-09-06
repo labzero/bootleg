@@ -447,48 +447,69 @@ defmodule Bootleg.ConfigTest do
     assert called SSH.run!({:bar}, ["echo Multi Hello", "echo Multi World!"])
   end
 
-  test_with_mock "remote/3 filtering", SSH, [:passthrough], [
+  test_with_mock "remote/3", SSH, [:passthrough], [
       init: fn(role, options, filter) -> {role, options, filter} end,
       run!: fn(_, _cmd) -> [:ok] end
     ] do
     use Bootleg.Config
 
     task :remote_test_role_one_line_filtered do
-      remote :one_line, [a_filter: true], "echo Multi Hello"
+      remote :one_line, [filter: [a_filter: true]], "echo Multi Hello"
     end
 
     task :remote_test_role_inline_filtered do
-      remote :inline, [b_filter: true], do: "echo Multi Hello"
+      remote :inline, [filter: [b_filter: true]], do: "echo Multi Hello"
     end
 
     task :remote_test_role_filtered do
-      remote :car, passenger: true do
+      remote :car, filter: [passenger: true] do
         "echo Multi Hello"
       end
     end
 
     task :remote_test_roles_filtered do
-      remote [:foo, :bar], primary: true do
+      remote [:foo, :bar], filter: [primary: true] do
         "echo Multi Hello"
       end
     end
 
+    task :remote_working_directory_option do
+      remote :foo, cd: "/bar" do "echo bar!" end
+    end
+
+    task :remote_working_directory_option_nil do
+      remote :foo, cd: nil do "echo bar!" end
+    end
+
+    task :remote_working_directory_option_none do
+      remote :foo do "echo bar!" end
+    end
+
     invoke :remote_test_role_one_line_filtered
 
-    assert called SSH.init(:one_line, [], a_filter: true)
+    assert called SSH.init(:one_line, :_, a_filter: true)
 
     invoke :remote_test_role_inline_filtered
 
-    assert called SSH.init(:inline, [], b_filter: true)
+    assert called SSH.init(:inline, :_, b_filter: true)
 
     invoke :remote_test_role_filtered
 
-    assert called SSH.init(:car, [], passenger: true)
+    assert called SSH.init(:car, :_, passenger: true)
 
     invoke :remote_test_roles_filtered
 
-    assert called SSH.init(:foo, [], [primary: true])
-    assert called SSH.init(:bar, [], [primary: true])
+    assert called SSH.init(:foo, :_, [primary: true])
+    assert called SSH.init(:bar, :_, [primary: true])
+
+    invoke :remote_working_directory_option
+    assert called SSH.init(:foo, [cd: "/bar"], [])
+
+    invoke :remote_working_directory_option_nil
+    assert called SSH.init(:foo, [cd: nil], [])
+
+    invoke :remote_working_directory_option_none
+    assert called SSH.init(:foo, [cd: nil], [])
   end
 
   test_with_mock "upload/3", SSH, [:passthrough], [

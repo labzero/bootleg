@@ -37,15 +37,17 @@ defmodule Bootleg.SSH do
   def init(hosts, options) do
     workspace = Keyword.get(options, :workspace, ".")
     create_workspace = Keyword.get(options, :create_workspace, true)
+    working_directory = Keyword.get(options, :cd)
     UI.puts "Creating remote context at '#{workspace}'"
 
     :ssh.start()
 
     hosts
-    |> List.wrap
+    |> List.wrap()
     |> Enum.map(&ssh_host_options/1)
-    |> SSHKit.context
+    |> SSHKit.context()
     |> validate_workspace(workspace, create_workspace)
+    |> working_directory(working_directory)
   end
 
   def ssh_host_options(%Host{} = host) do
@@ -82,6 +84,16 @@ defmodule Bootleg.SSH do
   defp validate_workspace(context, workspace, true) do
     run!(context, "mkdir -p #{workspace}")
     SSHKit.path context, workspace
+  end
+
+  defp working_directory(context, path) when path == "." or path == false or is_nil(path) do
+    context
+  end
+  defp working_directory(context, path) do
+    case Path.type(path) do
+      :absolute -> %Context{context | path: path}
+      _ -> %Context{context | path: Path.join(context.path, path)}
+    end
   end
 
   defp capture(message, {buffer, status} = state, host) do
@@ -147,7 +159,7 @@ defmodule Bootleg.SSH do
   def ssh_opt(option), do: option
 
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
-    idle_time silently_accept_hosts user_dir timeout connection_timeout identity)a
+    idle_time silently_accept_hosts user_dir timeout connection_timeout identity quiet_mode)a
   def supported_options do
     @ssh_options
   end

@@ -15,7 +15,7 @@ add additional support.
 ```elixir
 def deps do
   [{:distillery, "~> 1.3",
-   {:bootleg, "~> 0.4"}]
+   {:bootleg, "~> 0.5"}]
 end
 ```
 
@@ -136,7 +136,7 @@ by Bootleg:
   * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
   * `user` - ssh username (default to local user)
   * `password` - ssh password
-  * `identity` - file path of an SSH private key identify file
+  * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
 
 #### Examples
@@ -180,7 +180,7 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 ### Roles provided by Bootleg
 
 * `build` - Takes only one host. If a list is given, only the first hosts is
-used and a warning may result. If this role isn't set the release packaging will be done locally.
+used and a warning may result.
 * `app` -  Takes a list of hosts, or a string with one host.
 
 ## Building and deploying a release
@@ -382,8 +382,14 @@ remote :app do
 end
 
 # filtering - only runs on app hosts with an option of primary set to true
-remote :app, primary: true do
+remote :app, filter: [primary: true] do
   "mix ecto.migrate"
+end
+
+# change working directory - creates a file `/tmp/foo`, regardless of the role
+# workspace configuration
+remote :app, cd: "/tmp" do
+  "touch ./foo"
 end
 ```
 
@@ -399,7 +405,7 @@ for building phoenix releases.
 # mix.exs
 def deps do
   [{:distillery, "~> 1.3"},
-  {:bootleg, "~> 0.4"},
+  {:bootleg, "~> 0.5"},
   {:bootleg_phoenix, "~> 0.1"}]
 end
 ```
