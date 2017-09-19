@@ -327,15 +327,15 @@ ul {
   }
 
   #documentation_docs a:before {
-    background: url('/images/icons/document.svg') no-repeat;
+    background: url('../images/icons/document.svg') no-repeat;
   }
 
   #documentation_code a:before {
-    background: url('/images/icons/code.svg') no-repeat;
+    background: url('../images/icons/code.svg') no-repeat;
   }
 
   #documentation_package a:before {
-    background: url('/images/icons/package.svg') no-repeat;
+    background: url('../images/icons/package.svg') no-repeat;
   }
 }
 
@@ -408,11 +408,11 @@ ul {
   }
 
   #support_slack a:before {
-    background: url('/images/logos/slack.svg') no-repeat;
+    background: url('../images/logos/slack.svg') no-repeat;
   }
 
   #support_github a:before {
-    background: url('/images/logos/github.svg') no-repeat;
+    background: url('../images/logos/github.svg') no-repeat;
   }
 }
 
@@ -430,7 +430,7 @@ footer {
     font-size: 10px;
   }
   .footer__logo {
-    background: url('/images/logos/labzero.svg') no-repeat;
+    background: url('../images/logos/labzero.svg') no-repeat;
     background-size: contain;
     height: 20.5px;
     margin: 0;
