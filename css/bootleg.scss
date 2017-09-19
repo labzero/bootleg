@@ -432,9 +432,12 @@ footer {
     height: 20.5px;
     margin: 0;
     overflow: hidden;
-    text-indent: 102%;
     white-space: nowrap;
     width: 145px;
+    a {
+      text-indent: 102%;
+      display: block;
+    }
   }
 }
 
