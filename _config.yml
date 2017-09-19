@@ -19,8 +19,8 @@ description: > # this means to ignore newlines until "baseurl:"
   Bootleg is a simple set of commands that attempt to simplify building and deploying elixir
   applications. The goal of the project is to provide an extensible framework that can support
   many different deploy scenarios with one common set of commands.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://labzero.github.io/bootleg" # the base hostname & protocol for your site, e.g. http://example.com
+baseurl: "/bootleg" # the subpath of your site, e.g. /blog
+url: "https://labzero.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  labzero
 
 # Build settings
