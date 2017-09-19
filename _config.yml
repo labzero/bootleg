@@ -29,6 +29,7 @@ theme: minima
 plugins:
   - jekyll-feed
 exclude:
+  - .circleci/
   - README.md
   - CODE_OF_CONDUCT.md
   - CONTRIBUTING.md
