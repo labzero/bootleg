@@ -385,11 +385,8 @@ ul {
     margin-bottom: 50px;
     li {
       @extend %subheading;
-      &:first-child {
-        padding-right: 25px;
-      }
       &:last-child {
-        padding-left: 25px;
+        flex: 2;
       }
     }
   }
