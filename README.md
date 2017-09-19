@@ -22,7 +22,7 @@ $ bundle install
 To run the site locally:
 
 ```sh
-$ jekyll server
+$ bundle exec jekyll server
 ```
 
 Then navigate to [localhost:4000/bootleg/](http://localhost:4000/bootleg/).
