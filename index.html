@@ -1,0 +1,97 @@
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <link rel="stylesheet" href="//cloud.webtype.com/css/fa8ba949-760d-43da-a84e-26f41fbfcda8.css">
+    <link rel="stylesheet" href="css/main.css">
+
+    <title>Bootleg - Simple deployment and server automation for Elixir</title>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="container">
+        <a href="https://hexdocs.pm/bootleg" ga-label='Docs' ga-category='Nav bar' class="nav__repo">Docs Repo</a>
+        <a href="https://github.com/labzero/bootleg" ga-label='Cpde' ga-category='Nav bar' class="nav__repo">Code Repo</a>
+        <a href="https://hex.pm/packages/bootleg" ga-label='Package' ga-category='Nav bar' class="nav__repo">Package Repo</a>
+      </div>
+    </nav>
+
+    <section class="intro" id="intro">
+      <div class="container">
+          <h1>Bootleg</h1>
+          <h2>Simple deployment and server automation for Elixir.</h2>
+          <p class="intro__paragraph">Bootleg is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.</p>
+      </div>
+    </section>
+
+    <section class="get-started" id="get-started">
+      <div class="container">
+          <h1>Get Started</h1>
+          <p class="get-started__paragraph">Out of the box, Bootleg provides remote build and remote server automation for your existing <a href="https://hex.pm/packages/distillery">Distillery</a> releases. Bootleg assumes your project is committed into a git repository and some of the build steps use this assumption to handle code in some steps of the build process. If you are using an scm other than git, please consider contributing to Bootleg to add additional support.</p>
+
+          <h2>Install</h2>
+          <code><span class="code__keyword">def</span> <span class="code__name">deps</span> <span class="code__keyword">do</span>
+  [{:distillery, <span class="code__string">"~> 1.3"</span>,
+   {:bootleg, <span class="code__string">"~> 0.5"</span>}]
+<span class="code__keyword">end</span></code>
+
+          <h2>Config</h2>
+          <code><span class="code__comment"># config/deploy.exs</span>
+<span class="code__keyword">use</span> <span class="code__class">Bootleg.Config</span>
+
+role :build, <span class="code__string">"your-build-server.local"</span>, user: <span class="code__string">"develop"</span>, password: <span class="code__string">"bu1ldm3"</span>, workspace: <span class="code__string">"/some/build/workspace"</span>
+role :app, [<span class="code__string">"web1"</span>, <span class="code__string">"web2"</span>, <span class="code__string">"web3"</span>], user: <span class="code__string">"admin"</span>, password: <span class="code__string">"d3pl0y"</span>, workspace: <span class="code__string">"/var/myapp"</span></code>
+
+          <h2>Build and deploy</h2>
+          <code>$ mix bootleg.build
+$ mix bootleg.deploy
+$ mix bootleg.start</code>
+       </div>
+    </section>
+
+    <section class="documentation">
+      <div class="container">
+        <h1>Documentation</h1>
+        <ul>
+          <li id="documentation_docs"><a href="https://hexdocs.pm/bootleg">Docs Repo</a></li>
+          <li id="documentation_code"><a href="https://github.com/labzero/bootleg">Code Repo</a></li>
+          <li id="documentation_package"><a href="https://hex.pm/packages/bootleg">Package Repo</a></li>
+        </ul>  
+      </div>
+    </section>
+    <section class="support" id="support">
+      <div class="container">
+          <h1>Support</h1>
+          <ul>
+            <li id="support_slack"><a href="https://elixir-lang.slack.com/messages/C6D2BQY4R">Slack</a></li>
+            <li id="support_github"><a href="https://github.com/labzero/bootleg">GitHub</a></li>
+          </ul>
+        </div>
+    </section>
+
+    <footer>
+      <div class='container'>
+        <small>Sponsored by:</small>
+        <h1 class="footer__logo">Lab Zero</h1>
+        <small>&copy; {{ "now" | date: "%Y" }} Lab Zero Innovations, Inc.</small>
+      </div>
+    </footer>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-11744563-1', 'auto');
+      ga('send', 'pageview');
+    </script>
+  </body>
+</html>
