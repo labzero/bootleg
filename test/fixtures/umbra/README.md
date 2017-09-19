@@ -1,4 +1,0 @@
-# Umbra
-
-**TODO: Add description**
-

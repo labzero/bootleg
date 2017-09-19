@@ -1,6 +1,0 @@
-#!/bin/sh
-
-set -e
-
-bin/$1 start
-wait-for-app $1
