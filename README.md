@@ -4,7 +4,7 @@
 
 Simple deployment and server automation for Elixir.
 
-**Bootleg** is a simple set of commands that attempt to simplify building and deploying elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
+**Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
 
 Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a `git` repository and some of the build steps use this assumption
 to handle code in some steps of the build process. If you are using an scm other than git, please consider contributing to Bootleg to
@@ -12,7 +12,7 @@ add additional support.
 
 ## Installation
 
-```elixir
+```
 def deps do
   [{:distillery, "~> 1.3",
    {:bootleg, "~> 0.5"}]
