@@ -14,10 +14,11 @@ defmodule Bootleg.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env),
       test_coverage: [tool: ExCoveralls],
       dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :sshkit]],
-      docs: [source_ref: "v#{@version}", main: "readme", extras: ["README.md"]],
+      docs: [source_ref: "release-#{@version}", main: "readme", extras: ["README.md"]],
       description: description(),
       deps: deps(),
       package: package(),
+      source_url: @source,
       homepage_url: @homepage
     ]
   end
