@@ -3,7 +3,7 @@ defmodule Bootleg.Mixfile do
 
   @version "0.5.0"
   @source "https://github.com/labzero/bootleg"
-  @homepage "https://labzero.github.io/bootleg"
+  @homepage "https://labzero.github.io/bootleg/"
 
   def project do
     [app: :bootleg,
