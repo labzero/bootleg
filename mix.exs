@@ -3,6 +3,7 @@ defmodule Bootleg.Mixfile do
 
   @version "0.5.0"
   @source "https://github.com/labzero/bootleg"
+  @homepage "https://labzero.github.io/bootleg"
 
   def project do
     [app: :bootleg,
@@ -16,7 +17,8 @@ defmodule Bootleg.Mixfile do
       docs: [source_ref: "v#{@version}", main: "readme", extras: ["README.md"]],
       description: description(),
       deps: deps(),
-      package: package()
+      package: package(),
+      homepage_url: @homepage
     ]
   end
 
@@ -58,7 +60,7 @@ defmodule Bootleg.Mixfile do
   defp package do
     [maintainers: ["labzero", "Brien Wankel", "Ned Holets", "Rob Adams"],
      licenses: ["MIT"],
-     links: %{"GitHub" => @source}]
+     links: %{"GitHub" => @source, "Homepage" => @homepage}]
   end
 
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]
