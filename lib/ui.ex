@@ -83,7 +83,7 @@ defmodule Bootleg.UI do
         ++ [:reset, Path.join(context.path, remote_path)]
         ++ ["\n"]
       |> IO.ANSI.format(output_coloring())
-      |> IO.binwrite()
+      |> IO.write()
     end)
   end
 
@@ -100,7 +100,7 @@ defmodule Bootleg.UI do
         ++ [:reset, Path.relative_to_cwd(local_path)]
         ++ ["\n"]
       |> IO.ANSI.format(output_coloring())
-      |> IO.binwrite()
+      |> IO.write()
     end)
   end
 
@@ -120,7 +120,7 @@ defmodule Bootleg.UI do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
     [:reset, :bright, :green, prefix, :reset, command, "\n"]
     |> IO.ANSI.format(output_coloring())
-    |> IO.binwrite()
+    |> IO.write()
   end
 
   @doc """
@@ -162,7 +162,7 @@ defmodule Bootleg.UI do
     |> String.split(["\r\n", "\n"])
     |> Enum.map(&format_line(&1, prefix))
     |> IO.ANSI.format(output_coloring())
-    |> IO.binwrite()
+    |> IO.write()
   end
 
   defp format_line(line, prefix) do
