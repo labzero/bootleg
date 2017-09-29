@@ -179,11 +179,16 @@ defmodule Bootleg.UITest do
     end) == "\e[0m\e[1m\e[34m[localhost.1] \e[0mhello world!\n\e[0m"
   end
 
-  test "ssh puts ignores non-UTF8 data", %{conn: conn} do
+  test "ssh puts does not molest UTF-8 data", %{conn: conn} do
     file = File.read!("./test/fixtures/encoding/utf8.data")
     host = List.first(conn.hosts)
-    assert byte_size(capture_io(fn ->
+    out = capture_io(fn ->
       UI.puts_recv(host, file)
-    end)) == 285_036, "Received data not in expected form."
+    end)
+    size = byte_size(out)
+    char_out = String.to_charlist(out)
+    assert Enum.count(char_out, fn codepoint -> codepoint === 8216 end) == 2000
+    assert Enum.count(char_out, fn codepoint -> codepoint === 8217 end) == 2000
+    assert size == 273_036, "Received data not in expected form."
   end
 end

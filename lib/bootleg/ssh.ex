@@ -69,7 +69,7 @@ defmodule Bootleg.SSH do
       end
 
       conn
-      |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host))
+      |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host), acc: {:cont, {[], nil, %{}}})
       |> Tuple.append(host)
     end
 
@@ -96,14 +96,46 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp capture(message, {buffer, status} = state, host) do
+  @last_new_line ~r/\A(?<bulk>.*)((?<newline>\n)(?<remainder>[^\n]*))?\z/msU
+
+  defp split_last_line(data) do
+    %{"bulk" => bulk, "newline" => newline, "remainder" => remainder} = Regex.named_captures(@last_new_line, data)
+    if newline == "\n" do
+      {bulk <> "\n", remainder}
+    else
+      {"", bulk}
+    end
+  end
+
+  defp buffer_complete_lines(data, device, buffer, partial_buffer) do
+    partial_line = partial_buffer[device] || ""
+    {bulk, remainder} = split_last_line(partial_line <> data)
+    new_partial_buffer = Map.put(partial_buffer, device, remainder)
+    if bulk == "" do
+      {buffer, new_partial_buffer, bulk}
+    else
+      {[{device, bulk} | buffer], new_partial_buffer, bulk}
+    end
+  end
+
+  defp empty_partial_buffer(buffer, partial_buffer) do
+    remainders = Enum.filter(partial_buffer, fn {_, value} -> value && value != "" end)
+    remainders ++ buffer
+  end
+
+  defp capture(message, {buffer, status, partial_buffer} = state, host) do
     next = case message do
       {:data, _, 0, data} ->
+        {buffer, partial_buffer, data} =
+          buffer_complete_lines(data, :stdout, buffer, partial_buffer)
         UI.puts_recv host, String.trim_trailing(data)
-        {[{:stdout, data} | buffer], status}
-      {:data, _, 1, data} -> {[{:stderr, data} | buffer], status}
-      {:exit_status, _, code} -> {buffer, code}
-      {:closed, _} -> {:ok, Enum.reverse(buffer), status}
+        {buffer, status, partial_buffer}
+      {:data, _, 1, data} ->
+        {buffer, partial_buffer, _} = buffer_complete_lines(data, :stderr, buffer, partial_buffer)
+        {buffer, status, partial_buffer}
+      {:exit_status, _, code} -> {buffer, code, partial_buffer}
+      {:closed, _} ->
+        {:ok, Enum.reverse(empty_partial_buffer(buffer, partial_buffer)), status}
       _ -> state
     end
 
