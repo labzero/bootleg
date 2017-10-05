@@ -8,8 +8,9 @@ defmodule Bootleg.Config do
 
   defmacro __using__(_) do
     quote do
-      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1, upload: 3]
+      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 1, config: 0,
+        before_task: 2, after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2,
+        remote: 3, load: 1, upload: 3]
     end
   end
 
@@ -95,6 +96,42 @@ defmodule Bootleg.Config do
   end
 
   @doc """
+  Fetches the value for the supplied key from the Bootleg configuration. If the provided
+  key is a `Tuple`, the first element is considered the key, the second value is considered
+  the default value (and returned without altering the config) in case the key has not
+  been set. This uses the same semantics as `Keyword.get/3`.
+
+  ```
+  use Bootleg.Config
+  config :foo, :bar
+  
+  # local_foo will be :bar
+  local_foo = config :foo
+
+  # local_foo will be :bar still, as :foo already has a value
+  local_foo = config {:foo, :car}
+
+  # local_hello will be :world, as :hello has not been defined yet
+  local_hello = config {:hello, :world}
+
+  config :hello, nil
+  # local_hello will be nil, as :hello has a value of nil now
+  local_hello = config {:hello, :world}
+  ```
+  """
+  defmacro config({key, default}) do
+    quote bind_quoted: binding() do
+      Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
+    end
+  end
+
+  defmacro config(key) do
+    quote bind_quoted: binding() do
+      Keyword.get(Bootleg.Config.Agent.get(:config), key)
+    end
+  end
+
+  @doc """
   Sets `key` in the Bootleg configuration to `value`.
 
   One of the cornerstones of the Bootleg DSL, `config/2` is used to pass configuration options
@@ -106,6 +143,7 @@ defmodule Bootleg.Config do
 
   config :app, :my_cool_app
   config :version, "1.0.0"
+  ```
   """
   defmacro config(key, value) do
     quote bind_quoted: binding() do

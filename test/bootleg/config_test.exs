@@ -516,7 +516,6 @@ defmodule Bootleg.ConfigTest do
       init: fn(role, options, filter) -> {role, options, filter} end,
       upload: fn(_conn, _local, _remote) -> :ok end,
     ] do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     role :foo, "never-used-foo.example.com"
@@ -594,5 +593,19 @@ defmodule Bootleg.ConfigTest do
     assert called SSH.init(:car, [], [db: :mysql])
     assert called SSH.upload({:foo, [], [db: :mysql]}, "the/local/path", "some/remote/path")
     assert called SSH.upload({:car, [], [db: :mysql]}, "the/local/path", "some/remote/path")
+  end
+
+  test "config/1" do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    refute config(:foo)
+    assert config({:foo, :bar}) == :bar
+    assert config({:foo, :car}) == :car
+    config(:foo, :war)
+    assert config(:foo) == :war
+    assert config({:foo, :bar}) == :war
+    config(:foo, nil)
+    assert config({:foo, :bar}) == nil
   end
 end
