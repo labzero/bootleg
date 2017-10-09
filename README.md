@@ -4,10 +4,10 @@
 
 Simple deployment and server automation for Elixir.
 
-**Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deploy scenarios with one common set of commands.
+**Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
 
-Out of the box, Bootleg provides remote build and remote server automation for your existing [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a `git` repository and some of the build steps use this assumption
-to handle code in some steps of the build process. If you are using an scm other than git, please consider contributing to Bootleg to
+Out of the box, Bootleg provides remote build and remote server automation for your [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a **git** repository and some of the build steps use this assumption
+to handle code within the build process. If you are using another source control management (SCM) tool please consider contributing to Bootleg to
 add additional support.
 
 ## Installation
@@ -23,7 +23,6 @@ end
 
 In order to build your project, Bootleg requires that your build server be set up to compile
 Elixir code. Make sure you have already installed Elixir on any build server you define.
-
 
 ## Quick Start
 
@@ -395,11 +394,14 @@ end
 
 ## Phoenix Support
 
-Bootleg builds elixir apps, if your application has extra steps required make use of the hooks
+If your application has extra steps required, you may make use of the hooks
 system to add additional functionality. A common case is for building assets for Phoenix
-applications. To build phoenix assets during your build, include the additional package
-`bootleg_phoenix` to your `deps` list. This will automatically perform the additional steps required
-for building phoenix releases.
+applications.
+
+### Using the bootleg_phoenix package
+
+To run these steps automatically you may include the additional package
+`bootleg_phoenix` in your `deps` list. This package provides the build hook commands required to build most (but not all) Phoenix releases.
 
 ```elixir
 # mix.exs
@@ -410,14 +412,32 @@ def deps do
 end
 ```
 
-For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
+See also: [labzero/bootleg_phoenix](https://github.com/labzero/bootleg_phoenix).
 
-## Sharing Tasks
+### Using your own deploy configuration and hooks
 
-Sharing is a good thing. We love to share, especially awesome code we write. Bootleg supports loading
-tasks from packages in a manner very similar to `Mix.Task`. Just define your module under `Bootleg.Tasks`,
-`use Bootleg.Task` and pass it a block of Bootleg DSL. The contents will be discovered and executed
-automatically at launch.
+Similar to how `bootleg_phoenix` is implemented, you can make use of the hooks system to run some commands on the build server around compile time.
+
+```elixir
+task :phoenix_digest do
+  remote :build do
+    "npm install"
+    "./node_modules/brunch/bin/brunch b -p"
+    "MIX_ENV=prod mix phoenix.digest"
+  end
+  UI.info "Phoenix asset digest generated"
+end
+
+after_task :compile, :phoenix_digest
+```
+
+
+## Task Providers
+
+Sharing is a good thing. Bootleg supports loading
+tasks from packages in a manner very similar to `Mix.Task`. 
+
+You can create and share custom tasks by namespacing a module under `Bootleg.Tasks` and passing a block of Bootleg DSL:
 
 ```elixir
 defmodule Bootleg.Tasks.Foo do
@@ -431,30 +451,27 @@ defmodule Bootleg.Tasks.Foo do
 end
 ```
 
-See `Bootleg.Task` for more details.
+See also: [Bootleg.Task](https://hexdocs.pm/bootleg/Bootleg.Task.html#content) for additional examples.
 
 ## Help
 
-If something goes wrong, retry with the `--verbose` option.
 For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
+
+We're usually around on Slack where you can find us on [elixir-lang's #bootleg channel](http://elixir-lang.slack.com/messages/bootleg/) if you have any questions.
 
 -----
 
 ## Acknowledgments
 
 Bootleg makes heavy use of the [bitcrowd/SSHKit.ex](https://github.com/bitcrowd/sshkit.ex)
-library under the hood. We would like to acknowledge the effort from the bitcrowd team that went into
-creating SSHKit.ex as well as for them prioritizing our requests and providing a chance to collaborate
-on ideas for both the SSHKit.ex and Bootleg projects.
+library under the hood. We are very appreciative of the efforts of the bitcrowd team for both creating SSHKit.ex and being so attentive to our requests. We're also grateful for the opportunity to collaborate
+on ideas for both projects!
 
 ## Contributing
 
-We welcome everyone to contribute to Bootleg and help us tackle existing issues!
+We welcome all contributions to Bootleg, whether they're improving the documentation, implementing features, reporting issues or suggesting new features.
 
-Use the [issue tracker][issues] for bug reports or feature requests.
-Open a [pull request][pulls] when you are ready to contribute.
-
-If you are planning to contribute documentation, please check
+If you'd like to contribute documentation, please check
 [the best practices for writing documentation][writing-docs].
 
 
