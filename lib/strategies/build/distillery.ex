@@ -15,8 +15,8 @@ defmodule Bootleg.Strategies.Build.Distillery do
   def build do
     conn = init()
 
-    mix_env = Config.get_config(:mix_env, "prod")
-    refspec = Config.get_config(:refspec, "master")
+    mix_env = config({:mix_env, "prod"})
+    refspec = config({:refspec, "master"})
     invoke :clean
     :ok = git_push(conn, refspec)
     git_reset_remote(conn, refspec)
@@ -50,7 +50,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
       _         -> "ssh://#{user_host_port}/~/#{workspace}"
     end
 
-    push_options = Config.get_config(:push_options, "-f")
+    push_options = config({:push_options, "-f"})
     git_env = git_env(options)
 
     UI.info "Pushing new commits with git to: #{user_host_port}"
