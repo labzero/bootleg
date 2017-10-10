@@ -38,6 +38,7 @@ defmodule Bootleg.SSH do
     workspace = Keyword.get(options, :workspace, ".")
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
+    should_replace_os_vars = Keyword.get(options, :replace_os_vars, true)
     UI.puts "Creating remote context at '#{workspace}'"
 
     :ssh.start()
@@ -46,6 +47,7 @@ defmodule Bootleg.SSH do
     |> List.wrap()
     |> Enum.map(&ssh_host_options/1)
     |> SSHKit.context()
+    |> replace_os_vars(should_replace_os_vars)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
   end
@@ -94,6 +96,14 @@ defmodule Bootleg.SSH do
       :absolute -> %Context{context | path: path}
       _ -> %Context{context | path: Path.join(context.path, path)}
     end
+  end
+
+  defp replace_os_vars(context, true) do
+    SSHKit.env(context, %{"REPLACE_OS_VARS" => "true"})
+  end
+
+  defp replace_os_vars(context, _) do
+    context
   end
 
   @last_new_line ~r/\A(?<bulk>.*)((?<newline>\n)(?<remainder>[^\n]*))?\z/msU

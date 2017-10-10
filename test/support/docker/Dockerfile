@@ -5,7 +5,6 @@ FROM bitwalker/alpine-elixir:latest
 
 RUN echo http://dl-cdn.alpinelinux.org/alpine/edge/main >> /etc/apk/repositories
 RUN apk update
-RUN apk upgrade
 RUN apk add --update --no-cache openssh sudo git perl-utils bash
 RUN ssh-keygen -A
 RUN printf "PermitUserEnvironment yes\n" >> /etc/ssh/sshd_config

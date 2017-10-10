@@ -138,6 +138,7 @@ by Bootleg:
   * `password` - ssh password
   * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
+  * `replace_os_vars` - controls the `REPLACE_OS_VARS` environment variable used by Distillery for release configuration (default `true`)
 
 #### Examples
 
