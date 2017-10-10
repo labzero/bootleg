@@ -401,7 +401,7 @@ applications.
 ### Using the bootleg_phoenix package
 
 To run these steps automatically you may include the additional package
-`bootleg_phoenix` in your `deps` list. This package provides the build hook commands required to build most (but not all) Phoenix releases.
+`bootleg_phoenix` in your `deps` list. This package provides the build hook commands required to build most Phoenix releases.
 
 ```elixir
 # mix.exs
