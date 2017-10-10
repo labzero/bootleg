@@ -151,9 +151,7 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
-  @tag ui_verbosity: :silent
   test "returns output in whole line increments", %{hosts: [host]} do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     role :node, host.ip, port: host.port, user: host.user,
@@ -173,6 +171,23 @@ defmodule Bootleg.SSHFunctionalTest do
       end)
       assert Enum.sum(chunk_sums) == (n * (n + 1)) / 2 # ensure no bytes got shifted
       assert :crypto.hash_final(digest) == checksum # ensure no bytes got lost
+    end)
+  end
+
+  test "replace os vars", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    role :default_replace, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path
+
+    role :no_replace, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path,
+      replace_os_vars: false
+
+    capture_io(fn ->
+      assert [{:ok, [stdout: "true"], 0, _}] = remote :default_replace, "echo -n ${REPLACE_OS_VARS}"
+      assert [{:ok, [], 0, _}] = remote :no_replace, "echo -n ${REPLACE_OS_VARS}"
     end)
   end
 end

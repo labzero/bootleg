@@ -52,7 +52,14 @@ defmodule Bootleg.Config do
       |> Keyword.put(:user, user)
       # identity needs to be present in both options lists
       |> Keyword.put(:identity, ssh_options[:identity])
-      |> Enum.filter(fn {_, v} -> v end)
+      |> Keyword.get_and_update(:identity, fn val ->
+          if val || Keyword.has_key?(ssh_options, :identity) do
+            {val, val || ssh_options[:identity]}
+          else
+            :pop
+          end
+        end)
+      |> elem(1)
 
     quote bind_quoted: binding() do
       hosts =
