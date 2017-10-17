@@ -215,6 +215,13 @@ defmodule Bootleg.SSH do
     orig
   end
   def merge_run_results(new, orig) when is_list(orig) do
+    delta = length(new) - length(orig)
+    entries = List.duplicate([], abs(delta))
+    {new, orig} = if delta > 0 do
+        {new, orig ++ entries}
+      else
+        {new ++ entries, orig}
+      end
     new
     |> Enum.zip(orig)
     |> Enum.map(fn {n, o} ->

@@ -53,6 +53,8 @@ defmodule Bootleg.SSHTest do
     assert [1, 2] = SSH.merge_run_results([1, 2], [])
     assert [[1, 2]] = SSH.merge_run_results([[1, 2]], [])
     assert [[1, 2]] = SSH.merge_run_results([], [[1, 2]])
+    assert [[2, 1], [4]] = SSH.merge_run_results([1], [2, 4])
+    assert [[1, 2], [4]] = SSH.merge_run_results([2, 4], [1])
   end
 
   test "supported_options/0" do
