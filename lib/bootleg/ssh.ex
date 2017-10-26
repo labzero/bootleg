@@ -171,8 +171,9 @@ defmodule Bootleg.SSH do
 
   def download(conn, remote_path, local_path) do
     UI.puts_download conn, remote_path, local_path
-    case SSHKit.download(conn, remote_path, as: local_path) do
+    case SSHKit.download(conn, remote_path, as: local_path, recursive: true) do
       [:ok|_] -> :ok
+      [] -> :ok
       [{_, msg}|_] -> raise "SCP download error: #{msg}"
     end
   end

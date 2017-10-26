@@ -121,6 +121,22 @@ defmodule Bootleg.ConfigFunctionalTest do
     end)
   end
 
+  @tag boot: 3
+  test "remote/2 multiple roles/hosts" do
+    capture_io(fn ->
+      use Bootleg.Config
+
+      assert [{:ok, [stdout: host_1], 0, _}, {:ok, [stdout: host_2], 0, _}] = remote :build, do: "hostname"
+      refute host_1 == host_2
+
+      assert [
+        [{:ok, [stdout: host_1], 0, _},
+        {:ok, [stdout: host_2], 0, _}],
+        [{:ok, [stdout: host_3], 0, _}]] = remote [:build, :app], do: "hostname"
+      refute host_1 == host_2 == host_3
+    end)
+  end
+
   test "remote/2 fails remotely" do
     use Bootleg.Config
 
@@ -219,7 +235,6 @@ defmodule Bootleg.ConfigFunctionalTest do
 
       invoke :upload_role_filtered
       assert_raise SSHError, fn ->
-        # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
         use Bootleg.Config
         remote :all, do: "grep '^upload_role_filtered$' role_filtered"
       end
@@ -235,6 +250,141 @@ defmodule Bootleg.ConfigFunctionalTest do
       remote :app, do: "grep '^absolute$' /tmp/absolute"
 
       invoke :upload_preserve_name
+    end)
+  end
+
+  @tag boot: 3
+  test "download/3" do
+    capture_io(fn ->
+      # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+      use Bootleg.Config
+
+      path = Temp.mkdir!("download")
+
+      # single file, single role and host
+      remote :app, do: "echo -n download_single_role >> download_single_role"
+      download :app, "download_single_role", path
+
+      assert {:ok, "download_single_role"} = File.read(Path.join(path, "download_single_role"))
+
+      # single file, single role, multiple hosts
+      remote :build, do: "hostname >> download_single_role_multi_host"
+      [_, {:ok, [stdout: host], 0, _}] = remote :build, do: "hostname"
+      download :build, "download_single_role_multi_host", path
+
+      assert {:ok, ^host} = File.read(Path.join(path, "download_single_role_multi_host"))
+
+      # single file, multiple roles/hosts
+      remote [:build, :app], do: "hostname >> download_multi_role"
+      [[_, _], [{:ok, [stdout: host], 0, _}]] = remote [:build, :app], do: "hostname"
+      download :build, "download_multi_role", path
+
+      assert {:ok, ^host} = File.read(Path.join(path, "download_multi_role"))
+
+      # single file, :all role (multiple hosts)
+      remote :all, do: "hostname >> download_all_role"
+      [[_, _], [{:ok, [stdout: host], 0, _}]] = remote :all, do: "hostname"
+      download :all, "download_all_role", path
+      assert {:ok, ^host} = File.read(Path.join(path, "download_all_role"))
+
+      # single file, filtered role
+      remote :all, [filter: [foo: :bar]], "hostname >> download_role_filtered"
+      [{:ok, [stdout: host], 0, _}] = remote :all, [filter: [foo: :bar]], "hostname"
+      download [:all, foo: :bar], "download_role_filtered", path
+      assert {:ok, ^host} = File.read(Path.join(path, "download_role_filtered"))
+
+      # recursively download directory
+      remote :app do
+        "mkdir -p to_download"
+        "mkdir -p to_download/deep/deeper"
+        "touch to_download/foo"
+        "touch to_download/bar"
+        "hostname >> to_download/hostname"
+        "uname -a >> to_download/deep/deeper/the_depths"
+      end
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      download :app, "to_download", path
+      to_download_path = Path.join(path, "to_download")
+      assert {:ok, ^host} = File.read(Path.join(to_download_path, "hostname"))
+      assert {:ok, ""} = File.read(Path.join(to_download_path, "foo"))
+      assert {:ok, ""} = File.read(Path.join(to_download_path, "bar"))
+      assert {:ok, uname} = to_download_path
+        |> Path.join("deep")
+        |> Path.join("deeper")
+        |> Path.join("the_depths")
+        |> File.read
+      assert String.match?(uname, ~r{Linux})
+
+      # remote absolute path
+      remote :app, "hostname >> /tmp/download_abs"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      download :app, "/tmp/download_abs", path
+      assert {:ok, ^host} = File.read(Path.join(path, "download_abs"))
+
+      # remote absolute path with local rename
+      remote :app, "hostname >> /tmp/download_alt_name"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      download :app, "/tmp/download_alt_name", Path.join(path, "new_name")
+      assert {:ok, ^host} = File.read(Path.join(path, "new_name"))
+
+      # a single missing directory will be created
+      remote :app do
+        "mkdir -p /tmp/download_dir"
+        "hostname >> /tmp/download_dir/a_file"
+      end
+
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+
+      to_download_path = Path.join(path, "not_a_dir")
+      download :app, "/tmp/download_dir", to_download_path
+      assert {:ok, ^host} = File.read(Path.join(to_download_path, "a_file"))
+
+      # nested local directories are not created
+      remote :app do
+        "mkdir -p /tmp/download_dir_deep"
+        "hostname >> /tmp/download_dir_deep/a_file"
+      end
+
+      to_download_path = path
+        |> Path.join("not_a_dir_error")
+        |> Path.join("deeper_still")
+      assert_raise File.Error, fn ->
+        download :app, "/tmp/download_dir_deep", to_download_path
+      end
+      assert_raise File.Error, fn ->
+        download :app, "/tmp/download_dir_deep/a_file", to_download_path
+      end
+
+      # local file is clobbered
+      remote :app, "hostname >> /tmp/download_dir_local_exists"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      to_download_path = Path.join(path, "i_exist")
+      File.write!(to_download_path, "some content")
+      download :app, "/tmp/download_dir_local_exists", to_download_path
+      assert {:ok, ^host} = File.read(to_download_path)
+
+      # local directories will be respected
+      remote :app, "hostname >> /tmp/download_dir_exists"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      to_download_path = Path.join(path, "dir_exists")
+      File.mkdir!(to_download_path)
+      download :app, "/tmp/download_dir_exists", to_download_path
+      assert {:ok, ^host} = File.read(Path.join(to_download_path, "download_dir_exists"))
+
+      # trailing slashes are ignored
+      remote :app, "hostname >> /tmp/download_force_dir"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      to_download_path = Path.join(path, "forced_dir") <> "/"
+      download :app, "/tmp/download_force_dir", to_download_path
+      assert {:ok, ^host} = File.read(Path.join(path, "forced_dir"))
+
+      # trailing current directory characters are not respected
+      remote :app, "hostname >> /tmp/download_force_current_dir"
+      [{:ok, [stdout: host], 0, _}] = remote :app, "hostname"
+      to_download_path = Path.join(path, "forced_current_dir")
+      download :app, "/tmp/download_force_current_dir", to_download_path <> "/."
+      assert {:error, :enotdir} = File.read(Path.join(to_download_path, "download_force_current_dir"))
+      assert {:ok, ^host} = File.read(Path.join(path, "forced_current_dir"))
     end)
   end
 end
