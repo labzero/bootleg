@@ -10,7 +10,7 @@ defmodule Bootleg.Config do
     quote do
       import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 1, config: 0,
         before_task: 2, after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2,
-        remote: 3, load: 1, upload: 3]
+        remote: 3, load: 1, upload: 3, download: 3]
     end
   end
 
@@ -444,10 +444,10 @@ defmodule Bootleg.Config do
   # runs for hosts found in :build first, then for hosts in :app
   remote [:build, :app], do: "hostname"
 
-  # only runs on `host1.example.com`
   role :build, "host2.example.com"
-  role :build, "host1.example.com", filter: [primary: true, another_attr: :cat]
+  role :build, "host1.example.com", primary: true, another_attr: :cat
 
+  # only runs on `host1.example.com`
   remote :build, filter: [primary: true] do
     "hostname"
   end
@@ -532,6 +532,59 @@ defmodule Bootleg.Config do
         role
         |> SSH.init([], filters)
         |> SSH.upload(local_path, remote_path)
+      end)
+    end
+  end
+
+  @doc """
+  Downloads files from remote hosts to the local machine.
+
+  Downloading works much like `remote/3`, but instead of transferring shell commands over SSH,
+  it transfers files via SCP. The remote host does need to support SCP, which should be provided
+  by most SSH implementations automatically.
+
+  `role` can either be a single role name, a list of roles, or a list of roles and filter
+  attributes. The special `:all` role is also supported. See `remote/3` for details. Note that
+  if multiple hosts match, files will be downloaded from all matching hosts, and any duplicate
+  file names will result in collisions. The exact semantics of how that works are handled by
+  `SSHKit.SCP`, but in general the file transfered last wins.
+
+  `local_path` is a path to local directory or file where the downloaded files(s) should be placed.
+  Absolute paths will be respected, relative paths will be resolved relative to the current working
+  directory of the invoking shell. If the `local_path` does not exist in the local file system, an
+  attempt will be made to create the missing directory. This does not handle nested directories,
+  and a `File.Error` will be raised.
+
+  `remote_path` is the file or directory to be copied from the remote hosts. If a directory is
+  specified, its contents will be recursively copied. Relative paths will be resolved relative to
+  the remote workspace, absolute paths will be respected.
+
+  The files on the local host are created using the current user's `uid`/`gid` and `umask`.
+
+  ```
+  use Bootleg.Config
+
+  # copies ./my_file from the remote host to ./new_name locally
+  download :app, "my_file", "new_name"
+
+  # copies ./my_file from the remote host to the file ./a_dir/my_file locally
+  download :app, "my_file", "a_dir"
+
+  # recursively copies ./some_dir on the remote host to ./new_dir locally, ./new_dir
+  # will be created if missing
+  download :app, "some_dir", "new_dir"
+
+  # copies /foo/my_file on the remote host to /tmp/foo locally
+  download :app, "/foo/my_file", "/tmp/foo"
+  """
+  defmacro download(role, remote_path, local_path) do
+    {roles, filters} = split_roles_and_filters(role)
+    roles = unpack_role(roles)
+    quote bind_quoted: binding() do
+      Enum.each(roles, fn role ->
+        role
+        |> SSH.init([], filters)
+        |> SSH.download(remote_path, local_path)
       end)
     end
   end
