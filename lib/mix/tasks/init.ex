@@ -41,9 +41,9 @@ defmodule Mix.Tasks.Bootleg.Init do
   #  ```
   #  # mix.exs
   #  def deps do
-  #    [{:distillery, "~> 1.3"},
-  #    {:bootleg, "~> 0.5"},
-  #    {:bootleg_phoenix, "~> 0.1"}]
+  #    [{:distillery, "~> 1.5"},
+  #    {:bootleg, "~> 0.6"},
+  #    {:bootleg_phoenix, "~> 0.2"}]
   #  end
   #  ```
   # For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix

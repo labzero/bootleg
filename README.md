@@ -14,8 +14,8 @@ add additional support.
 
 ```
 def deps do
-  [{:distillery, "~> 1.3",
-   {:bootleg, "~> 0.5"}]
+  [{:distillery, "~> 1.5",
+   {:bootleg, "~> 0.6"}]
 end
 ```
 
@@ -407,9 +407,9 @@ To run these steps automatically you may include the additional package
 ```elixir
 # mix.exs
 def deps do
-  [{:distillery, "~> 1.3"},
-  {:bootleg, "~> 0.5"},
-  {:bootleg_phoenix, "~> 0.1"}]
+  [{:distillery, "~> 1.5"},
+  {:bootleg, "~> 0.6"},
+  {:bootleg_phoenix, "~> 0.2"}]
 end
 ```
 
