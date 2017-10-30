@@ -516,7 +516,6 @@ defmodule Bootleg.ConfigTest do
       init: fn(role, options, filter) -> {role, options, filter} end,
       upload: fn(_conn, _local, _remote) -> :ok end,
     ] do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     role :foo, "never-used-foo.example.com"
@@ -594,5 +593,74 @@ defmodule Bootleg.ConfigTest do
     assert called SSH.init(:car, [], [db: :mysql])
     assert called SSH.upload({:foo, [], [db: :mysql]}, "the/local/path", "some/remote/path")
     assert called SSH.upload({:car, [], [db: :mysql]}, "the/local/path", "some/remote/path")
+  end
+
+  test "config/1" do
+    use Bootleg.Config
+
+    refute config(:foo)
+    assert config({:foo, :bar}) == :bar
+    assert config({:foo, :car}) == :car
+    config(:foo, :war)
+    assert config(:foo) == :war
+    assert config({:foo, :bar}) == :war
+    config(:foo, nil)
+    assert config({:foo, :bar}) == nil
+  end
+
+  test_with_mock "download/3", SSH, [:passthrough], [
+      init: fn(role, options, filter) -> {role, options, filter} end,
+      download: fn(_conn, _remote, _local) -> :ok end,
+    ] do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    role :foo, "never-used-foo.example.com"
+    role :car, "never-used-bar.example.com"
+
+    download :foo, "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.download({:foo, [], []}, "some/remote/path", "the/local/path")
+
+    download [:foo, :bar], "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.init(:bar, [], [])
+    assert called SSH.download({:foo, [], []}, "some/remote/path", "the/local/path")
+    assert called SSH.download({:bar, [], []}, "some/remote/path", "the/local/path")
+
+    download :all, "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [])
+    assert called SSH.init(:car, [], [])
+    assert called SSH.download({:foo, [], []}, "some/remote/path", "the/local/path")
+    assert called SSH.download({:car, [], []}, "some/remote/path", "the/local/path")
+
+    download [:foo, primary: true], "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [primary: true])
+    assert called SSH.download({:foo, [], [primary: true]}, "some/remote/path", "the/local/path")
+
+    download [:foo, :bar, primary: true], "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [primary: true])
+    assert called SSH.init(:bar, [], [primary: true])
+    assert called SSH.download({:foo, [], [primary: true]}, "some/remote/path", "the/local/path")
+    assert called SSH.download({:bar, [], [primary: true]}, "some/remote/path", "the/local/path")
+
+    download [:foo, :bar, primary: true, db: :mysql], "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [primary: true, db: :mysql])
+    assert called SSH.init(:bar, [], [primary: true, db: :mysql])
+    assert called SSH.download({:foo, [], [primary: true, db: :mysql]}, "some/remote/path", "the/local/path")
+    assert called SSH.download({:bar, [], [primary: true, db: :mysql]}, "some/remote/path", "the/local/path")
+
+    download [:all, db: :mysql], "some/remote/path", "the/local/path"
+
+    assert called SSH.init(:foo, [], [db: :mysql])
+    assert called SSH.init(:car, [], [db: :mysql])
+    assert called SSH.download({:foo, [], [db: :mysql]}, "some/remote/path", "the/local/path")
+    assert called SSH.download({:car, [], [db: :mysql]}, "some/remote/path", "the/local/path")
   end
 end

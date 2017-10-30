@@ -100,7 +100,6 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/3 working directory option", %{hosts: [host]} do
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
 
     role :valid_workspace, host.ip, port: host.port, user: host.user,
@@ -149,6 +148,46 @@ defmodule Bootleg.SSHFunctionalTest do
       assert :ok == SSH.download(conn, "/etc/hosts", path)
       assert File.regular?(path)
       File.rm!(path)
+    end)
+  end
+
+  test "returns output in whole line increments", %{hosts: [host]} do
+    use Bootleg.Config
+
+    role :node, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path
+
+    n = 100_000
+    digest = :crypto.hash_init(:sha256)
+    checksum = :crypto.hash(:sha256, Enum.join(Enum.map(1..n, fn i -> "#{i}\n" end)))
+
+    capture_io(fn ->
+      [{:ok, data, 0, _}] = remote :node, "seq 1 #{n}"
+      {chunk_sums, digest} = Enum.map_reduce(data, digest, fn ({_, bytes}, digest) ->
+        assert :binary.last(bytes) == 0x0A # ensure the chunk is well formed
+        digest = :crypto.hash_update(digest, bytes)
+        {lines, _} = String.split_at(bytes, -1)
+        {Enum.sum(Enum.map(String.split(lines, "\n"), &String.to_integer/1)), digest}
+      end)
+      assert Enum.sum(chunk_sums) == (n * (n + 1)) / 2 # ensure no bytes got shifted
+      assert :crypto.hash_final(digest) == checksum # ensure no bytes got lost
+    end)
+  end
+
+  test "replace os vars", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    role :default_replace, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path
+
+    role :no_replace, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path,
+      replace_os_vars: false
+
+    capture_io(fn ->
+      assert [{:ok, [stdout: "true"], 0, _}] = remote :default_replace, "echo -n ${REPLACE_OS_VARS}"
+      assert [{:ok, [], 0, _}] = remote :no_replace, "echo -n ${REPLACE_OS_VARS}"
     end)
   end
 end

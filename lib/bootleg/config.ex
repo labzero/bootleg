@@ -8,8 +8,9 @@ defmodule Bootleg.Config do
 
   defmacro __using__(_) do
     quote do
-      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 0, before_task: 2,
-        after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2, remote: 3, load: 1, upload: 3]
+      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 1, config: 0,
+        before_task: 2, after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2,
+        remote: 3, load: 1, upload: 3, download: 3]
     end
   end
 
@@ -51,7 +52,14 @@ defmodule Bootleg.Config do
       |> Keyword.put(:user, user)
       # identity needs to be present in both options lists
       |> Keyword.put(:identity, ssh_options[:identity])
-      |> Enum.filter(fn {_, v} -> v end)
+      |> Keyword.get_and_update(:identity, fn val ->
+          if val || Keyword.has_key?(ssh_options, :identity) do
+            {val, val || ssh_options[:identity]}
+          else
+            :pop
+          end
+        end)
+      |> elem(1)
 
     quote bind_quoted: binding() do
       hosts =
@@ -95,6 +103,42 @@ defmodule Bootleg.Config do
   end
 
   @doc """
+  Fetches the value for the supplied key from the Bootleg configuration. If the provided
+  key is a `Tuple`, the first element is considered the key, the second value is considered
+  the default value (and returned without altering the config) in case the key has not
+  been set. This uses the same semantics as `Keyword.get/3`.
+
+  ```
+  use Bootleg.Config
+  config :foo, :bar
+  
+  # local_foo will be :bar
+  local_foo = config :foo
+
+  # local_foo will be :bar still, as :foo already has a value
+  local_foo = config {:foo, :car}
+
+  # local_hello will be :world, as :hello has not been defined yet
+  local_hello = config {:hello, :world}
+
+  config :hello, nil
+  # local_hello will be nil, as :hello has a value of nil now
+  local_hello = config {:hello, :world}
+  ```
+  """
+  defmacro config({key, default}) do
+    quote bind_quoted: binding() do
+      Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
+    end
+  end
+
+  defmacro config(key) do
+    quote bind_quoted: binding() do
+      Keyword.get(Bootleg.Config.Agent.get(:config), key)
+    end
+  end
+
+  @doc """
   Sets `key` in the Bootleg configuration to `value`.
 
   One of the cornerstones of the Bootleg DSL, `config/2` is used to pass configuration options
@@ -106,6 +150,7 @@ defmodule Bootleg.Config do
 
   config :app, :my_cool_app
   config :version, "1.0.0"
+  ```
   """
   defmacro config(key, value) do
     quote bind_quoted: binding() do
@@ -399,10 +444,10 @@ defmodule Bootleg.Config do
   # runs for hosts found in :build first, then for hosts in :app
   remote [:build, :app], do: "hostname"
 
-  # only runs on `host1.example.com`
   role :build, "host2.example.com"
-  role :build, "host1.example.com", filter: [primary: true, another_attr: :cat]
+  role :build, "host1.example.com", primary: true, another_attr: :cat
 
+  # only runs on `host1.example.com`
   remote :build, filter: [primary: true] do
     "hostname"
   end
@@ -487,6 +532,59 @@ defmodule Bootleg.Config do
         role
         |> SSH.init([], filters)
         |> SSH.upload(local_path, remote_path)
+      end)
+    end
+  end
+
+  @doc """
+  Downloads files from remote hosts to the local machine.
+
+  Downloading works much like `remote/3`, but instead of transferring shell commands over SSH,
+  it transfers files via SCP. The remote host does need to support SCP, which should be provided
+  by most SSH implementations automatically.
+
+  `role` can either be a single role name, a list of roles, or a list of roles and filter
+  attributes. The special `:all` role is also supported. See `remote/3` for details. Note that
+  if multiple hosts match, files will be downloaded from all matching hosts, and any duplicate
+  file names will result in collisions. The exact semantics of how that works are handled by
+  `SSHKit.SCP`, but in general the file transfered last wins.
+
+  `local_path` is a path to local directory or file where the downloaded files(s) should be placed.
+  Absolute paths will be respected, relative paths will be resolved relative to the current working
+  directory of the invoking shell. If the `local_path` does not exist in the local file system, an
+  attempt will be made to create the missing directory. This does not handle nested directories,
+  and a `File.Error` will be raised.
+
+  `remote_path` is the file or directory to be copied from the remote hosts. If a directory is
+  specified, its contents will be recursively copied. Relative paths will be resolved relative to
+  the remote workspace, absolute paths will be respected.
+
+  The files on the local host are created using the current user's `uid`/`gid` and `umask`.
+
+  ```
+  use Bootleg.Config
+
+  # copies ./my_file from the remote host to ./new_name locally
+  download :app, "my_file", "new_name"
+
+  # copies ./my_file from the remote host to the file ./a_dir/my_file locally
+  download :app, "my_file", "a_dir"
+
+  # recursively copies ./some_dir on the remote host to ./new_dir locally, ./new_dir
+  # will be created if missing
+  download :app, "some_dir", "new_dir"
+
+  # copies /foo/my_file on the remote host to /tmp/foo locally
+  download :app, "/foo/my_file", "/tmp/foo"
+  """
+  defmacro download(role, remote_path, local_path) do
+    {roles, filters} = split_roles_and_filters(role)
+    roles = unpack_role(roles)
+    quote bind_quoted: binding() do
+      Enum.each(roles, fn role ->
+        role
+        |> SSH.init([], filters)
+        |> SSH.download(remote_path, local_path)
       end)
     end
   end
