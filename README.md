@@ -63,7 +63,7 @@ Create and configure Bootleg's `config/deploy.exs` file:
 # config/deploy.exs
 use Bootleg.Config
 
-role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :build, "build.example.com", user, "build", port: 2222, workspace: "/tmp/build/myapp"
 role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
@@ -88,7 +88,7 @@ end
 
 after_task :deploy, :my_nifty_thing
 
-role :build, "build.example.com", user, "build", port: "2222", workspace: "/tmp/build/myapp"
+role :build, "build.example.com", user, "build", port: 2222, workspace: "/tmp/build/myapp"
 ```
 
 ```elixir
