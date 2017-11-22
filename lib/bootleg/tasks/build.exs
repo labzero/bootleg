@@ -29,6 +29,9 @@ task :compile do
   mix_env = config({:mix_env, "prod"})
   UI.info "Compiling remote build"
   remote :build do
+    "MIX_ENV=#{mix_env} mix local.rebar --force"
+    "MIX_ENV=#{mix_env} mix local.hex --force"
+    "MIX_ENV=#{mix_env} mix deps.get --only=prod"
     "MIX_ENV=#{mix_env} mix deps.compile"
     "MIX_ENV=#{mix_env} mix compile"
   end

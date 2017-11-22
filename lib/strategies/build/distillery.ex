@@ -21,7 +21,7 @@ defmodule Bootleg.Strategies.Build.Distillery do
     :ok = git_push(conn, refspec)
     git_reset_remote(conn, refspec)
     git_clean_remote(conn)
-    get_and_update_deps(conn, mix_env)
+    # get_and_update_deps(conn, mix_env)
     invoke :compile
     invoke :generate_release
     download_release_archive(conn, mix_env)
@@ -113,17 +113,17 @@ defmodule Bootleg.Strategies.Build.Distillery do
     ssh
   end
 
-  defp get_and_update_deps(ssh, mix_env) do
-    UI.info "Fetching / Updating dependencies"
-    commands = [
-      "mix local.rebar --force",
-      "mix local.hex --force",
-      "mix deps.get --only=prod"
-    ]
-    commands = Enum.map(commands, &(with_env_vars(mix_env, &1)))
-    # clean fetch of dependencies on the remote build host
-    SSH.run!(ssh, commands)
-  end
+  # defp get_and_update_deps(ssh, mix_env) do
+  #   UI.info "Fetching / Updating dependencies"
+  #   commands = [
+  #     "mix local.rebar --force",
+  #     "mix local.hex --force",
+  #     "mix deps.get --only=prod"
+  #   ]
+  #   commands = Enum.map(commands, &(with_env_vars(mix_env, &1)))
+  #   # clean fetch of dependencies on the remote build host
+  #   SSH.run!(ssh, commands)
+  # end
 
   defp with_env_vars(mix_env, cmd) do
     "MIX_ENV=#{mix_env} #{cmd}"
