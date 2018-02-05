@@ -203,7 +203,7 @@ defmodule Bootleg.SSH do
   our SSH options have already been filtered by the role configuration.
   """
   def ssh_transform_opt({:identity, identity_file}, options) do
-    identity = File.open!(identity_file)
+    identity = File.open!(Path.expand(identity_file))
     key_cb =
       options
       |> Enum.map(&ssh_opt/1)
