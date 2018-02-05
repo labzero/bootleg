@@ -13,6 +13,24 @@ defmodule Bootleg.UI do
   end
 
   @doc """
+  Prints a message and prompts the user for input.
+  Input will be consumed until Enter is pressed.
+  """
+  def prompt(message) do
+    IO.gets(message <> " ")
+  end
+
+  @doc """
+  Prints a message and asks the user if they want to proceed.
+  The user must press Enter or type one of "y", "yes", "Y", "YES" or
+  "Yes".
+  """
+  def yes?(message) do
+    answer = IO.gets(message <> " [Yn] ")
+    is_binary(answer) and String.trim(answer) in ["", "y", "Y", "yes", "YES", "Yes"]
+  end
+
+  @doc """
   Allow specifying output verbosity level
   """
   def puts(level, output, setting \\ nil) do
