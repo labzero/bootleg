@@ -8,6 +8,12 @@ defmodule Bootleg.SSHTest do
   doctest SSH
 
   setup do
+    tmp_file_path = "/tmp/bootleg_test_key_rsa"
+    File.touch(tmp_file_path)
+    on_exit fn ->
+      File.rm tmp_file_path
+    end
+
     %{
       conn: %Context{
         path: ".",
@@ -15,7 +21,8 @@ defmodule Bootleg.SSHTest do
           %Host{host: %SSHKitHost{name: "localhost.1", options: []}, options: []},
           %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
         ]
-      }
+      },
+      blank_key_path: tmp_file_path
     }
   end
 
@@ -45,6 +52,33 @@ defmodule Bootleg.SSHTest do
         SSH.ssh_host_options(host)
       end
     end)
+  end
+
+  test "ssh_opts/1 discards nil value options" do
+    options = [port: nil, user: "foobar"]
+    assert [user: "foobar"] == SSH.ssh_opts(options)
+  end
+
+  test "ssh_opts/1 allows arbitrary options" do
+    options = [foobar: true, user: "foobar"]
+    assert [foobar: true, user: "foobar"] == SSH.ssh_opts(options)
+  end
+
+  test "ssh_opts/1 discards identity with nil value" do
+    options = [identity: nil]
+    assert [] == SSH.ssh_opts(options)
+  end
+
+  test "ssh_opts/1 with identity returns a key callback", %{blank_key_path: blank_key_path} do
+    options = [identity: blank_key_path]
+    [key_cb: {SSHClientKeyAPI, _}] = SSH.ssh_opts(options)
+  end
+
+  test "ssh_opts/1 with identity and options returns a key callback with same options", %{blank_key_path: blank_key_path} do
+    options = [identity: blank_key_path, silently_accept_hosts: false]
+    [key_cb: {SSHClientKeyAPI, keyopts}, silently_accept_hosts: false] = SSH.ssh_opts(options)
+    map_opts = Enum.into(keyopts, %{})
+    %{silently_accept_hosts: false} = map_opts
   end
 
   test "merge_run_results/2" do
