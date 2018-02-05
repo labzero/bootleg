@@ -1,8 +1,8 @@
-defmodule Bootleg.Strategies.Build.DistilleryTest do
+defmodule Bootleg.Tasks.BuildTaskTest do
   use Bootleg.TestCase, async: false
   import ExUnit.CaptureIO
   import Mock
-  alias Bootleg.{SSH, Git, Config, Strategies.Build.Distillery}
+  alias Bootleg.{SSH, Git, Config}
 
   test "building without specified port" do
     use Bootleg.Config
@@ -37,7 +37,7 @@ defmodule Bootleg.Strategies.Build.DistilleryTest do
       }
     ]) do
       capture_io(fn ->
-        Distillery.build()
+        invoke :build
         assert_received :git_push_with_port
       end)
     end
