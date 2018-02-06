@@ -15,7 +15,7 @@ add additional support.
 ```
 def deps do
   [{:distillery, "~> 1.5"},
-   {:bootleg, "~> 0.6"}]
+   {:bootleg, "~> 0.7"}]
 end
 ```
 
