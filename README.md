@@ -236,15 +236,33 @@ operations before or after certain actions performed by Bootleg.
 Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
 before or after a task. The following tasks are provided by Bootleg:
 
-1. `build` - build process for creating a release package
-  1. `clean` - cleans the remote workspace
-  2. `compile` - compilation of your project
-  3. `generate_release` - generation of the release package
-2. `deploy` - deploy of a release package
-3. `start` - starting of a release
-4. `stop` - stopping of a release
-5. `restart` - restarting of a release
-6. `ping` - check connectivity to a deployed app
+### Build Tasks
+* `build` - build process for creating a release package
+  * `init` - sets up a bare repository for pushing code to
+  * `clean` - cleans the remote workspace
+  * `push_remote` - pushes code to build server
+  * `reset_remote` - checks out the branch specified by `refspec` option (defaults to `master`)
+  * `compile` - compilation of your project
+  * `generate_release` - generation of the release package
+  * `download_release` - pulls down the release archive
+
+### Deployment Tasks
+* `deploy` - deploy of a release package
+  * `upload_release`
+  * `unpack_release`
+
+### Build and Deploy
+* `update`
+  * `build`
+  * `deploy`
+  * `stop_silent`
+  * `start`
+
+### Management tasks
+* `start` - starting of a release
+* `stop` - stopping of a release
+* `restart` - restarting of a release
+* `ping` - check connectivity to a deployed app
 
 Hooks can be defined for any task (built-in or user defined), even ones that do not exist. This can be used
 to create an "event" that you want to respond to, but has no real "implementation".
@@ -420,18 +438,16 @@ See also: [labzero/bootleg_phoenix](https://github.com/labzero/bootleg_phoenix).
 Similar to how `bootleg_phoenix` is implemented, you can make use of the hooks system to run some commands on the build server around compile time.
 
 ```elixir
-task :phoenix_digest do
+task :phx_digest do
   remote :build do
     "npm install"
     "./node_modules/brunch/bin/brunch b -p"
-    "MIX_ENV=prod mix phoenix.digest"
+    "MIX_ENV=prod mix phx.digest"
   end
-  UI.info "Phoenix asset digest generated"
 end
 
-after_task :compile, :phoenix_digest
+after_task :compile, :phx_digest
 ```
-
 
 ## Task Providers
 
@@ -451,6 +467,7 @@ defmodule Bootleg.Tasks.Foo do
   end
 end
 ```
+In order to be found and loaded by Bootleg, external tasks need to be located within a `Mix.Project` dependency.
 
 See also: [Bootleg.Task](https://hexdocs.pm/bootleg/Bootleg.Task.html#content) for additional examples.
 
