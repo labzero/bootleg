@@ -1,6 +1,6 @@
-defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
+defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
   use Bootleg.FunctionalCase, async: false
-  alias Bootleg.{Strategies.Build.Distillery, Fixtures}
+  alias Bootleg.Fixtures
   import ExUnit.CaptureIO
 
   setup %{hosts: [host]} do
@@ -17,11 +17,11 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
   end
 
   test "builds the application", %{project_location: location} do
+    use Bootleg.Config
+
     File.cd!(location, fn ->
       capture_io(fn ->
-        assert {:ok, filename} = Distillery.build()
-        assert File.regular?(filename)
-        assert "#{File.cwd!}/releases/0.1.0.tar.gz" == filename
+        invoke :build
       end)
     end)
   end
@@ -33,9 +33,7 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
 
     File.cd!(location, fn ->
       capture_io(fn ->
-        assert {:ok, filename} = Distillery.build()
-        assert File.regular?(filename)
-        assert "#{File.cwd!}/releases/0.1.0.tar.gz" == filename
+        invoke :build
       end)
     end)
   end
@@ -48,7 +46,7 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
       capture_io(fn ->
         remote :build, "touch foo.bar"
         remote :build, "[ -f foo.bar ]"
-        assert {:ok, _} = Distillery.build()
+        invoke :build
         assert [{:ok, _, 0, _}] = remote :build, "[ ! -f foo.bar ]"
       end)
     end)
@@ -70,7 +68,7 @@ defmodule Bootleg.Strategies.Build.DistilleryFunctionalTest do
         remote :build, "[ -f bar.foo ]"
         remote :build, "[ -d woo ]"
         config :clean_locations, ["foo.car", "/tmp/foo.bar", "woo"]
-        assert {:ok, _} = Distillery.build()
+        invoke :build
         assert [{:ok, _, 0, _}] = remote :build, "[ ! -f /foo.bar ]"
         assert [{:ok, _, 0, _}] = remote :build, "[ ! -f foo.car ]"
         assert [{:ok, _, 0, _}] = remote :build, "[ -f bar.foo ]"

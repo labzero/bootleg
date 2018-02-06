@@ -188,23 +188,41 @@ defmodule Bootleg.SSH do
   end
 
   def ssh_opts(options) do
-    List.flatten(Enum.map(options, &ssh_opt/1))
-  end
-
-  def ssh_opt({:identity, nil}), do: []
-  def ssh_opt({:identity, identity_file}) do
-    identity = File.open!(identity_file)
-    key_cb = SSHClientKeyAPI.with_options(identity: identity, accept_hosts: true)
-    [{:key_cb, key_cb}]
+    options
+    |> Enum.map(&ssh_opt/1)
+    |> Enum.map(&(ssh_transform_opt(&1, options)))
+    |> List.flatten()
   end
 
   def ssh_opt({_, nil}), do: []
   def ssh_opt(option), do: option
 
+  @doc """
+  Convert an identity option to a proper `key_cb` tuple, passing related options to it via
+  `key_cb_private`. While it would be nice to support the arbitrary passing of callback options,
+  our SSH options have already been filtered by the role configuration.
+  """
+  def ssh_transform_opt({:identity, identity_file}, options) do
+    identity = File.open!(Path.expand(identity_file))
+    key_cb =
+      options
+      |> Enum.map(&ssh_opt/1)
+      |> Enum.filter(&Enum.member?(supported_key_cb_options(), Atom.to_string(elem(&1, 0))) == true)
+      |> Keyword.put(:identity, identity)
+      |> SSHClientKeyAPI.with_options()
+    [{:key_cb, key_cb}]
+  end
+  def ssh_transform_opt(option, _), do: option
+
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
     idle_time silently_accept_hosts user_dir timeout connection_timeout identity quiet_mode)a
   def supported_options do
     @ssh_options
+  end
+
+  @key_cb_options ~w(silently_accept_hosts)
+  def supported_key_cb_options do
+    @key_cb_options
   end
 
   @doc false
