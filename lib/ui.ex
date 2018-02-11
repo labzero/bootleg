@@ -4,6 +4,8 @@ defmodule Bootleg.UI do
   a configured verbosity level.
   """
 
+  @verbosities [:error, :warning, :info, :debug]
+
   @doc """
   Simple wrapper around IO.puts
   """
@@ -67,24 +69,15 @@ defmodule Bootleg.UI do
     validate_verbosity setting || Application.get_env(:bootleg, :verbosity, :info)
   end
 
-  defp validate_verbosity(verbosity)
-  defp validate_verbosity(:warning), do: :warning
-  defp validate_verbosity(:debug), do: :debug
-  defp validate_verbosity(:silent), do: :silent
+  defp validate_verbosity(verbosity) when verbosity in @verbosities, do: verbosity
   defp validate_verbosity(_), do: :info
 
-  defp verbosity_includes(setting, level)
-  defp verbosity_includes(:info, :info), do: true
-  defp verbosity_includes(:info, :warning), do: true
-  defp verbosity_includes(:info, :error), do: true
-  defp verbosity_includes(:warning, :warning), do: true
-  defp verbosity_includes(:warning, :error), do: true
-  defp verbosity_includes(:error, :error), do: true
-  defp verbosity_includes(:debug, :info), do: true
-  defp verbosity_includes(:debug, :warning), do: true
-  defp verbosity_includes(:debug, :debug), do: true
-  defp verbosity_includes(:debug, :error), do: true
-  defp verbosity_includes(_, _), do: false
+  defp verbosity_includes(setting, _) when setting not in @verbosities, do: false
+  defp verbosity_includes(_, level) when level not in @verbosities, do: false
+  defp verbosity_includes(setting, level) do
+    index = fn value -> Enum.find_index(@verbosities, &(&1 == value)) end
+    index.(setting) >= index.(level)
+  end
 
   ### SSH formatting functions
 
