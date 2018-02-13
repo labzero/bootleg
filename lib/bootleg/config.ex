@@ -111,7 +111,7 @@ defmodule Bootleg.Config do
   ```
   use Bootleg.Config
   config :foo, :bar
-  
+
   # local_foo will be :bar
   local_foo = config :foo
 

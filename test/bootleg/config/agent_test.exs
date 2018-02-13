@@ -1,6 +1,7 @@
 defmodule Bootleg.Config.AgentTest do
   use Bootleg.TestCase, async: false
   alias Bootleg.Config.Agent
+  import ExUnit.CaptureIO
 
   test "stores values for retrieval" do
     {:ok, _} = Agent.start_link
@@ -29,7 +30,9 @@ defmodule Bootleg.Config.AgentTest do
   end
 
   test "start_link/1 sets the environment to the provided env" do
-    Agent.start_link(:bar)
+    capture_io(fn ->
+      Agent.start_link(:bar)
+    end)
     assert Agent.get(:config) == [env: :bar]
   end
 end
