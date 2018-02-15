@@ -12,6 +12,12 @@ defmodule Bootleg.SSHFunctionalTest do
         name: :build,
         user: "blammo",
         options: [workspace: "some_workspace"]
+      },
+      role_env: %Role{
+        hosts: Enum.map(hosts, &Host.init(&1.ip, docker_ssh_opts(&1), [])),
+        name: :build,
+        user: "blammo",
+        options: [workspace: "some_workspace", env: %{"BOOTLEG_ENV_TEST" => "ENV_TEST_VALUE"}]
       }
     }
   end
@@ -29,6 +35,13 @@ defmodule Bootleg.SSHFunctionalTest do
     capture_io(fn ->
       conn = SSH.init(role.hosts)
       assert [{:ok, [stdout: "Linux\n"], 0, _}] = SSH.run!(conn, "uname")
+    end)
+  end
+
+  test "run!/2 with role env", %{role_env: role} do
+    capture_io(fn ->
+      conn = SSH.init(role)
+      assert [{:ok, [stdout: "ENV_TEST_VALUE\n"], 0, _}] = SSH.run!(conn, "echo $BOOTLEG_ENV_TEST")
     end)
   end
 

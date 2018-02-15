@@ -36,6 +36,7 @@ defmodule Bootleg.SSH do
   end
   def init(hosts, options) do
     workspace = Keyword.get(options, :workspace, ".")
+    env = Keyword.get(options, :env, %{})
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
     should_replace_os_vars = Keyword.get(options, :replace_os_vars, true)
@@ -47,6 +48,7 @@ defmodule Bootleg.SSH do
     |> List.wrap()
     |> Enum.map(&ssh_host_options/1)
     |> SSHKit.context()
+    |> SSHKit.env(env)
     |> replace_os_vars(should_replace_os_vars)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
@@ -61,7 +63,6 @@ defmodule Bootleg.SSH do
 
   def run(context, cmd) do
     cmd = Context.build(context, cmd)
-
     run = fn host ->
       UI.puts_send host, cmd
 
@@ -91,6 +92,7 @@ defmodule Bootleg.SSH do
   defp working_directory(context, path) when path == "." or path == false or is_nil(path) do
     context
   end
+
   defp working_directory(context, path) do
     case Path.type(path) do
       :absolute -> %Context{context | path: path}
@@ -99,7 +101,11 @@ defmodule Bootleg.SSH do
   end
 
   defp replace_os_vars(context, true) do
-    SSHKit.env(context, %{"REPLACE_OS_VARS" => "true"})
+    SSHKit.env(context, Map.merge(%{"REPLACE_OS_VARS" => "true"}, context.env))
+  end
+
+  defp replace_os_vars(%Context{env: env_map} = context, _) when env_map == %{} do
+    SSHKit.env(context, nil) # [bitcrowd/sshkit.ex/issues/101]
   end
 
   defp replace_os_vars(context, _) do
