@@ -137,6 +137,7 @@ by Bootleg:
   * `password` - ssh password
   * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
+  * `env` - map of environment variable and values. ie: `%{PORT: "1234", FOO: "bar"}`
   * `replace_os_vars` - controls the `REPLACE_OS_VARS` environment variable used by Distillery for release configuration (default `true`)
 
 #### Examples
@@ -146,6 +147,11 @@ role :app, ["host1", "host2"], user: "deploy", identity: "/home/deploy/.ssh/depl
 role :app, ["host2"], port: 2222
 ```
 > In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
+
+```elixir
+role :app, ["host1", "host2"], port: 2222, env: %{FOO: "bar", BIZ: "baz"}
+```
+> In this example, some additional environment variables are set for all `:app` hosts, `FOO=bar` and `BIZ=baz`.
 
 ```elixir
 role :db, ["db.example.com", "db2.example.com"], user: "datadog"
@@ -158,7 +164,6 @@ role :balancer, ["lb1.example.com", "lb2.example.com"], banana: "boat"
 role :balancer, "lb3.example.com"
 ```
 > In this example, two load balancers are configured with a host-specific option of *banana*. The `balancer` role itself also receives the role-specific option of *banana*. A third balancer is then configured without any specific host options.
-
 
 #### SSH options
 

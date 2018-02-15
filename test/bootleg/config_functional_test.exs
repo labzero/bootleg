@@ -8,8 +8,13 @@ defmodule Bootleg.ConfigFunctionalTest do
     app_host = hd(hosts)
     build_hosts = tl(hosts)
 
-    role :app, app_host.ip, port: app_host.port, user: app_host.user,
-      password: app_host.password, silently_accept_hosts: true, workspace: "workspace", foo: :bar
+    role :app, app_host.ip, port: app_host.port,
+                            user: app_host.user,
+                            password: app_host.password,
+                            silently_accept_hosts: true,
+                            workspace: "workspace",
+                            foo: :bar,
+                            env: %{BOOTLEG_ENV_TEST: "BOOTLEG_ENV_VALUE"}
 
     build_hosts
     |> Enum.with_index
@@ -168,6 +173,15 @@ defmodule Bootleg.ConfigFunctionalTest do
 
       [{:ok, [stdout: "/tmp\n"], 0, _}] = remote :app, cd: "/tmp" do "pwd" end
       [{:ok, [stdout: "/home\n"], 0, _}] = remote :app, cd: "../.." do "pwd" end
+    end)
+  end
+
+  @tag boot: 1
+  test "remote/2 with role env" do
+    capture_io(fn ->
+      use Bootleg.Config
+
+      assert [{:ok, [stdout: "BOOTLEG_ENV_VALUE\n"], 0, _}] = remote :all, "echo $BOOTLEG_ENV_TEST"
     end)
   end
 

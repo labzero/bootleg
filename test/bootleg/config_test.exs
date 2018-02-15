@@ -91,6 +91,31 @@ defmodule Bootleg.ConfigTest do
     assert Enum.count(hosts) == 2
   end
 
+  test "role/3 with :env option" do
+    use Bootleg.Config
+    assert roles() == []
+
+    role :build, "build.labzero.com", user: "brien", env: %{FOO: "1234"}
+    assert roles() == [
+      build: %Bootleg.Role{
+        hosts: [
+          %Bootleg.Host{
+            host: %SSHKit.Host{name: "build.labzero.com", options: [user: "brien"]},
+            options: [user: "brien", env: %{FOO: "1234"}]
+          }
+        ],
+        name: :build,
+        options: [user: "brien", env: %{FOO: "1234"}],
+        user: "brien"
+      }
+    ]
+
+    role :build, "build.labzero.com", port: 123
+    role :build, "build.labzero.com", port: 123, user: "foo"
+    assert [build: %Bootleg.Role{hosts: hosts}] = roles()
+    assert Enum.count(hosts) == 2
+  end
+
   test "role/2,3 only unquote the name once" do
     use Bootleg.Config
 

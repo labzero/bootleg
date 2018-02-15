@@ -410,7 +410,7 @@ defmodule Bootleg.Config do
 
   `options` is an optional `Keyword` list of options to customize the remote invocation. Currently two
   keys are supported:
-  
+
     * `filter` takes a `Keyword` list of host options to filter with. Any host whose options match
   the filter will be included in the remote execution. A host matches if it has all of the filtering
   options defined and the values match (via `==/2`) the filter.
