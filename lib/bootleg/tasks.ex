@@ -38,8 +38,8 @@ defmodule Bootleg.Tasks do
   end
 
   @doc false
-  @spec parse_env_task([binary]) :: {nil, binary} | {binary, binary}
-  def parse_env_task(args) when length(args) == 0, do: {nil, nil}
+  @spec parse_env_task([binary]) :: {nil, nil} | {nil, atom} | {binary, atom}
+  def parse_env_task(args) when args == [], do: {nil, nil}
   def parse_env_task(args) when is_list(args) do
     args
     |> List.first()
@@ -47,9 +47,9 @@ defmodule Bootleg.Tasks do
     |> case do
       true ->
         [env | args] = args
-        {env, hd(args)}
+        {env, String.to_atom(hd(args))}
       false ->
-        {nil, hd(args)}
+        {nil, String.to_atom(hd(args))}
       end
   end
 
