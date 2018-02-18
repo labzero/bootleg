@@ -17,13 +17,16 @@ defmodule Bootleg.Tasks do
     load_third_party()
 
     Config.load(Path.join("config", "deploy.exs"))
-    case Config.load(Path.join(["config", "deploy", "#{Config.env}.exs"])) do
-      {:error, :enoent} -> UI.warn("You are running in the `#{Config.env}` bootleg " <>
-        "environment but there is no configuration defined for that environment. " <>
-        "Create one at `config/deploy/#{Config.env}.exs` if you want to do additional " <>
-        "customization.")
-      val -> val
+
+    case Config.env_available?(Config.env) do
+      true -> Config.load(Path.join(["config", "deploy", "#{Config.env}.exs"]))
+      false ->
+        UI.warn("You are running in the `#{Config.env}` bootleg " <>
+          "environment but there is no configuration defined for that environment. " <>
+          "Create one at `config/deploy/#{Config.env}.exs` if you want to do additional " <>
+          "customization.")
     end
+
     :ok
   end
 
