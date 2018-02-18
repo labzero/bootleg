@@ -18,7 +18,8 @@ defmodule Mix.Tasks.Bootleg.Invoke do
     System.halt(1)
   end
 
-  def run([task | _]) do
+  def run([task | args]) do
+    Config.env(List.first(args) || :production)
     use Config
 
     invoke String.to_atom(task)
