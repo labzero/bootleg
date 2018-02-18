@@ -1,6 +1,6 @@
 defmodule Mix.Tasks.Bootleg.Invoke do
   use Bootleg.MixTask
-  alias Bootleg.{UI, Config}
+  alias Bootleg.{UI, Config, Tasks}
 
   @shortdoc "Calls an arbitrary Bootleg task"
 
@@ -21,25 +21,25 @@ defmodule Mix.Tasks.Bootleg.Invoke do
   def run(args) do
     use Config
 
-    case parse_env(args) do
-      {nil, args} ->
-        invoke String.to_atom(hd(args))
-      {env, args} ->
+    case parse_env_task(args) do
+      {nil, task} ->
+        invoke String.to_atom(task)
+      {env, task} ->
         Config.env(env)
-        invoke String.to_atom(hd(args))
+        invoke String.to_atom(task)
     end
   end
 
-  defp parse_env(args) do
+  defp parse_env_task(args) do
     args
     |> List.first()
-    |> Config.env_available?()
+    |> Tasks.env_available?()
     |> case do
       true ->
         [env | args] = args
-        {env, args}
+        {env, hd(args)}
       false ->
-        {nil, args}
+        {nil, hd(args)}
       end
   end
 end

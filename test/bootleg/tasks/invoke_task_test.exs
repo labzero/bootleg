@@ -73,12 +73,6 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     assert String.match?(out, ~r/PRODWIZBANG!/)
   end
 
-  test "mix bootleg.invoke with nonexisting env", %{cmd_options: cmd_options} do
-    assert {_, 0} = System.cmd("mix", ["deps.get"], cmd_options)
-    assert {out, 0} = System.cmd("mix", ["bootleg.invoke", "qa", "foo"], cmd_options)
-    assert String.match?(out, ~r/there is no configuration defined/)
-  end
-
   test "mix bootleg.invoke env set by default config as string", %{location: location, cmd_options: cmd_options} do
     location
     |> List.wrap
@@ -126,5 +120,21 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     assert {out, 0} = System.cmd("mix", ["bootleg.invoke", "production", "foo"], cmd_options)
     assert !String.match?(out, ~r/there is no configuration defined/)
     assert String.match?(out, ~r/KATPOW!/)
+  end
+
+  test "mix bootleg.invoke with undefined env", %{location: location, cmd_options: cmd_options} do
+    location
+    |> List.wrap
+    |> Kernel.++(["config", "deploy.exs"])
+    |> Path.join()
+    |> File.write("""
+      use Bootleg.Config
+      config :env, :bloop
+    """, [:write])
+
+    assert {_, 0} = System.cmd("mix", ["deps.get"], cmd_options)
+    assert {out, 0} = System.cmd("mix", ["bootleg.invoke", "bloop", "foo"], cmd_options)
+    assert String.match?(out,
+      ~r/You are running in the `bloop` bootleg environment but there is no configuration defined/)
   end
 end

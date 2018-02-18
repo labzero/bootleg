@@ -2,6 +2,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   use Bootleg.MixTask
   require Mix.Generator
   alias Mix.Generator
+  alias Bootleg.Tasks
 
   @shortdoc "Initializes a project for use with Bootleg"
 
@@ -10,8 +11,8 @@ defmodule Mix.Tasks.Bootleg.Init do
   """
 
   def run(_args) do
-    deploy_file_path = Path.join(["config", "deploy.exs"])
-    deploy_dir_path = Path.join(["config", "deploy"])
+    deploy_file_path = Path.join(Tasks.path_deploy_config)
+    deploy_dir_path = Path.join(Tasks.path_env_configs)
     production_file_path = Path.join(deploy_dir_path, "production.exs")
     Generator.create_directory("config")
     Generator.create_file(deploy_file_path, deploy_file_text())
@@ -32,21 +33,6 @@ defmodule Mix.Tasks.Bootleg.Init do
   #  - `workspace`: remote file system path to be used for building and deploying this Elixir project
 
   role :build, "build.example.com", workspace: "/tmp/bootleg/build"
-
-  # Phoenix has some extra build steps such as asset digesting that need to be done during
-  # compilation. To have bootleeg handle that for you, include the additional package
-  # `bootleg_phoenix` to your `deps` list. This will automatically perform the additional steps
-  # required for building phoenix releases.
-  #
-  #  ```
-  #  # mix.exs
-  #  def deps do
-  #    [{:distillery, "~> 1.5"},
-  #    {:bootleg, "~> 0.6"},
-  #    {:bootleg_phoenix, "~> 0.2"}]
-  #  end
-  #  ```
-  # For more about `bootleg_phoenix` see: https://github.com/labzero/bootleg_phoenix
 
   """)
 
