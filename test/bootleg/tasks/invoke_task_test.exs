@@ -60,17 +60,17 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
 
     location
     |> List.wrap
-    |> Kernel.++(["config", "deploy", "production.exs"])
+    |> Kernel.++(["config", "deploy", "staging.exs"])
     |> Path.join()
     |> File.write("""
       use Bootleg.Config
-      task :foo, do: IO.puts "PRODWIZBANG!"
+      task :foo, do: IO.puts "WIZBANG!"
     """, [:write])
 
     assert {_, 0} = System.cmd("mix", ["deps.get"], cmd_options)
-    assert {out, 0} = System.cmd("mix", ["bootleg.invoke", "production", "foo"], cmd_options)
+    assert {out, 0} = System.cmd("mix", ["bootleg.invoke", "staging", "foo"], cmd_options)
     assert !String.match?(out, ~r/FOOBAR!/)
-    assert String.match?(out, ~r/PRODWIZBANG!/)
+    assert String.match?(out, ~r/WIZBANG!/)
   end
 
   test "mix bootleg.invoke env set by default config as string", %{location: location, cmd_options: cmd_options} do

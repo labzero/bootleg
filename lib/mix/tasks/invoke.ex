@@ -21,25 +21,12 @@ defmodule Mix.Tasks.Bootleg.Invoke do
   def run(args) do
     use Config
 
-    case parse_env_task(args) do
+    case Tasks.parse_env_task(args) do
       {nil, task} ->
         invoke String.to_atom(task)
       {env, task} ->
         Config.env(env)
         invoke String.to_atom(task)
     end
-  end
-
-  defp parse_env_task(args) do
-    args
-    |> List.first()
-    |> Tasks.env_available?()
-    |> case do
-      true ->
-        [env | args] = args
-        {env, hd(args)}
-      false ->
-        {nil, hd(args)}
-      end
   end
 end

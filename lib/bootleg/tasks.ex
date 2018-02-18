@@ -38,6 +38,22 @@ defmodule Bootleg.Tasks do
   end
 
   @doc false
+  @spec parse_env_task([binary]) :: {nil, binary} | {binary, binary}
+  def parse_env_task(args) when length(args) == 0, do: {nil, nil}
+  def parse_env_task(args) when is_list(args) do
+    args
+    |> List.first()
+    |> env_available?()
+    |> case do
+      true ->
+        [env | args] = args
+        {env, hd(args)}
+      false ->
+        {nil, hd(args)}
+      end
+  end
+
+  @doc false
   @spec env_available?(atom) :: boolean
   def env_available?(env) when is_atom(env) do
     Enum.member?(available_envs(), Atom.to_string(env))

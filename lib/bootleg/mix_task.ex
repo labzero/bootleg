@@ -1,6 +1,6 @@
 defmodule Bootleg.MixTask do
   @moduledoc "Extends `Mix.Task` to provide Bootleg specific bootstrapping."
-  alias Bootleg.Config
+  alias Bootleg.{Config, Tasks}
 
   defmacro __using__(task) do
     quote do
@@ -9,14 +9,22 @@ defmodule Bootleg.MixTask do
       @spec run(OptionParser.argv) :: :ok
       if is_atom(unquote(task)) && unquote(task) do
         def run(args) do
-          Config.env(List.first(args) || :production)
+          {env, _} = Tasks.parse_env_task(args)
+          if env do
+            Config.env(env)
+          end
+
           use Config
 
           invoke unquote(task)
         end
       else
         def run(args) do
-          Config.env(List.first(args) || :production)
+          {env, _} = Tasks.parse_env_task(args)
+          if env do
+            Config.env(env)
+          end
+
           :ok
         end
       end
