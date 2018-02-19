@@ -187,6 +187,19 @@ defmodule Bootleg.SSHFunctionalTest do
     end)
   end
 
+  test "set bootleg env", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    config :env, :foo
+    role :app, host.ip, port: host.port, user: host.user,
+      workspace: "/", silently_accept_hosts: true, identity: host.private_key_path
+
+    capture_io(fn ->
+      assert [{:ok, [stdout: "foo"], 0, _}] = remote :app, "echo -n ${BOOTLEG_ENV}"
+    end)
+  end
+
   test "replace os vars", %{hosts: [host]} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config

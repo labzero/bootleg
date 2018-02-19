@@ -36,10 +36,8 @@ defmodule Bootleg.SSH do
   end
   def init(hosts, options) do
     workspace = Keyword.get(options, :workspace, ".")
-    env = Keyword.get(options, :env, %{})
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
-    should_replace_os_vars = Keyword.get(options, :replace_os_vars, true)
     UI.puts "Creating remote context at '#{workspace}'"
 
     :ssh.start()
@@ -48,8 +46,7 @@ defmodule Bootleg.SSH do
     |> List.wrap()
     |> Enum.map(&ssh_host_options/1)
     |> SSHKit.context()
-    |> SSHKit.env(env)
-    |> replace_os_vars(should_replace_os_vars)
+    |> prepare_remote_env(options)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
   end
@@ -100,16 +97,12 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp replace_os_vars(context, true) do
-    SSHKit.env(context, Map.merge(%{"REPLACE_OS_VARS" => "true"}, context.env))
-  end
-
-  defp replace_os_vars(%Context{env: env_map} = context, _) when env_map == %{} do
-    SSHKit.env(context, nil) # [bitcrowd/sshkit.ex/issues/101]
-  end
-
-  defp replace_os_vars(context, _) do
-    context
+  defp prepare_remote_env(context, options) do
+    env = Map.merge(%{"BOOTLEG_ENV": Config.env}, Keyword.get(options, :env, %{}))
+    case Keyword.get(options, :replace_os_vars, true) do
+      true -> SSHKit.env(context, Map.merge(%{"REPLACE_OS_VARS": true}, env))
+      _ -> SSHKit.env(context, env)
+    end
   end
 
   @last_new_line ~r/\A(?<bulk>.*)((?<newline>\n)(?<remainder>[^\n]*))?\z/msU
