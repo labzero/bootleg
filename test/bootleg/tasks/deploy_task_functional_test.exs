@@ -40,4 +40,15 @@ defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
       end)
     end)
   end
+
+  test "deploy/1 deploys the release to the target hosts from a remote release_workspace path", %{hosts: [host]} do
+    role :app, [host.ip], port: host.port, user: host.user, password: host.password,
+      silently_accept_hosts: true, workspace: "workspace", release_workspace: "/fixtures"
+
+    File.cd!("test/fixtures", fn ->
+      capture_io(fn ->
+        invoke :deploy
+      end)
+    end)
+  end
 end

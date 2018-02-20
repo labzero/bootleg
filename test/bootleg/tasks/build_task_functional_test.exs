@@ -38,6 +38,18 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     end)
   end
 
+  test "builds the application with a release_workspace path", %{hosts: [host], project_location: location} do
+    use Bootleg.Config
+
+    role :build, host.ip, release_workspace: "/home/#{host.user}/release_workspace", port: host.port
+
+    File.cd!(location, fn ->
+      capture_io(fn ->
+        invoke :build
+      end)
+    end)
+  end
+
   test "cleans the workspace before building", %{project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config

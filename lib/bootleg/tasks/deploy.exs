@@ -13,15 +13,12 @@ end
 
 task :copy_deploy_release do
   app_role = Config.get_role(:app)
-  app_name = Config.app()
-  mix_env = config({:mix_env, "prod"})
   release_workspace = app_role.options[:release_workspace]
-  workspace = app_role.options[:workspace]
   release = "#{Config.version()}.tar.gz"
   source_path = Path.join(release_workspace, release)
-  dest_path = Path.join(workspace, "#{app_name}.tar.gz")
-  UI.info("Copying release archive from release workspace")
+  dest_path = "#{Config.app()}.tar.gz"
 
+  UI.info("Copying release archive from release workspace")
   remote :app do
     "cp #{source_path} #{dest_path}"
   end
