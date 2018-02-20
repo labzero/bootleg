@@ -3,6 +3,7 @@ defmodule Bootleg.ConfigTest do
   alias Bootleg.{Config, UI, SSH}
   alias Config.Agent
   alias Mix.Project
+  import ExUnit.CaptureIO
   import Mock
 
   doctest Bootleg.Config
@@ -80,6 +81,31 @@ defmodule Bootleg.ConfigTest do
         ],
         name: :build,
         options: [user: "brien"],
+        user: "brien"
+      }
+    ]
+
+    role :build, "build.labzero.com", port: 123
+    role :build, "build.labzero.com", port: 123, user: "foo"
+    assert [build: %Bootleg.Role{hosts: hosts}] = roles()
+    assert Enum.count(hosts) == 2
+  end
+
+  test "role/3 with :env option" do
+    use Bootleg.Config
+    assert roles() == []
+
+    role :build, "build.labzero.com", user: "brien", env: %{FOO: "1234"}
+    assert roles() == [
+      build: %Bootleg.Role{
+        hosts: [
+          %Bootleg.Host{
+            host: %SSHKit.Host{name: "build.labzero.com", options: [user: "brien"]},
+            options: [user: "brien", env: %{FOO: "1234"}]
+          }
+        ],
+        name: :build,
+        options: [user: "brien", env: %{FOO: "1234"}],
         user: "brien"
       }
     ]
@@ -216,13 +242,15 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "env/1" do
-    Config.env(:bar)
+    capture_io(fn ->
+      Config.env(:bar)
+    end)
     assert :bar == Config.env
   end
 
   test_with_mock "env/1 starts the agent", Agent, [:passthrough], [] do
-    Config.env(:bar)
-    assert called Agent.start_link(:bar)
+    Config.env(:test)
+    assert called Agent.start_link(:test)
   end
 
   test "invoke/1" do

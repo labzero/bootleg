@@ -137,6 +137,7 @@ by Bootleg:
   * `password` - ssh password
   * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
+  * `env` - map of environment variable and values. ie: `%{PORT: "1234", FOO: "bar"}`
   * `replace_os_vars` - controls the `REPLACE_OS_VARS` environment variable used by Distillery for release configuration (default `true`)
 
 `build` role specific option:
@@ -152,6 +153,11 @@ role :app, ["host1", "host2"], user: "deploy", identity: "/home/deploy/.ssh/depl
 role :app, ["host2"], port: 2222
 ```
 > In this example, two hosts are declared for the `app` role, both as the user *deploy* but only *host2* will use the non-default port of *2222*.
+
+```elixir
+role :app, ["host1", "host2"], port: 2222, env: %{FOO: "bar", BIZ: "baz"}
+```
+> In this example, some additional environment variables are set for all `:app` hosts, `FOO=bar` and `BIZ=baz`.
 
 ```elixir
 role :db, ["db.example.com", "db2.example.com"], user: "datadog"
@@ -170,7 +176,6 @@ role :build, "example.com", workspace: "/home/deployer/builds", release_workspac
 role :app, "example.com", release_workspace: "/home/deployer"
 ```
 > In this example, the release is built and deployed on the same remote. By specifying a `release_workspace` on the `:build` role, a release is placed in `home/deployer`. and by specifying a `release_workspace` on the `:app` role, the release is copied from the `/home/deployer` directory to the app workspace. Note that the release is not downloaded.
-
 #### SSH options
 
 If you include any common `:ssh.connect` options they will not be included in role or host options and will only be used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
@@ -194,7 +199,9 @@ Bootleg extensions may impose restrictions on certain roles, such as restricting
 used and a warning may result.
 * `app` -  Takes a list of hosts, or a string with one host.
 
-## Building and deploying a release
+## Mix Tasks
+
+### Building and deploying a release
 
 ```console
 mix bootleg.build production
@@ -219,33 +226,60 @@ to the workspace, absolute paths will be treated as is. Warning: this means that
 attempt to erase the entire root file system of your remote server. Be careful when altering `clean_locations` and never
 use a privileged user on your build server.
 
-## Admin Commands
+### Admin Commands
 
 Bootleg has a set of commands to check up on your running nodes:
 
 ```console
-mix bootleg.restart production  # Restarts a deployed release.
-mix bootleg.start production      # Starts a deployed release.
+mix bootleg.restart production   # Restarts a deployed release.
+mix bootleg.start production     # Starts a deployed release.
 mix bootleg.stop production      # Stops a deployed release.
 mix bootleg.ping production      # Check status of running nodes
 ```
 
-## Other Comamnds
+### Invoking a Bootleg task
 
-Bootleg has a few utility commands to help streamline its usage:
+There's also a way to invoke Bootleg tasks from Mix. Similar to the built-in Mix tasks above, here you can also target a specific deploy environment.
 
-```console
-mix bootleg.init             # Initializes a project for use with Bootleg
-mix bootleg.invoke <task>    # Calls an arbitrary Bootleg task
+#### Sample Bootleg task definitions
+
+`config/deploy.exs`:
+
+```elixir
+use Bootleg.Config
+task :zap do
+  IO.puts "do the zap thing"
+end
 ```
 
-## Hooks
+`config/deploy/qa.exs`:
 
-Hooks may be defined by the user in order to perform additional (or exceptional)
-operations before or after certain actions performed by Bootleg.
+```elixir
+use Bootleg.Config
+task :zap do
+  IO.puts "no zappy"
+end
+```
 
-Hooks are defined within `config/deploy.exs`. Hooks may be defined to trigger
-before or after a task. The following tasks are provided by Bootleg:
+#### Invoking the Bootleg tasks
+
+```console
+# target the default deploy environment
+mix bootleg.invoke zap
+> "do the zap thing"
+# target the "qa" deploy environment
+mix bootleg.invoke qa zap
+> "no zappy"
+```
+
+### Other Commands
+
+```console
+# Initializes a project for use with Bootleg
+mix bootleg.init
+```
+
+## Bootleg Tasks
 
 ### Build Tasks
 * `build` - build process for creating a release package
@@ -275,7 +309,12 @@ before or after a task. The following tasks are provided by Bootleg:
 * `restart` - restarting of a release
 * `ping` - check connectivity to a deployed app
 
-Hooks can be defined for any task (built-in or user defined), even ones that do not exist. This can be used
+## Hooks
+
+Hooks may be defined by the user in order to perform additional (or exceptional)
+operations before or after certain actions performed by Bootleg.
+
+Hooks can be defined for any task (built-in or user defined), even those that do not exist. This can be used
 to create an "event" that you want to respond to, but has no real "implementation".
 
 To register a hook, use:
@@ -433,15 +472,6 @@ applications.
 To run these steps automatically you may include the additional package
 `bootleg_phoenix` in your `deps` list. This package provides the build hook commands required to build most Phoenix releases.
 
-```elixir
-# mix.exs
-def deps do
-  [{:distillery, "~> 1.5"},
-  {:bootleg, "~> 0.6"},
-  {:bootleg_phoenix, "~> 0.2"}]
-end
-```
-
 See also: [labzero/bootleg_phoenix](https://github.com/labzero/bootleg_phoenix).
 
 ### Using your own deploy configuration and hooks
@@ -450,9 +480,11 @@ Similar to how `bootleg_phoenix` is implemented, you can make use of the hooks s
 
 ```elixir
 task :phx_digest do
-  remote :build do
+  remote :build, cd: "assets" do
     "npm install"
     "./node_modules/brunch/bin/brunch b -p"
+  end
+  remote :build do
     "MIX_ENV=prod mix phx.digest"
   end
 end
@@ -478,7 +510,7 @@ defmodule Bootleg.Tasks.Foo do
   end
 end
 ```
-In order to be found and loaded by Bootleg, external tasks need to be located within a `Mix.Project` dependency.
+In order to be found and loaded by Bootleg, external tasks need to be loaded via a `Mix.Project` dependency.
 
 See also: [Bootleg.Task](https://hexdocs.pm/bootleg/Bootleg.Task.html#content) for additional examples.
 

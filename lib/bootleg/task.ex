@@ -29,7 +29,7 @@ defmodule Bootleg.Task do
     use Bootleg.Task
     def load do
       use Bootleg.Config
-      
+
       task :other do
         IO.puts "World?"
       end
