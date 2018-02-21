@@ -13,6 +13,12 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     }
   end
 
+  test "mix bootleg.update production", %{cmd_options: cmd_options} do
+    assert {_, 0} = System.cmd("mix", ["deps.get"], cmd_options)
+    assert {out, 1} = System.cmd("mix", ["bootleg.update", "production"], cmd_options ++ [stderr_to_stdout: true])
+    assert String.match?(out, ~r/You must supply a %Host{}, a %Role{} or a defined role_name./)
+  end
+
   test "mix bootleg.invoke", %{location: location, cmd_options: cmd_options} do
     location
     |> List.wrap
