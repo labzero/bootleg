@@ -47,10 +47,19 @@ defmodule Bootleg.Tasks do
     |> case do
       true ->
         [env | args] = args
-        {env, String.to_atom(hd(args))}
+        pop_env_task(env, args)
       false ->
-        {nil, String.to_atom(hd(args))}
+        pop_env_task(nil, args)
       end
+  end
+
+  @doc false
+  @spec pop_env_task(binary, [binary]) :: {nil, nil} | {nil, atom} | {binary, atom}
+  defp pop_env_task(env, args) when args == [] do
+    {env, nil}
+  end
+  defp pop_env_task(env, args) do
+    {env, String.to_atom(hd(args))}
   end
 
   @doc false
