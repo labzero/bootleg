@@ -105,13 +105,46 @@ use Bootleg.Config
 role :app, ["stage1.example.com", "stage2.example.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
-
 Then if you wanted to update staging, you would `mix bootleg.update staging`. If you wanted to update production,
 it would be `mix bootleg.update production`, or just `mix bootleg.update` (the default environment is `production`).
 
 It is not a requirement that you define an environment file for each environment, but you will get a warning if
 a specific environment file can't be found. It is strongly encouraged to have an environment file per environment.
 
+### The `config` macro
+
+The `config` macro can be used to get and set arbitrary key value pairs for use within Bootleg.
+
+There are a few config settings that are directly used within Bootleg itself, they can be overwritten if needed, but can generally be left alone.
+
+```elixir
+config :app, :myapp
+config :refspec, "develop" # Set a git branch used for the build. Default is "master"
+config :version, "1.2.3"
+config :env, :staging # sets/overrides the bootleg environment
+config :ex_path, "/path/to/project" # Path to the project. Default is current directory.
+```
+
+Any additional `config` settings can be set the same way and then looked up later with `config/1`.
+
+```elixir
+  use Bootleg.Config
+  config :foo, :bar
+
+  # local_foo will be :bar
+  local_foo = config :foo
+
+  # local_foo will be :bar still, as :foo already has a value
+  local_foo = config {:foo, :car}
+
+  # local_hello will be :world, as :hello has not been defined yet
+  local_hello = config {:hello, :world}
+
+  config :hello, nil
+  # local_hello will be nil, as :hello has a value of nil now
+  local_hello = config {:hello, :world}
+
+```
 
 ## Roles
 
