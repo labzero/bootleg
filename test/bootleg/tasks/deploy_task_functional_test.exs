@@ -3,9 +3,9 @@ defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
   use Bootleg.Config
   import ExUnit.CaptureIO
 
-  setup %{hosts: [host]} do
+  setup %{hosts: [host], role_opts: role_opts} do
     role :app, [host.ip], port: host.port, user: host.user, password: host.password,
-      silently_accept_hosts: true, workspace: "workspace"
+      silently_accept_hosts: true, workspace: "workspace", release_workspace: role_opts[:release_workspace]
 
     config :app, "my_app"
     config :version, "valid_archive"
@@ -41,13 +41,18 @@ defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
     end)
   end
 
-  test "deploy/1 deploys the release to the target hosts from a remote release_workspace path", %{hosts: [host]} do
-    role :app, [host.ip], port: host.port, user: host.user, password: host.password,
-      silently_accept_hosts: true, workspace: "workspace", release_workspace: "/fixtures"
+  @tag role_opts: %{release_workspace: "/fixtures"}
+  test "deploy/1 deploys the release to the target hosts from a remote release_workspace path" do
+    alias Bootleg.Config
 
     File.cd!("test/fixtures", fn ->
       capture_io(fn ->
+        release_name = "#{Config.version()}.tar.gz"
+        app_name = "#{Config.app()}.tar.gz"
+        assert [{:ok, _, 0, _}] = remote :app, "[ -f /fixtures/#{release_name} ]"
         invoke :deploy
+        assert [{:ok, _, 0, _}] = remote :app, "[ -f #{app_name} ]"
+        assert [{:ok, _, 0, _}] = remote :app, "[ -f release.txt ]"
       end)
     end)
   end

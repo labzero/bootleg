@@ -82,6 +82,7 @@ task :copy_build_release do
 
   UI.info("Copying release archive to release workspace")
   remote :build do
+    "mkdir -p #{release_workspace}"
     "cp #{source_path} #{dest_path}"
   end
 end

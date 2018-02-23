@@ -3,13 +3,14 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
   alias Bootleg.Fixtures
   import ExUnit.CaptureIO
 
-  setup %{hosts: [host]} do
+  setup %{hosts: [host], role_opts: role_opts} do
     use Bootleg.Config
-    config :app, :build_me
+    config :app, :build_me 
     config :version, "0.1.0"
+    workspace = if role_opts[:workspace], do: role_opts[:workspace], else: "workspace"
 
     role :build, host.ip, port: host.port, user: host.user, password: host.password,
-      silently_accept_hosts: true, workspace: "workspace", identity: host.private_key_path
+      silently_accept_hosts: true, workspace: workspace, identity: host.private_key_path, release_workspace: role_opts[:release_workspace]
 
     %{
       project_location: Fixtures.inflate_project
@@ -26,10 +27,9 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     end)
   end
 
-  test "builds the application with an absolute workspace path", %{hosts: [host], project_location: location} do
+  @tag role_opts: %{workspace: "/home/me/workspace_abs"}
+  test "builds the application with an absolute workspace path", %{project_location: location} do
     use Bootleg.Config
-
-    role :build, host.ip, workspace: "/home/#{host.user}/workspace_abs", port: host.port
 
     File.cd!(location, fn ->
       capture_io(fn ->
@@ -38,14 +38,16 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     end)
   end
 
+  @tag role_opts: %{release_workspace: "/home/me/release_workspace"}
   test "builds the application with a release_workspace path", %{hosts: [host], project_location: location} do
     use Bootleg.Config
-
-    role :build, host.ip, release_workspace: "/home/#{host.user}/release_workspace", port: host.port
+    alias Bootleg.Config
 
     File.cd!(location, fn ->
       capture_io(fn ->
         invoke :build
+        release_name = "#{Config.version()}.tar.gz"
+        assert [{:ok, _, 0, _}] = remote :build, "[ -f /home/#{host.user}/release_workspace/#{release_name} ]"
       end)
     end)
   end

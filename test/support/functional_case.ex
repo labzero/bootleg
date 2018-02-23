@@ -27,6 +27,7 @@ defmodule Bootleg.FunctionalCase do
   setup tags do
     count = Map.get(tags, :boot, 1)
     verbosity = Map.get(tags, :ui_verbosity, :silent)
+    role_opts = Map.get(tags, :role_opts, %{})
 
     conf = %{image: @image, cmd: @cmd, args: @args}
     hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
@@ -45,7 +46,7 @@ defmodule Bootleg.FunctionalCase do
       on_exit fn -> Application.put_env(:bootleg, :verbosity, current_verbosity) end
     end
 
-    {:ok, hosts: hosts}
+    {:ok, hosts: hosts, role_opts: role_opts}
   end
 
   def boot(%{image: image, cmd: cmd, args: args} = config) do
