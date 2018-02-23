@@ -5,12 +5,13 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   setup %{hosts: [host], role_opts: role_opts} do
     use Bootleg.Config
-    config :app, :build_me 
+    config :app, :build_me
     config :version, "0.1.0"
     workspace = if role_opts[:workspace], do: role_opts[:workspace], else: "workspace"
 
     role :build, host.ip, port: host.port, user: host.user, password: host.password,
-      silently_accept_hosts: true, workspace: workspace, identity: host.private_key_path, release_workspace: role_opts[:release_workspace]
+      silently_accept_hosts: true, workspace: workspace, identity: host.private_key_path,
+      release_workspace: role_opts[:release_workspace]
 
     %{
       project_location: Fixtures.inflate_project
@@ -40,6 +41,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   @tag role_opts: %{release_workspace: "/home/me/release_workspace"}
   test "builds the application with a release_workspace path", %{hosts: [host], project_location: location} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
     alias Bootleg.Config
 
