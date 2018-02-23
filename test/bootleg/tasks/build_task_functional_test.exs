@@ -43,6 +43,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
   test "builds the application with a release_workspace path", %{hosts: [host], project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     alias Bootleg.Config
 
     File.cd!(location, fn ->
