@@ -1,8 +1,27 @@
 use Bootleg.Config
 
 task :deploy do
-  invoke :upload_release
+  app_role = Config.get_role(:app)
+
+  if app_role.options[:release_workspace] do
+    invoke :copy_deploy_release
+  else
+    invoke :upload_release
+  end
   invoke :unpack_release
+end
+
+task :copy_deploy_release do
+  app_role = Config.get_role(:app)
+  release_workspace = app_role.options[:release_workspace]
+  release = "#{Config.version()}.tar.gz"
+  source_path = Path.join(release_workspace, release)
+  dest_path = "#{Config.app()}.tar.gz"
+
+  UI.info("Copying release archive from release workspace")
+  remote :app do
+    "cp #{source_path} #{dest_path}"
+  end
 end
 
 task :upload_release do

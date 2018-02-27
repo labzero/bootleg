@@ -173,6 +173,12 @@ by Bootleg:
   * `env` - map of environment variable and values. ie: `%{PORT: "1234", FOO: "bar"}`
   * `replace_os_vars` - controls the `REPLACE_OS_VARS` environment variable used by Distillery for release configuration (default `true`)
 
+`build` role specific option:
+  * `release_workspace` - specify the remote path where the release is placed. If not specified the release is downloaded locally (default `nil`)
+
+`app` role specific option:
+  * `release_workspace` - specify the remote path where the release is copied from. If not specified the release is uploaded from local machine (defaul `nil`)
+
 #### Examples
 
 ```elixir
@@ -198,6 +204,11 @@ role :balancer, "lb3.example.com"
 ```
 > In this example, two load balancers are configured with a host-specific option of *banana*. The `balancer` role itself also receives the role-specific option of *banana*. A third balancer is then configured without any specific host options.
 
+```elixir
+role :build, "example.com", workspace: "/home/deployer/builds", release_workspace: "/home/deployer"
+role :app, "example.com", release_workspace: "/home/deployer"
+```
+> In this example, the release is built and deployed on the same remote. By specifying a `release_workspace` on the `:build` role, a release is placed in `home/deployer`. and by specifying a `release_workspace` on the `:app` role, the release is copied from the `/home/deployer` directory to the app workspace. Note that the release is not downloaded.
 #### SSH options
 
 If you include any common `:ssh.connect` options they will not be included in role or host options and will only be used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
@@ -298,7 +309,7 @@ mix bootleg.invoke qa zap
 
 ```console
 # Initializes a project for use with Bootleg
-mix bootleg.init 
+mix bootleg.init
 ```
 
 ## Bootleg Tasks
@@ -517,7 +528,7 @@ after_task :compile, :phx_digest
 ## Task Providers
 
 Sharing is a good thing. Bootleg supports loading
-tasks from packages in a manner very similar to `Mix.Task`. 
+tasks from packages in a manner very similar to `Mix.Task`.
 
 You can create and share custom tasks by namespacing a module under `Bootleg.Tasks` and passing a block of Bootleg DSL:
 
@@ -566,6 +577,3 @@ Check the [LICENSE](LICENSE) file for more information.
   [issues]: https://github.com/labzero/bootleg/issues
   [pulls]: https://github.com/labzero/bootleg/pulls
   [writing-docs]: http://elixir-lang.org/docs/stable/elixir/writing-documentation.html
-
-
-
