@@ -119,10 +119,11 @@ There are a few config settings that are directly used within Bootleg itself, th
 
 ```elixir
 config :app, :myapp
-config :refspec, "develop" # Set a git branch used for the build. Default is "master"
-config :version, "1.2.3"
 config :env, :staging # sets/overrides the bootleg environment
 config :ex_path, "/path/to/project" # Path to the project. Default is current directory.
+config :local_build, true # build releases locally without a `:build` role
+config :refspec, "develop" # Set a git branch used for the build. Default is "master"
+config :version, "1.2.3"
 ```
 
 Any additional `config` settings can be set the same way and then looked up later with `config/1`.
@@ -159,6 +160,17 @@ all hosts assigned to any role. `:all` is only available via `remote/2`.
 Some features or extensions may require additional roles, for example if your
 release needs to run Ecto migrations, you will need to assign the `:db`
 role to one host.
+
+#### Local build option
+
+You may not need a remote build server for all situations. In these cases, you can skip designating a `:build` role, and instead set the top level `:local_build` option to `true`. This will tell bootleg to skip all of the steps required to build the release on a remote server and instead built it locally.
+
+```elixir
+# deploy.exs
+use Bootleg.Config
+
+config :local_build, true
+```
 
 ### Role and host options
 
