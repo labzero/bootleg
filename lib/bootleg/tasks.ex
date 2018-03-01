@@ -12,11 +12,7 @@ defmodule Bootleg.Tasks do
 
     tasks_path = Path.join(__DIR__, "tasks")
 
-    tasks_path
-    |> File.ls!()
-    |> Enum.map(fn (file) -> Path.join(tasks_path, file) end)
-    |> Enum.map(fn (file) -> {File.read!(file), %{__ENV__ | line: 1, file: file}} end)
-    |> Enum.each(fn ({code, env}) -> Code.eval_string(code, [], env) end)
+    load_bootleg_tasks(tasks_path)
 
     load_third_party()
 
@@ -88,6 +84,27 @@ defmodule Bootleg.Tasks do
     Enum.each(list_third_party(), fn mod ->
       mod.load()
     end)
+  end
+
+  defp load_bootleg_tasks(path) do
+    path
+    |> File.ls!()
+    |> Enum.map(&(Path.join(path, &1)))
+    |> Enum.each(fn(x) ->
+      if File.dir?(x) do
+        load_bootleg_tasks(x)
+      else
+        load_bootleg_task(x)
+      end
+    end)
+  end
+
+  defp load_bootleg_task(file) do
+    Code.eval_string(
+      File.read!(file),
+      [],
+      %{__ENV__ | line: 1, file: file}
+    )
   end
 
   @prefix "Elixir.Bootleg.Tasks."

@@ -39,17 +39,30 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     end)
   end
 
+  test "builds the application locally", %{project_location: location} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.Config
+
+    config :local_build, true
+    File.cd!(location, fn ->
+      capture_io(fn ->
+        release_name = "#{config :version}.tar.gz"
+        assert false == File.exists? "releases/#{release_name}"
+        invoke :build
+        assert true == File.exists? Path.join([File.cwd!, "releases", release_name])
+      end)
+    end)
+  end
+
   @tag role_opts: %{release_workspace: "/home/me/release_workspace"}
   test "builds the application with a release_workspace path", %{hosts: [host], project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.Config
-    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    alias Bootleg.Config
 
     File.cd!(location, fn ->
       capture_io(fn ->
         invoke :build
-        release_name = "#{Config.version()}.tar.gz"
+        release_name = "#{config :version}.tar.gz"
         assert [{:ok, _, 0, _}] = remote :build, "[ -f /home/#{host.user}/release_workspace/#{release_name} ]"
       end)
     end)
