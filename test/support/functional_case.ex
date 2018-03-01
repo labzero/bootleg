@@ -33,33 +33,40 @@ defmodule Bootleg.FunctionalCase do
     hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
 
     if Map.get(tags, :verbose, System.get_env("TEST_VERBOSE")) do
-      Logger.info("started docker hosts: #{inspect hosts, pretty: true}")
+      Logger.info("started docker hosts: #{inspect(hosts, pretty: true)}")
     end
 
     unless Map.get(tags, :leave_vm, System.get_env("TEST_LEAVE_CONTAINER")) do
-      on_exit fn -> kill(hosts) end
+      on_exit(fn -> kill(hosts) end)
     end
 
-    current_verbosity = UI.verbosity
+    current_verbosity = UI.verbosity()
+
     if current_verbosity != verbosity do
       Application.put_env(:bootleg, :verbosity, verbosity)
-      on_exit fn -> Application.put_env(:bootleg, :verbosity, current_verbosity) end
+      on_exit(fn -> Application.put_env(:bootleg, :verbosity, current_verbosity) end)
     end
 
     {:ok, hosts: hosts, role_opts: role_opts}
   end
 
   def boot(%{image: image, cmd: cmd, args: args} = config) do
-    id = Docker.run!(["--rm", "--publish-all", "--detach", "-v", "#{File.cwd!}:/project"], image, cmd, args)
+    id =
+      Docker.run!(
+        ["--rm", "--publish-all", "--detach", "-v", "#{File.cwd!()}:/project"],
+        image,
+        cmd,
+        args
+      )
 
-    ip = Docker.host
+    ip = Docker.host()
 
     port =
       "port"
       |> Docker.cmd!([id, "22/tcp"])
       |> String.split(":")
-      |> List.last
-      |> String.to_integer
+      |> List.last()
+      |> String.to_integer()
 
     Map.merge(config, %{id: id, ip: ip, port: port})
   end
@@ -72,12 +79,16 @@ defmodule Bootleg.FunctionalCase do
     private_key_path = Temp.open!("docker-key", &IO.write(&1, private_key))
     File.chmod!(private_key_path, 0o600)
 
-    Map.merge(host, %{user: @user, password: @pass, private_key: private_key,
-      private_key_path: private_key_path})
+    Map.merge(host, %{
+      user: @user,
+      password: @pass,
+      private_key: private_key,
+      private_key_path: private_key_path
+    })
   end
 
   def kill(hosts) do
-    running = Enum.map(hosts, &(Map.get(&1, :id)))
+    running = Enum.map(hosts, &Map.get(&1, :id))
     killed = Docker.kill!(running)
     diff = running -- killed
     if Enum.empty?(diff), do: :ok, else: {:error, diff}

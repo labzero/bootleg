@@ -6,7 +6,6 @@ defmodule Bootleg.Git do
   end
 
   defp git(cmd, args, options) do
-    System.cmd("git", [cmd | args], Keyword.merge(options, [stderr_to_stdout: true]))
+    System.cmd("git", [cmd | args], Keyword.merge(options, stderr_to_stdout: true))
   end
-
 end

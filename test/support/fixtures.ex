@@ -4,6 +4,7 @@ defmodule Bootleg.Fixtures do
   def inflate_project(name \\ :build_me) do
     project_dir = Temp.mkdir!("git-#{name}")
     File.cp_r!("./test/fixtures/#{name}", project_dir)
+
     File.cd!(project_dir, fn ->
       System.cmd("git", ["init"])
       System.cmd("git", ["config", "user.email", "local@example.com"])
@@ -11,6 +12,7 @@ defmodule Bootleg.Fixtures do
       System.cmd("git", ["add", "."])
       System.cmd("git", ["commit", "-m", "yolo"])
     end)
+
     project_dir
   end
 end

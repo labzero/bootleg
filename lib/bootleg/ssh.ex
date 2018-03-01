@@ -7,7 +7,8 @@ defmodule Bootleg.SSH do
   alias Bootleg.{UI, Host, Role, Config}
 
   def init(%Role{} = role, options, filter) do
-    role_options = Keyword.merge(role.options, [user: role.user])
+    role_options = Keyword.merge(role.options, user: role.user)
+
     role.hosts
     |> Enum.reduce([], fn host, acc ->
       if filter_match?(host.options, filter) do
@@ -28,17 +29,20 @@ defmodule Bootleg.SSH do
   end
 
   def init(role, options \\ [])
+
   def init(role, options) when is_atom(role) do
     init(role, options, [])
   end
+
   def init(%Role{} = role, options) do
     init(role, options, [])
   end
+
   def init(hosts, options) do
     workspace = Keyword.get(options, :workspace, ".")
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
-    UI.puts "Creating remote context at '#{workspace}'"
+    UI.puts("Creating remote context at '#{workspace}'")
 
     :ssh.start()
 
@@ -60,13 +64,15 @@ defmodule Bootleg.SSH do
 
   def run(context, cmd) do
     cmd = Context.build(context, cmd)
-    run = fn host ->
-      UI.puts_send host, cmd
 
-      conn = case SSHKitSSH.connect(host.name, host.options) do
-        {:ok, conn} -> conn
-        {:error, err} -> raise SSHError, [err, host]
-      end
+    run = fn host ->
+      UI.puts_send(host, cmd)
+
+      conn =
+        case SSHKitSSH.connect(host.name, host.options) do
+          {:ok, conn} -> conn
+          {:error, err} -> raise SSHError, [err, host]
+        end
 
       conn
       |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host), acc: {:cont, {[], nil, %{}}})
@@ -77,13 +83,15 @@ defmodule Bootleg.SSH do
   end
 
   defp validate_workspace(context, workspace, create_workspace)
+
   defp validate_workspace(context, workspace, false) do
     run!(context, "test -d #{workspace}")
-    SSHKit.path context, workspace
+    SSHKit.path(context, workspace)
   end
+
   defp validate_workspace(context, workspace, true) do
     run!(context, "mkdir -p #{workspace}")
-    SSHKit.path context, workspace
+    SSHKit.path(context, workspace)
   end
 
   defp working_directory(context, path) when path == "." or path == false or is_nil(path) do
@@ -98,9 +106,10 @@ defmodule Bootleg.SSH do
   end
 
   defp prepare_remote_env(context, options) do
-    env = Map.merge(%{"BOOTLEG_ENV": Config.env}, Keyword.get(options, :env, %{}))
+    env = Map.merge(%{BOOTLEG_ENV: Config.env()}, Keyword.get(options, :env, %{}))
+
     case Keyword.get(options, :replace_os_vars, true) do
-      true -> SSHKit.env(context, Map.merge(%{"REPLACE_OS_VARS": true}, env))
+      true -> SSHKit.env(context, Map.merge(%{REPLACE_OS_VARS: true}, env))
       _ -> SSHKit.env(context, env)
     end
   end
@@ -108,7 +117,9 @@ defmodule Bootleg.SSH do
   @last_new_line ~r/\A(?<bulk>.*)((?<newline>\n)(?<remainder>[^\n]*))?\z/msU
 
   defp split_last_line(data) do
-    %{"bulk" => bulk, "newline" => newline, "remainder" => remainder} = Regex.named_captures(@last_new_line, data)
+    %{"bulk" => bulk, "newline" => newline, "remainder" => remainder} =
+      Regex.named_captures(@last_new_line, data)
+
     if newline == "\n" do
       {bulk <> "\n", remainder}
     else
@@ -120,6 +131,7 @@ defmodule Bootleg.SSH do
     partial_line = partial_buffer[device] || ""
     {bulk, remainder} = split_last_line(partial_line <> data)
     new_partial_buffer = Map.put(partial_buffer, device, remainder)
+
     if bulk == "" do
       {buffer, new_partial_buffer, bulk}
     else
@@ -133,20 +145,30 @@ defmodule Bootleg.SSH do
   end
 
   defp capture(message, {buffer, status, partial_buffer} = state, host) do
-    next = case message do
-      {:data, _, 0, data} ->
-        {buffer, partial_buffer, data} =
-          buffer_complete_lines(data, :stdout, buffer, partial_buffer)
-        UI.puts_recv host, String.trim_trailing(data)
-        {buffer, status, partial_buffer}
-      {:data, _, 1, data} ->
-        {buffer, partial_buffer, _} = buffer_complete_lines(data, :stderr, buffer, partial_buffer)
-        {buffer, status, partial_buffer}
-      {:exit_status, _, code} -> {buffer, code, partial_buffer}
-      {:closed, _} ->
-        {:ok, Enum.reverse(empty_partial_buffer(buffer, partial_buffer)), status}
-      _ -> state
-    end
+    next =
+      case message do
+        {:data, _, 0, data} ->
+          {buffer, partial_buffer, data} =
+            buffer_complete_lines(data, :stdout, buffer, partial_buffer)
+
+          UI.puts_recv(host, String.trim_trailing(data))
+          {buffer, status, partial_buffer}
+
+        {:data, _, 1, data} ->
+          {buffer, partial_buffer, _} =
+            buffer_complete_lines(data, :stderr, buffer, partial_buffer)
+
+          {buffer, status, partial_buffer}
+
+        {:exit_status, _, code} ->
+          {buffer, code, partial_buffer}
+
+        {:closed, _} ->
+          {:ok, Enum.reverse(empty_partial_buffer(buffer, partial_buffer)), status}
+
+        _ ->
+          state
+      end
 
     {:cont, next}
   end
@@ -164,32 +186,35 @@ defmodule Bootleg.SSH do
   end
 
   defp run_result({:ok, _, 0, _} = result, _), do: result
+
   defp run_result({:ok, output, status, host}, command) do
     raise SSHError, [command, output, status, host]
   end
 
   def download(conn, remote_path, local_path) do
-    UI.puts_download conn, remote_path, local_path
+    UI.puts_download(conn, remote_path, local_path)
+
     case SSHKit.download(conn, remote_path, as: local_path, recursive: true) do
-      [:ok|_] -> :ok
+      [:ok | _] -> :ok
       [] -> :ok
-      [{_, msg}|_] -> raise "SCP download error: #{msg}"
+      [{_, msg} | _] -> raise "SCP download error: #{msg}"
     end
   end
 
   def upload(conn, local_path, remote_path) do
-    UI.puts_upload conn, local_path, remote_path
+    UI.puts_upload(conn, local_path, remote_path)
+
     case SSHKit.upload(conn, local_path, as: remote_path, recursive: true) do
-      [:ok|_] -> :ok
+      [:ok | _] -> :ok
       [] -> :ok
-      [{_, msg}|_] -> raise "SCP upload error #{msg}"
+      [{_, msg} | _] -> raise "SCP upload error #{msg}"
     end
   end
 
   def ssh_opts(options) do
     options
     |> Enum.map(&ssh_opt/1)
-    |> Enum.map(&(ssh_transform_opt(&1, options)))
+    |> Enum.map(&ssh_transform_opt(&1, options))
     |> List.flatten()
   end
 
@@ -203,14 +228,19 @@ defmodule Bootleg.SSH do
   """
   def ssh_transform_opt({:identity, identity_file}, options) do
     identity = File.open!(Path.expand(identity_file))
+
     key_cb =
       options
       |> Enum.map(&ssh_opt/1)
-      |> Enum.filter(&Enum.member?(supported_key_cb_options(), Atom.to_string(elem(&1, 0))) == true)
+      |> Enum.filter(
+        &(Enum.member?(supported_key_cb_options(), Atom.to_string(elem(&1, 0))) == true)
+      )
       |> Keyword.put(:identity, identity)
       |> SSHClientKeyAPI.with_options()
+
     [{:key_cb, key_cb}]
   end
+
   def ssh_transform_opt(option, _), do: option
 
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
@@ -229,17 +259,22 @@ defmodule Bootleg.SSH do
   def merge_run_results(new, []) do
     new
   end
+
   def merge_run_results([], orig) do
     orig
   end
+
   def merge_run_results(new, orig) when is_list(orig) do
     delta = length(new) - length(orig)
     entries = List.duplicate([], abs(delta))
-    {new, orig} = if delta > 0 do
+
+    {new, orig} =
+      if delta > 0 do
         {new, orig ++ entries}
       else
         {new ++ entries, orig}
       end
+
     new
     |> Enum.zip(orig)
     |> Enum.map(fn {n, o} ->

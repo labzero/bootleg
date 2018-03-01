@@ -6,12 +6,13 @@ defmodule Bootleg.Mixfile do
   @homepage "https://labzero.github.io/bootleg/"
 
   def project do
-    [app: :bootleg,
+    [
+      app: :bootleg,
       version: @version,
       elixir: "~> 1.4",
-      build_embedded: Mix.env == :prod,
-      start_permanent: Mix.env == :prod,
-      elixirc_paths: elixirc_paths(Mix.env),
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
       dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :sshkit]],
       docs: [source_ref: "release-#{@version}", main: "readme", extras: ["README.md"]],
@@ -59,9 +60,11 @@ defmodule Bootleg.Mixfile do
   end
 
   defp package do
-    [maintainers: ["labzero", "Brien Wankel", "Ned Holets", "Rob Adams"],
-     licenses: ["MIT"],
-     links: %{"GitHub" => @source, "Homepage" => @homepage}]
+    [
+      maintainers: ["labzero", "Brien Wankel", "Ned Holets", "Rob Adams"],
+      licenses: ["MIT"],
+      links: %{"GitHub" => @source, "Homepage" => @homepage}
+    ]
   end
 
   defp elixirc_paths(:test), do: ["lib", "web", "test/support"]

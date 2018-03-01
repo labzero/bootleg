@@ -14,5 +14,4 @@ defmodule Mix.Tasks.Bootleg.Update do
 
     * mix bootleg.update
   """
-
 end

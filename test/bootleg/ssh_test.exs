@@ -10,9 +10,10 @@ defmodule Bootleg.SSHTest do
   setup do
     tmp_file_path = "/tmp/bootleg_test_key_rsa"
     File.touch(tmp_file_path)
-    on_exit fn ->
-      File.rm tmp_file_path
-    end
+
+    on_exit(fn ->
+      File.rm(tmp_file_path)
+    end)
 
     %{
       conn: %Context{
@@ -28,6 +29,7 @@ defmodule Bootleg.SSHTest do
 
   test "init/3 raises an error if the host is not found" do
     host = Bootleg.Host.init("bad-host-name.local", [], [])
+
     capture_io(fn ->
       assert_raise SSHError, fn -> SSH.init(host, []) end
     end)
@@ -48,7 +50,11 @@ defmodule Bootleg.SSHTest do
   test "ssh_host_options/1 with a malformed identity path" do
     capture_io(fn ->
       assert_raise File.Error, fn ->
-        host = %Host{host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]}, options: []}
+        host = %Host{
+          host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]},
+          options: []
+        }
+
         SSH.ssh_host_options(host)
       end
     end)
@@ -74,7 +80,9 @@ defmodule Bootleg.SSHTest do
     [key_cb: {SSHClientKeyAPI, _}] = SSH.ssh_opts(options)
   end
 
-  test "ssh_opts/1 with identity and options returns a key callback with same options", %{blank_key_path: blank_key_path} do
+  test "ssh_opts/1 with identity and options returns a key callback with same options", %{
+    blank_key_path: blank_key_path
+  } do
     options = [identity: blank_key_path, silently_accept_hosts: false]
     [key_cb: {SSHClientKeyAPI, keyopts}, silently_accept_hosts: false] = SSH.ssh_opts(options)
     map_opts = Enum.into(keyopts, %{})
@@ -83,7 +91,10 @@ defmodule Bootleg.SSHTest do
 
   test "merge_run_results/2" do
     assert [[2, 4, 1, 2]] = SSH.merge_run_results([[1, 2]], [[2, 4]])
-    assert [[2, 4, 1, 2], [5, 6, 3, 4]] = SSH.merge_run_results([[1, 2], [3, 4]], [[2, 4], [5, 6]])
+
+    assert [[2, 4, 1, 2], [5, 6, 3, 4]] =
+             SSH.merge_run_results([[1, 2], [3, 4]], [[2, 4], [5, 6]])
+
     assert [1, 2] = SSH.merge_run_results([1, 2], [])
     assert [[1, 2]] = SSH.merge_run_results([[1, 2]], [])
     assert [[1, 2]] = SSH.merge_run_results([], [[1, 2]])
@@ -92,6 +103,6 @@ defmodule Bootleg.SSHTest do
   end
 
   test "supported_options/0" do
-    assert Enum.member?(SSH.supported_options, :quiet_mode)
+    assert Enum.member?(SSH.supported_options(), :quiet_mode)
   end
 end

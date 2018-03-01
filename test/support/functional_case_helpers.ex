@@ -19,8 +19,16 @@ defmodule Bootleg.FunctionalCaseHelpers do
   end
 
   def keygen!(%{id: id} = _host, username) do
-    Docker.exec!([], id, "sh", ["-c", "ssh-keygen -b 1024 -f /tmp/#{username} -N '' -C \"#{username}@$(hostname)\""])
-    Docker.exec!([], id, "sh", ["-c", "cat /tmp/#{username}.pub > /home/#{username}/.ssh/authorized_keys"])
+    Docker.exec!([], id, "sh", [
+      "-c",
+      "ssh-keygen -b 1024 -f /tmp/#{username} -N '' -C \"#{username}@$(hostname)\""
+    ])
+
+    Docker.exec!([], id, "sh", [
+      "-c",
+      "cat /tmp/#{username}.pub > /home/#{username}/.ssh/authorized_keys"
+    ])
+
     Docker.exec!([], id, "sh", ["-c", "cat /tmp/#{username}"])
   end
 end

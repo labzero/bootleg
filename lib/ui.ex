@@ -10,8 +10,9 @@ defmodule Bootleg.UI do
   Simple wrapper around IO.puts
   """
   def puts(""), do: :ok
+
   def puts(text) do
-    IO.puts text
+    IO.puts(text)
   end
 
   @doc """
@@ -37,7 +38,7 @@ defmodule Bootleg.UI do
   """
   def puts(level, output, setting \\ nil) do
     case verbosity_includes(setting || verbosity(), level) do
-      true -> puts output
+      true -> puts(output)
       false -> nil
     end
   end
@@ -66,14 +67,15 @@ defmodule Bootleg.UI do
   Defaults to :info
   """
   def verbosity(setting \\ nil) do
-    validate_verbosity setting || Application.get_env(:bootleg, :verbosity, :info)
+    validate_verbosity(setting || Application.get_env(:bootleg, :verbosity, :info))
   end
 
   defp validate_verbosity(verbosity) when verbosity in @verbosities, do: verbosity
   defp validate_verbosity(_), do: :info
 
-  defp verbosity_includes(setting, _) when not(setting in @verbosities), do: false
-  defp verbosity_includes(_, level) when not(level in @verbosities), do: false
+  defp verbosity_includes(setting, _) when not (setting in @verbosities), do: false
+  defp verbosity_includes(_, level) when not (level in @verbosities), do: false
+
   defp verbosity_includes(setting, level) do
     index = fn value -> Enum.find_index(@verbosities, &(&1 == value)) end
     index.(setting) >= index.(level)
@@ -85,14 +87,12 @@ defmodule Bootleg.UI do
   Output an impending upload operation.
   """
   def puts_upload(%SSHKit.Context{} = context, local_path, remote_path) do
-    Enum.each(context.hosts, fn(host) ->
-      [:reset, :bright, :green]
-        ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
-        ++ [:reset, :yellow, "UPLOAD", " "]
-        ++ [:reset, Path.relative_to_cwd(local_path)]
-        ++ [:reset, :yellow, " -> "]
-        ++ [:reset, Path.join(context.path, remote_path)]
-        ++ ["\n"]
+    Enum.each(context.hosts, fn host ->
+      ([:reset, :bright, :green] ++
+         ["[" <> String.pad_trailing(host.name, 10) <> "] "] ++
+         [:reset, :yellow, "UPLOAD", " "] ++
+         [:reset, Path.relative_to_cwd(local_path)] ++
+         [:reset, :yellow, " -> "] ++ [:reset, Path.join(context.path, remote_path)] ++ ["\n"])
       |> IO.ANSI.format(output_coloring())
       |> IO.write()
     end)
@@ -102,14 +102,12 @@ defmodule Bootleg.UI do
   Output an impending download operation.
   """
   def puts_download(%SSHKit.Context{} = context, remote_path, local_path) do
-    Enum.each(context.hosts, fn(host) ->
-      [:reset, :bright, :green]
-        ++ ["[" <> String.pad_trailing(host.name, 10) <> "] "]
-        ++ [:reset, :yellow, "DOWNLOAD", " "]
-        ++ [:reset, Path.join(context.path, remote_path)]
-        ++ [:reset, :yellow, " -> "]
-        ++ [:reset, Path.relative_to_cwd(local_path)]
-        ++ ["\n"]
+    Enum.each(context.hosts, fn host ->
+      ([:reset, :bright, :green] ++
+         ["[" <> String.pad_trailing(host.name, 10) <> "] "] ++
+         [:reset, :yellow, "DOWNLOAD", " "] ++
+         [:reset, Path.join(context.path, remote_path)] ++
+         [:reset, :yellow, " -> "] ++ [:reset, Path.relative_to_cwd(local_path)] ++ ["\n"])
       |> IO.ANSI.format(output_coloring())
       |> IO.write()
     end)
@@ -119,8 +117,8 @@ defmodule Bootleg.UI do
   Output a command destined for one or more servers in an SSHKit context.
   """
   def puts_send(%SSHKit.Context{} = context, command) do
-    Enum.each(context.hosts, fn(host) ->
-      puts_send host, command
+    Enum.each(context.hosts, fn host ->
+      puts_send(host, command)
     end)
   end
 
@@ -129,6 +127,7 @@ defmodule Bootleg.UI do
   """
   def puts_send(%SSHKit.Host{} = host, command) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
+
     [:reset, :bright, :green, prefix, :reset, command, "\n"]
     |> IO.ANSI.format(output_coloring())
     |> IO.write()
@@ -169,6 +168,7 @@ defmodule Bootleg.UI do
 
   defp split_received_lines(%SSHKit.Host{} = host, text) do
     prefix = "[" <> String.pad_trailing(host.name, 10) <> "] "
+
     text
     |> String.split(["\r\n", "\n"])
     |> Enum.map(&format_line(&1, prefix))

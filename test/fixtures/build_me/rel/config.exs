@@ -8,10 +8,10 @@
 |> Enum.map(&Code.eval_file(&1))
 
 use Mix.Releases.Config,
-    # This sets the default release built by `mix release`
-    default_release: :default,
-    # This sets the default environment used by `mix release`
-    default_environment: Mix.env()
+  # This sets the default release built by `mix release`
+  default_release: :default,
+  # This sets the default environment used by `mix release`
+  default_environment: Mix.env()
 
 # For a full list of config options for both releases
 # and environments, visit https://hexdocs.pm/distillery/configuration.html
@@ -22,15 +22,15 @@ use Mix.Releases.Config,
 # and environment configuration is called a profile
 
 environment :dev do
-  set dev_mode: true
-  set include_erts: false
-  set cookie: :"X4;[FrPc_I7ts,/Kv!b8/Ug]>_138CL/17Ars}Q!a>~32,X(p1Dd2|P]u}S:a`18"
+  set(dev_mode: true)
+  set(include_erts: false)
+  set(cookie: :"X4;[FrPc_I7ts,/Kv!b8/Ug]>_138CL/17Ars}Q!a>~32,X(p1Dd2|P]u}S:a`18")
 end
 
 environment :prod do
-  set include_erts: true
-  set include_src: false
-  set cookie: :"[7o)DJ]AnI4;eNDXgRk.%3$yjTi/J<r5EG%v>Y{7ACZZ>b7kl(,OL3.w;MsPyjk3"
+  set(include_erts: true)
+  set(include_src: false)
+  set(cookie: :"[7o)DJ]AnI4;eNDXgRk.%3$yjTi/J<r5EG%v>Y{7ACZZ>b7kl(,OL3.w;MsPyjk3")
 end
 
 # You may define one or more releases in this file.
@@ -39,8 +39,11 @@ end
 # will be used by default
 
 release :build_me do
-  set version: current_version(:build_me)
-  set applications: [
-    :runtime_tools
-  ]
+  set(version: current_version(:build_me))
+
+  set(
+    applications: [
+      :runtime_tools
+    ]
+  )
 end
