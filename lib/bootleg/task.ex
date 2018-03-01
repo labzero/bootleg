@@ -43,26 +43,30 @@ defmodule Bootleg.Task do
   """
 
   @doc """
-    A task needs to implement `load` which receives no arguments. Return values are ignored.
+  A task needs to implement `load` which receives no arguments. Return values are ignored.
 
-    If you use the block version of `use Bootleg.Task`, this callback will be generated for you.
-    """
+  If you use the block version of `use Bootleg.Task`, this callback will be generated for you.
+  """
   @callback load() :: any
 
   alias Bootleg.{UI, Config}
+
   defmacro __using__(task_def) do
     quote do
-      unless String.starts_with?(Atom.to_string(__MODULE__), "Elixir.Bootleg.Tasks.")do
-        UI.warn "You seem to be trying to define a Bootleg task, but your module is not in the " <>
-        "`Bootleg.Tasks` namespace. Your task will not be loaded automatically."
+      unless String.starts_with?(Atom.to_string(__MODULE__), "Elixir.Bootleg.Tasks.") do
+        UI.warn(
+          "You seem to be trying to define a Bootleg task, but your module is not in the " <>
+            "`Bootleg.Tasks` namespace. Your task will not be loaded automatically."
+        )
       end
+
       def load do
         use Config
 
         unquote(task_def)
       end
 
-      defoverridable [load: 0]
+      defoverridable load: 0
     end
   end
 end

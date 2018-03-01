@@ -7,9 +7,9 @@ defmodule Bootleg.Tasks.Other do
     use Config
 
     task :other do
-      IO.puts "~~OTHER TASK~~"
+      IO.puts("~~OTHER TASK~~")
     end
 
-    before_task :build, :other
+    before_task(:build, :other)
   end
 end

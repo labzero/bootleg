@@ -8,9 +8,24 @@ defmodule Bootleg.Config do
 
   defmacro __using__(_) do
     quote do
-      import Bootleg.Config, only: [role: 2, role: 3, config: 2, config: 1, config: 0,
-        before_task: 2, after_task: 2, invoke: 1, task: 2, remote: 1, remote: 2,
-        remote: 3, load: 1, upload: 3, download: 3]
+      import Bootleg.Config,
+        only: [
+          role: 2,
+          role: 3,
+          config: 2,
+          config: 1,
+          config: 0,
+          before_task: 2,
+          after_task: 2,
+          invoke: 1,
+          task: 2,
+          remote: 1,
+          remote: 2,
+          remote: 3,
+          load: 1,
+          upload: 3,
+          download: 3
+        ]
     end
   end
 
@@ -45,20 +60,24 @@ defmodule Bootleg.Config do
     if name == :all do
       raise ArgumentError, ":all is reserved by bootleg and refers to all defined roles."
     end
+
     user = Keyword.get(options, :user, System.get_env("USER"))
-    ssh_options = Enum.filter(options, &Enum.member?(SSH.supported_options, elem(&1, 0)) == true)
+
+    ssh_options =
+      Enum.filter(options, &(Enum.member?(SSH.supported_options(), elem(&1, 0)) == true))
+
+    # identity needs to be present in both options lists
     role_options =
-      options -- ssh_options
+      (options -- ssh_options)
       |> Keyword.put(:user, user)
-      # identity needs to be present in both options lists
       |> Keyword.put(:identity, ssh_options[:identity])
       |> Keyword.get_and_update(:identity, fn val ->
-          if val || Keyword.has_key?(ssh_options, :identity) do
-            {val, val || ssh_options[:identity]}
-          else
-            :pop
-          end
-        end)
+        if val || Keyword.has_key?(ssh_options, :identity) do
+          {val, val || ssh_options[:identity]}
+        else
+          :pop
+        end
+      end)
       |> elem(1)
 
     quote bind_quoted: binding() do
@@ -73,6 +92,7 @@ defmodule Bootleg.Config do
         hosts: [],
         options: role_options
       }
+
       role =
         :roles
         |> Bootleg.Config.Agent.get()
@@ -165,19 +185,29 @@ defmodule Bootleg.Config do
   defp add_callback(task, position, caller, do: block) do
     file = caller.file()
     line = caller.line()
+
     quote do
       hook_number = Bootleg.Config.Agent.increment(:next_hook_number)
-      module_name = String.to_atom("Elixir.Bootleg.DynamicCallbacks." <>
-        String.capitalize("#{unquote(position)}") <> String.capitalize("#{unquote(task)}") <>
-        "#{hook_number}")
+
+      module_name =
+        String.to_atom(
+          "Elixir.Bootleg.DynamicCallbacks." <>
+            String.capitalize("#{unquote(position)}") <>
+            String.capitalize("#{unquote(task)}") <> "#{hook_number}"
+        )
+
       defmodule module_name do
         @file unquote(file)
         def execute, do: unquote(block)
         def location, do: {unquote(file), unquote(line)}
         hook_list_name = :"#{unquote(position)}_hooks"
         hooks = Keyword.get(Bootleg.Config.Agent.get(hook_list_name), unquote(task), [])
-        Bootleg.Config.Agent.merge(hook_list_name, unquote(task), hooks ++
-          [[module_name, :execute]])
+
+        Bootleg.Config.Agent.merge(
+          hook_list_name,
+          unquote(task),
+          hooks ++ [[module_name, :execute]]
+        )
       end
     end
   end
@@ -283,9 +313,12 @@ defmodule Bootleg.Config do
 
       if Code.ensure_compiled?(module_name) do
         {orig_file, orig_line} = module_name.location
-        UI.warn "warning: task '#{unquote(task)}' is being redefined. " <>
-        "The most recent definition will win, but this is probably not what you meant to do. " <>
-        "The previous definition was at: #{orig_file}:#{orig_line}"
+
+        UI.warn(
+          "warning: task '#{unquote(task)}' is being redefined. " <>
+            "The most recent definition will win, but this is probably not what you meant to do. " <>
+            "The previous definition was at: #{orig_file}:#{orig_line}"
+        )
       end
 
       original_opts = Code.compiler_options()
@@ -300,6 +333,7 @@ defmodule Bootleg.Config do
       after
         Code.compiler_options(original_opts)
       end
+
       :ok
     end
   end
@@ -309,7 +343,7 @@ defmodule Bootleg.Config do
     agent_key
     |> Bootleg.Config.Agent.get()
     |> Keyword.get(task, [])
-    |> Enum.each(fn([module, fnref]) -> apply(module, fnref, []) end)
+    |> Enum.each(fn [module, fnref] -> apply(module, fnref, []) end)
   end
 
   @spec module_for_task(atom) :: atom
@@ -352,6 +386,7 @@ defmodule Bootleg.Config do
     invoke_task_callbacks(task, :before_hooks)
 
     module_name = module_for_task(task)
+
     if Code.ensure_compiled?(module_name) do
       apply(module_name, :execute, [])
     end
@@ -460,6 +495,7 @@ defmodule Bootleg.Config do
   """
   defmacro remote(role, options, lines) do
     roles = unpack_role(role)
+
     quote bind_quoted: binding() do
       Enum.reduce(roles, [], fn role, outputs ->
         role
@@ -480,9 +516,12 @@ defmodule Bootleg.Config do
   @spec load(binary | charlist) :: :ok | {:error, :enoent}
   def load(file) do
     case File.regular?(file) do
-      true -> Code.eval_file(file)
-              :ok
-      false -> {:error, :enoent}
+      true ->
+        Code.eval_file(file)
+        :ok
+
+      false ->
+        {:error, :enoent}
     end
   end
 
@@ -527,6 +566,7 @@ defmodule Bootleg.Config do
   defmacro upload(role, local_path, remote_path) do
     {roles, filters} = split_roles_and_filters(role)
     roles = unpack_role(roles)
+
     quote bind_quoted: binding() do
       Enum.each(roles, fn role ->
         role
@@ -580,6 +620,7 @@ defmodule Bootleg.Config do
   defmacro download(role, remote_path, local_path) do
     {roles, filters} = split_roles_and_filters(role)
     roles = unpack_role(roles)
+
     quote bind_quoted: binding() do
       Enum.each(roles, fn role ->
         role
@@ -614,8 +655,8 @@ defmodule Bootleg.Config do
   @doc false
   @spec cache_project_config(atom) :: any
   def cache_project_config(prop) do
-    unless Project.umbrella? do
-      val = Project.config[prop]
+    unless Project.umbrella?() do
+      val = Project.config()[prop]
       Bootleg.Config.Agent.merge(:config, prop, val)
       val
     else
@@ -640,7 +681,7 @@ defmodule Bootleg.Config do
   @spec split_roles_and_filters(atom | keyword) :: {[atom], keyword}
   defp split_roles_and_filters(role) do
     role
-    |> List.wrap
+    |> List.wrap()
     |> Enum.split_while(fn term -> !is_tuple(term) end)
   end
 
@@ -648,6 +689,7 @@ defmodule Bootleg.Config do
   @spec unpack_role(atom | keyword) :: tuple
   defp unpack_role(role) do
     wrapped_role = List.wrap(role)
+
     if Enum.any?(wrapped_role, fn role -> role == :all end) do
       quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
     else

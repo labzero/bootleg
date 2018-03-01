@@ -19,15 +19,16 @@ defmodule Bootleg.Tasks do
     Config.load(Path.join(@path_deploy_config))
 
     env_config_path =
-      [@path_env_configs, ["#{Config.env}.exs"]]
+      [@path_env_configs, ["#{Config.env()}.exs"]]
       |> List.flatten()
       |> Path.join()
 
     unless :ok == Config.load(env_config_path) do
-      UI.warn("You are running in the `#{Config.env}` bootleg " <>
-        "environment but there is no configuration defined for that environment. " <>
-        "Create one at `#{env_config_path}` if you want to do additional " <>
-        "customization.")
+      UI.warn(
+        "You are running in the `#{Config.env()}` bootleg " <>
+          "environment but there is no configuration defined for that environment. " <>
+          "Create one at `#{env_config_path}` if you want to do additional " <> "customization."
+      )
     end
 
     :ok
@@ -36,6 +37,7 @@ defmodule Bootleg.Tasks do
   @doc false
   @spec parse_env_task([binary]) :: {nil, nil} | {nil, atom} | {binary, atom}
   def parse_env_task(args) when args == [], do: {nil, nil}
+
   def parse_env_task(args) when is_list(args) do
     args
     |> List.first()
@@ -44,9 +46,10 @@ defmodule Bootleg.Tasks do
       true ->
         [env | args] = args
         pop_env_task(env, args)
+
       false ->
         pop_env_task(nil, args)
-      end
+    end
   end
 
   @doc false
@@ -54,6 +57,7 @@ defmodule Bootleg.Tasks do
   defp pop_env_task(env, args) when args == [] do
     {env, nil}
   end
+
   defp pop_env_task(env, args) do
     {env, String.to_atom(hd(args))}
   end
@@ -89,8 +93,8 @@ defmodule Bootleg.Tasks do
   defp load_bootleg_tasks(path) do
     path
     |> File.ls!()
-    |> Enum.map(&(Path.join(path, &1)))
-    |> Enum.each(fn(x) ->
+    |> Enum.map(&Path.join(path, &1))
+    |> Enum.each(fn x ->
       if File.dir?(x) do
         load_bootleg_tasks(x)
       else
@@ -100,11 +104,7 @@ defmodule Bootleg.Tasks do
   end
 
   defp load_bootleg_task(file) do
-    Code.eval_string(
-      File.read!(file),
-      [],
-      %{__ENV__ | line: 1, file: file}
-    )
+    Code.eval_string(File.read!(file), [], %{__ENV__ | line: 1, file: file})
   end
 
   @prefix "Elixir.Bootleg.Tasks."
@@ -120,16 +120,20 @@ defmodule Bootleg.Tasks do
         {:error, _} -> []
       end
     end)
-    |> List.flatten
-    |> Enum.uniq
+    |> List.flatten()
+    |> Enum.uniq()
     |> Enum.map(fn file ->
       segment_size = byte_size(file) - (@prefix_size + @suffix_size)
+
       case file do
         <<@prefix, task::binary-size(segment_size), @suffix>> ->
           task_module = :"#{@prefix}#{task}"
+
           Code.ensure_loaded?(task_module) && :erlang.function_exported(task_module, :load, 0) &&
             task_module
-        _ -> false
+
+        _ ->
+          false
       end
     end)
     |> Enum.filter(fn v -> v end)

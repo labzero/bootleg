@@ -6,5 +6,4 @@ defmodule Mix.Tasks.Bootleg do
   @moduledoc """
     Build and deploy Elixir applications
   """
-
 end

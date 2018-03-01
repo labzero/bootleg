@@ -13,6 +13,7 @@ test:
   override:
     - mkdir -p $CIRCLE_TEST_REPORTS/test
     - script/ci/run-mix.sh dialyzer
+    - script/ci/run-mix.sh formatter --check-formatted
     - script/ci/run-mix.sh credo --strict
     - script/ci/run-mix.sh test
     - script/ci/run-mix.sh coveralls.html

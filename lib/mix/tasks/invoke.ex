@@ -14,7 +14,7 @@ defmodule Mix.Tasks.Bootleg.Invoke do
   """
 
   def run([]) do
-    UI.error "You must supply a task identifier as the first argument."
+    UI.error("You must supply a task identifier as the first argument.")
     System.halt(1)
   end
 
@@ -22,9 +22,11 @@ defmodule Mix.Tasks.Bootleg.Invoke do
     use Config
 
     {env, task} = Tasks.parse_env_task(args)
+
     if env do
       Config.env(env)
     end
-    invoke task
+
+    invoke(task)
   end
 end

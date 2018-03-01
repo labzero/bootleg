@@ -17,6 +17,7 @@ defmodule Bootleg.Host do
   def option(%__MODULE__{} = host, option) when is_atom(option) do
     get_in(host, [Access.key!(:options), option])
   end
+
   def option(%__MODULE__{} = host, option, value) when is_atom(option) do
     put_in(host, [Access.key!(:options), option], value)
   end
@@ -24,6 +25,7 @@ defmodule Bootleg.Host do
   def ssh_option(%__MODULE__{} = host, option) when is_atom(option) do
     get_in(host, [Access.key!(:host), Access.key!(:options), option])
   end
+
   def ssh_option(%__MODULE__{} = host, option, value) when is_atom(option) do
     put_in(host, [Access.key!(:host), Access.key!(:options), option], value)
   end
@@ -38,6 +40,7 @@ defmodule Bootleg.Host do
 
   defp do_combine_uniq([h | t], set, fun, acc) do
     value = fun.(h)
+
     case set do
       %{^value => true} -> do_combine_uniq(t, set, fun, Enum.map(acc, &combine_hosts(&1, h)))
       %{} -> do_combine_uniq(t, Map.put(set, value, true), fun, [h | acc])
@@ -50,7 +53,7 @@ defmodule Bootleg.Host do
 
   defp combine_hosts(host1, host2) do
     if host_id(host1) == host_id(host2) do
-      combine_host_options host1, host2
+      combine_host_options(host1, host2)
     else
       host1
     end

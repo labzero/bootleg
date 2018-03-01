@@ -3,8 +3,9 @@ use Bootleg.Config
 
 task :restart do
   remote :app do
-    "bin/#{Config.app} restart"
+    "bin/#{Config.app()} restart"
   end
-  UI.info "#{Config.app} restarted"
+
+  UI.info("#{Config.app()} restarted")
   :ok
 end

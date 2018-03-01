@@ -11,5 +11,4 @@ defmodule Mix.Tasks.Bootleg.Build do
     * mix bootleg.build
 
   """
-
 end

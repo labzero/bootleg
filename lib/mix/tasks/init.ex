@@ -11,8 +11,8 @@ defmodule Mix.Tasks.Bootleg.Init do
   """
 
   def run(_args) do
-    deploy_file_path = Path.join(Tasks.path_deploy_config)
-    deploy_dir_path = Path.join(Tasks.path_env_configs)
+    deploy_file_path = Path.join(Tasks.path_deploy_config())
+    deploy_dir_path = Path.join(Tasks.path_env_configs())
     production_file_path = Path.join(deploy_dir_path, "production.exs")
     Generator.create_directory("config")
     Generator.create_file(deploy_file_path, deploy_file_text())
@@ -51,5 +51,4 @@ defmodule Mix.Tasks.Bootleg.Init do
   role :app, ["app1.example.com", "app2.example.com"], workspace: "/var/app/example"
 
   """)
-
 end
