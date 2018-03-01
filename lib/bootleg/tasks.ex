@@ -1,35 +1,12 @@
 defmodule Bootleg.Tasks do
   @moduledoc false
-  alias Bootleg.{Config, UI}
-
-  @path_deploy_config ["config", "deploy.exs"]
-  @path_env_configs ["config", "deploy"]
-  def path_deploy_config, do: @path_deploy_config
-  def path_env_configs, do: @path_env_configs
+  alias Bootleg.{Config, Env}
 
   def load_tasks do
-    use Config
-
-    tasks_path = Path.join(__DIR__, "tasks")
-
-    load_bootleg_tasks(tasks_path)
-
+    load_bootleg_tasks(Path.join(__DIR__, "tasks"))
     load_third_party()
-
-    Config.load(Path.join(@path_deploy_config))
-
-    env_config_path =
-      [@path_env_configs, ["#{Config.env()}.exs"]]
-      |> List.flatten()
-      |> Path.join()
-
-    unless :ok == Config.load(env_config_path) do
-      UI.warn(
-        "You are running in the `#{Config.env()}` bootleg " <>
-          "environment but there is no configuration defined for that environment. " <>
-          "Create one at `#{env_config_path}` if you want to do additional " <> "customization."
-      )
-    end
+    Config.load(Env.deploy_config())
+    Env.load(Config.env())
 
     :ok
   end
@@ -41,7 +18,7 @@ defmodule Bootleg.Tasks do
   def parse_env_task(args) when is_list(args) do
     args
     |> List.first()
-    |> env_available?()
+    |> Env.available?()
     |> case do
       true ->
         [env | args] = args
@@ -62,28 +39,6 @@ defmodule Bootleg.Tasks do
     {env, String.to_atom(hd(args))}
   end
 
-  @doc false
-  @spec env_available?(atom) :: boolean
-  def env_available?(env) when is_atom(env) do
-    Enum.member?(available_envs(), Atom.to_string(env))
-  end
-
-  @doc false
-  @spec env_available?(binary) :: boolean
-  def env_available?(env) when is_binary(env) do
-    Enum.member?(available_envs(), env)
-  end
-
-  @doc false
-  @spec available_envs() :: [binary]
-  defp available_envs do
-    [@path_env_configs, "*.exs"]
-    |> List.flatten()
-    |> Path.join()
-    |> Path.wildcard()
-    |> Enum.map(&Path.basename(&1, ".exs"))
-  end
-
   defp load_third_party do
     Enum.each(list_third_party(), fn mod ->
       mod.load()
@@ -98,13 +53,9 @@ defmodule Bootleg.Tasks do
       if File.dir?(x) do
         load_bootleg_tasks(x)
       else
-        load_bootleg_task(x)
+        Config.load(x)
       end
     end)
-  end
-
-  defp load_bootleg_task(file) do
-    Code.eval_string(File.read!(file), [], %{__ENV__ | line: 1, file: file})
   end
 
   @prefix "Elixir.Bootleg.Tasks."

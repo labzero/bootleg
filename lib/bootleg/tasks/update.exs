@@ -1,3 +1,4 @@
+alias Bootleg.Config
 use Bootleg.Config
 
 task :update do

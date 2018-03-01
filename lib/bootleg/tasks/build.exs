@@ -1,4 +1,4 @@
-alias Bootleg.{UI, Config}
+alias Bootleg.Config
 use Bootleg.Config
 
 task :verify_config do

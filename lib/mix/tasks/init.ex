@@ -2,7 +2,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   use Bootleg.MixTask
   require Mix.Generator
   alias Mix.Generator
-  alias Bootleg.Tasks
+  alias Bootleg.Env
 
   @shortdoc "Initializes a project for use with Bootleg"
 
@@ -11,12 +11,10 @@ defmodule Mix.Tasks.Bootleg.Init do
   """
 
   def run(_args) do
-    deploy_file_path = Path.join(Tasks.path_deploy_config())
-    deploy_dir_path = Path.join(Tasks.path_env_configs())
-    production_file_path = Path.join(deploy_dir_path, "production.exs")
+    production_file_path = Path.join(Env.deploy_config_dir(), "production.exs")
     Generator.create_directory("config")
-    Generator.create_file(deploy_file_path, deploy_file_text())
-    Generator.create_directory(deploy_dir_path)
+    Generator.create_file(Env.deploy_config(), deploy_file_text())
+    Generator.create_directory(Env.deploy_config_dir())
     Generator.create_file(production_file_path, production_file_text())
   end
 
