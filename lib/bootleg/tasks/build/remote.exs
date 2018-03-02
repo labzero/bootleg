@@ -3,7 +3,8 @@ use Bootleg.DSL
 
 task :verify_repo_config do
   if config(:repo_url) == nil do
-    raise "Error"
+    raise "Error: repo_url is not set.\n" <>
+            "# config(:repo_url, \"git@github.com/me/my_app.git\")"
   end
 end
 
@@ -235,3 +236,4 @@ task :pull_remote do
   end
 end
 
+before_task(:pull_remote, :verify_repo_config)
