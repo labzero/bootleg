@@ -207,16 +207,11 @@ task :pull_remote do
       "ls -la"
     end
 
-  result =
-    cond do
-      files =~ "#{Config.app()}.git" ->
-        :ok
-
-      true ->
-        remote :build, cd: repo_path do
-          "git clone --mirror #{repo_url} #{Config.app()}.git"
-        end
+  unless files =~ "#{Config.app()}.git" do
+    remote :build, cd: repo_path do
+      "git clone --mirror #{repo_url} #{Config.app()}.git"
     end
+  end
 
   workspace_path =
     case Path.type(workspace) do
