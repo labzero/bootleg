@@ -55,4 +55,24 @@ defmodule Bootleg.Role do
         role
       )
   end
+
+  @doc false
+  @spec split_roles_and_filters(atom | keyword) :: {[atom], keyword}
+  def split_roles_and_filters(role) do
+    role
+    |> List.wrap()
+    |> Enum.split_while(fn term -> !is_tuple(term) end)
+  end
+
+  @doc false
+  @spec unpack_role(atom | keyword) :: tuple
+  def unpack_role(role) do
+    wrapped_role = List.wrap(role)
+
+    if Enum.any?(wrapped_role, fn role -> role == :all end) do
+      quote do: Keyword.keys(Bootleg.Config.Agent.get(:roles))
+    else
+      quote do: unquote(wrapped_role)
+    end
+  end
 end

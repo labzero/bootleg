@@ -1,5 +1,4 @@
-alias Bootleg.Config
-use Bootleg.Config
+use Bootleg.DSL
 
 task :update do
   invoke(:build)

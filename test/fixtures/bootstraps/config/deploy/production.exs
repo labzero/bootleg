@@ -1,1 +1,1 @@
-use Bootleg.Config
+use Bootleg.DSL

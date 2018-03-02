@@ -3,7 +3,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   import ExUnit.CaptureIO
 
   setup %{hosts: hosts} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     app_host = hd(hosts)
     build_hosts = tl(hosts)
@@ -38,7 +38,7 @@ defmodule Bootleg.ConfigFunctionalTest do
 
   @tag boot: 3
   test "remote/2" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task :remote_functional_test do
       out =
@@ -108,7 +108,7 @@ defmodule Bootleg.ConfigFunctionalTest do
 
   @tag boot: 2
   test "remote/2 multiple roles" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task :remote_multiple_roles do
       out =
@@ -173,7 +173,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   @tag boot: 3
   test "remote/2 multiple roles/hosts" do
     capture_io(fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       assert [{:ok, [stdout: host_1], 0, _}, {:ok, [stdout: host_2], 0, _}] =
                remote(:build, do: "hostname")
@@ -190,7 +190,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   end
 
   test "remote/2 fails remotely" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task :remote_functional_negative_test do
       remote :app do
@@ -206,7 +206,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   @tag boot: 3
   test "remote/3 options" do
     capture_io(fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       assert [{:ok, out_0, 0, _}] = remote(:build, [filter: [foo: 0]], "hostname")
       assert [{:ok, out_1, 0, _}] = remote(:build, [filter: [foo: 1]], do: "hostname")
@@ -235,7 +235,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   @tag boot: 1
   test "remote/2 with role env" do
     capture_io(fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       assert [{:ok, [stdout: "BOOTLEG_ENV_VALUE\n"], 0, _}] =
                remote(:all, "echo $BOOTLEG_ENV_TEST")
@@ -245,7 +245,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   @tag boot: 3
   test "upload/3" do
     capture_io(fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       task :upload_single_role_single_host do
         path = Temp.open!("upload", &IO.write(&1, "upload_single_role"))
@@ -307,7 +307,7 @@ defmodule Bootleg.ConfigFunctionalTest do
       invoke(:upload_role_filtered)
 
       assert_raise SSHError, fn ->
-        use Bootleg.Config
+        use Bootleg.DSL
         remote(:all, do: "grep '^upload_role_filtered$' role_filtered")
       end
 
@@ -329,7 +329,7 @@ defmodule Bootleg.ConfigFunctionalTest do
   test "download/3" do
     capture_io(fn ->
       # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-      use Bootleg.Config
+      use Bootleg.DSL
 
       path = Temp.mkdir!("download")
 

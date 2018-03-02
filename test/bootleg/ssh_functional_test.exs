@@ -31,6 +31,7 @@ defmodule Bootleg.SSHFunctionalTest do
     ]
   end
 
+  @tag :smoke
   test "run!/2", %{role: role} do
     capture_io(fn ->
       conn = SSH.init(role.hosts)
@@ -76,7 +77,7 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/2 with Role name atom", %{hosts: [host]} do
-    use Bootleg.Config
+    use Bootleg.DSL
     ip = host.ip
 
     role(
@@ -98,7 +99,7 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/2 with Role name atom and identity", %{hosts: [host]} do
-    use Bootleg.Config
+    use Bootleg.DSL
     ip = host.ip
 
     role(
@@ -123,7 +124,7 @@ defmodule Bootleg.SSHFunctionalTest do
 
   @tag boot: 2
   test "init/3 host filtering for roles", %{hosts: [host_1, host_2]} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     ip_1 = host_1.ip
     ip_2 = host_2.ip
@@ -157,7 +158,7 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/3 working directory option", %{hosts: [host]} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role(
       :valid_workspace,
@@ -229,7 +230,7 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "returns output in whole line increments", %{hosts: [host]} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role(
       :node,
@@ -266,7 +267,7 @@ defmodule Bootleg.SSHFunctionalTest do
 
   test "set bootleg env", %{hosts: [host]} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     config :env, :foo
 
@@ -287,7 +288,7 @@ defmodule Bootleg.SSHFunctionalTest do
 
   test "replace os vars", %{hosts: [host]} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role(
       :default_replace,

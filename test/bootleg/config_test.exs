@@ -50,7 +50,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "role/2", %{local_user: local_user} do
-    use Bootleg.Config
+    use Bootleg.DSL
     assert roles() == []
 
     role(:build, "build.labzero.com")
@@ -72,7 +72,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "role/3" do
-    use Bootleg.Config
+    use Bootleg.DSL
     assert roles() == []
 
     role(:build, "build.labzero.com", user: "brien")
@@ -98,7 +98,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "role/3 with :env option" do
-    use Bootleg.Config
+    use Bootleg.DSL
     assert roles() == []
 
     role(:build, "build.labzero.com", user: "brien", env: %{FOO: "1234"})
@@ -124,7 +124,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "role/2,3 only unquote the name once" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role_name = fn ->
       send(self(), :role_name_excuted)
@@ -146,18 +146,18 @@ defmodule Bootleg.ConfigTest do
 
   test "role/2,3 do not allow a name of :all" do
     assert_compile_time_raise(ArgumentError, fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
       role(:all, "build1.example.com")
     end)
 
     assert_compile_time_raise(ArgumentError, fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
       role(:all, "build2.example.com", an_option: true)
     end)
   end
 
   test "get_role/1", %{local_user: local_user} do
-    use Bootleg.Config
+    use Bootleg.DSL
     role(:build, "build.labzero.com")
 
     result = Config.get_role(:build)
@@ -174,13 +174,13 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "config/0" do
-    use Bootleg.Config
+    use Bootleg.DSL
     Bootleg.Config.Agent.put(:config, foo: :bar)
     assert config() == [foo: :bar]
   end
 
   test "config/2" do
-    use Bootleg.Config
+    use Bootleg.DSL
     assert config() == [env: :production]
 
     config :build_at, "some path"
@@ -243,7 +243,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "get_config" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     config :some_key, "some value"
 
@@ -253,7 +253,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "app/0" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     assert Project.config()[:app] == Config.app()
     config :app, "some_app_name"
@@ -261,7 +261,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "version/0" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     assert Project.config()[:version] == Config.version()
     config :version, "1.2.3"
@@ -269,7 +269,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "env/0" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     assert :production == Config.env()
     config :env, :foo
@@ -290,7 +290,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "invoke/1" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     quoted =
       quote do
@@ -337,7 +337,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "before_task/2" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     before_task(:before_task_test, :some_other_task)
     hooks = Config.Agent.get(:before_hooks)
@@ -348,7 +348,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "after_task/2" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     after_task(:after_task_test, :some_other_task)
     hooks = Config.Agent.get(:after_hooks)
@@ -359,7 +359,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test_with_mock "task/2", UI, [], warn: fn _string -> :ok end do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task(:task_test, do: true)
 
@@ -372,7 +372,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test_with_mock "task/2 redefine task warning", UI, [], warn: fn _string -> :ok end do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task(:task_redefine_test, do: true)
     task(:task_redefine_test, do: false)
@@ -380,9 +380,10 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "hooks" do
+    use Bootleg.DSL
     Code.eval_file(Path.relative_to_cwd("test/fixtures/deploy_with_hooks.exs"))
 
-    Config.invoke(:foo)
+    invoke :foo
 
     assert_next_received({:task, :bar})
     assert_next_received({:before, :hello})
@@ -393,7 +394,7 @@ defmodule Bootleg.ConfigTest do
     assert_next_received({:after, :another_task})
     refute_received {:task, :hello}
 
-    Config.invoke(:bar)
+    invoke :bar
 
     assert_next_received({:task, :bar})
     assert_next_received({:before, :hello})
@@ -405,7 +406,7 @@ defmodule Bootleg.ConfigTest do
   test_with_mock "remote/2", SSH, [:passthrough],
     init: fn role, _options, _filter -> {role} end,
     run!: fn _, _cmd -> [:ok] end do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task :remote_test_1 do
       remote(:test_1, do: "echo Hello World!")
@@ -518,7 +519,7 @@ defmodule Bootleg.ConfigTest do
   test_with_mock "remote/3", SSH, [:passthrough],
     init: fn role, options, filter -> {role, options, filter} end,
     run!: fn _, _cmd -> [:ok] end do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     task :remote_test_role_one_line_filtered do
       remote(:one_line, [filter: [a_filter: true]], "echo Multi Hello")
@@ -588,7 +589,7 @@ defmodule Bootleg.ConfigTest do
   test_with_mock "upload/3", SSH, [:passthrough],
     init: fn role, options, filter -> {role, options, filter} end,
     upload: fn _conn, _local, _remote -> :ok end do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role(:foo, "never-used-foo.example.com")
     role(:car, "never-used-bar.example.com")
@@ -682,7 +683,7 @@ defmodule Bootleg.ConfigTest do
   end
 
   test "config/1" do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     refute config(:foo)
     assert config({:foo, :bar}) == :bar
@@ -698,7 +699,7 @@ defmodule Bootleg.ConfigTest do
     init: fn role, options, filter -> {role, options, filter} end,
     download: fn _conn, _remote, _local -> :ok end do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     role(:foo, "never-used-foo.example.com")
     role(:car, "never-used-bar.example.com")

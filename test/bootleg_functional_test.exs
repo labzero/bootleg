@@ -8,7 +8,7 @@ defmodule Bootleg.FunctionalTest do
     location = Fixtures.inflate_project()
 
     File.cd!(location, fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       build_host = List.first(hosts)
       app_hosts = hosts -- [build_host]
@@ -41,7 +41,7 @@ defmodule Bootleg.FunctionalTest do
       assert String.match?(
                capture_io(fn ->
                  # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-                 use Bootleg.Config
+                 use Bootleg.DSL
 
                  invoke(:build)
                  invoke(:deploy)
@@ -57,7 +57,7 @@ defmodule Bootleg.FunctionalTest do
     location = Fixtures.inflate_project()
 
     File.cd!(location, fn ->
-      use Bootleg.Config
+      use Bootleg.DSL
 
       build_host = List.first(hosts)
       app_hosts = hosts -- [build_host]
@@ -90,7 +90,7 @@ defmodule Bootleg.FunctionalTest do
       assert String.match?(
                capture_io(fn ->
                  # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-                 use Bootleg.Config
+                 use Bootleg.DSL
 
                  invoke(:update)
                end),
@@ -99,7 +99,7 @@ defmodule Bootleg.FunctionalTest do
 
       capture_io(fn ->
         # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-        use Bootleg.Config
+        use Bootleg.DSL
 
         remote :app do
           "wait-for-app build_me"
@@ -136,7 +136,7 @@ defmodule Bootleg.FunctionalTest do
 
     File.open!(Path.join([location, "config", "deploy.exs"]), [:write], fn file ->
       IO.write(file, """
-        use Bootleg.Config
+        use Bootleg.DSL
 
         role :build, "#{build_host.ip}", port: #{build_host.port}, user: "#{build_host.user}",
           silently_accept_hosts: true, workspace: "workspace", identity: "#{
@@ -179,7 +179,7 @@ defmodule Bootleg.FunctionalTest do
 
     File.open!(Path.join([location, "config", "deploy.exs"]), [:write], fn file ->
       IO.write(file, """
-        use Bootleg.Config
+        use Bootleg.DSL
 
         role :build, "#{build_host.ip}", port: #{build_host.port}, user: "#{build_host.user}",
           silently_accept_hosts: true, workspace: "workspace", identity: "#{
