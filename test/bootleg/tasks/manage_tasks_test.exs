@@ -1,12 +1,10 @@
 defmodule Bootleg.Tasks.ManageTasksTest do
-  use Bootleg.FunctionalCase, async: false
-  use Bootleg.DSL
+  use Bootleg.{FunctionalCase, DSL}, async: false
+  # use Bootleg.DSL
   alias Bootleg.SSH
   import ExUnit.CaptureIO
 
   setup %{hosts: [host]} do
-    use Bootleg.DSL
-
     role(
       :app,
       [host.ip],

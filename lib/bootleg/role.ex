@@ -31,29 +31,29 @@ defmodule Bootleg.Role do
       end)
       |> elem(1)
 
-      hosts =
-        hosts
-        |> List.wrap()
-        |> Enum.map(&Host.init(&1, ssh_options, role_options))
+    hosts =
+      hosts
+      |> List.wrap()
+      |> Enum.map(&Host.init(&1, ssh_options, role_options))
 
-      new_role = %Bootleg.Role{
-        name: name,
-        user: user,
-        hosts: [],
-        options: role_options
-      }
+    new_role = %Bootleg.Role{
+      name: name,
+      user: user,
+      hosts: [],
+      options: role_options
+    }
 
-      role =
-        :roles
-        |> Bootleg.Config.Agent.get()
-        |> Keyword.get(name, new_role)
-        |> combine_hosts(hosts)
+    role =
+      :roles
+      |> Bootleg.Config.Agent.get()
+      |> Keyword.get(name, new_role)
+      |> combine_hosts(hosts)
 
-      Bootleg.Config.Agent.merge(
-        :roles,
-        name,
-        role
-      )
+    Bootleg.Config.Agent.merge(
+      :roles,
+      name,
+      role
+    )
   end
 
   @doc false

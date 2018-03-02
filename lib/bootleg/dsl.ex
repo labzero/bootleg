@@ -1,4 +1,3 @@
-
 defmodule Bootleg.DSL do
   @moduledoc """
     Configuration DSL for Bootleg.
@@ -28,7 +27,6 @@ defmodule Bootleg.DSL do
     end
   end
 
-
   @doc """
   Defines a role.
 
@@ -56,6 +54,7 @@ defmodule Bootleg.DSL do
   ```
   """
   defmacro role(name, hosts, options \\ [])
+
   defmacro role(:all, _, _) do
     raise ArgumentError, ":all is reserved by bootleg and refers to all defined roles."
   end
@@ -134,7 +133,6 @@ defmodule Bootleg.DSL do
       )
     end
   end
-
 
   defp add_callback(task, position, caller, do: block) do
     file = caller.file()
@@ -460,7 +458,6 @@ defmodule Bootleg.DSL do
     end
   end
 
-
   @doc """
   Uploads a local file to remote hosts.
 
@@ -566,5 +563,9 @@ defmodule Bootleg.DSL do
     end
   end
 
-  defmacro load(file), do: quote do: Config.load(file)
+  defmacro load(file) do
+    quote do
+      Config.load(file)
+    end
+  end
 end

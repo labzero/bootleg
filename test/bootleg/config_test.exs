@@ -383,7 +383,7 @@ defmodule Bootleg.ConfigTest do
     use Bootleg.DSL
     Code.eval_file(Path.relative_to_cwd("test/fixtures/deploy_with_hooks.exs"))
 
-    invoke :foo
+    invoke(:foo)
 
     assert_next_received({:task, :bar})
     assert_next_received({:before, :hello})
@@ -394,7 +394,7 @@ defmodule Bootleg.ConfigTest do
     assert_next_received({:after, :another_task})
     refute_received {:task, :hello}
 
-    invoke :bar
+    invoke(:bar)
 
     assert_next_received({:task, :bar})
     assert_next_received({:before, :hello})

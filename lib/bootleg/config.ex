@@ -63,10 +63,10 @@ defmodule Bootleg.Config do
   @spec set_config(atom, any) :: any
   def set_config(key, value) do
     Bootleg.Config.Agent.merge(
-        :config,
-        key,
-        value
-      )
+      :config,
+      key,
+      value
+    )
   end
 
   @doc false
@@ -109,5 +109,4 @@ defmodule Bootleg.Config do
     {:ok, _} = Bootleg.Config.Agent.start_link(env)
     set_config(:env, env)
   end
-
 end
