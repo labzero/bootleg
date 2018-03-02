@@ -2,7 +2,7 @@ alias Bootleg.{UI, Config}
 use Bootleg.DSL
 
 task :verify_repo_config do
-  if config(:repo_url) == nil || config(:repo_identity) == nil do
+  if config(:repo_url) == nil do
     raise "Error"
   end
 end
