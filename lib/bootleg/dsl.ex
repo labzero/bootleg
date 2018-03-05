@@ -2,7 +2,7 @@ defmodule Bootleg.DSL do
   @moduledoc """
     Configuration DSL for Bootleg.
   """
-  alias Bootleg.{UI, SSH, Role}
+  alias Bootleg.{Config, Role, SSH, UI}
 
   defmacro __using__(_) do
     quote do
@@ -70,7 +70,7 @@ defmodule Bootleg.DSL do
   """
   defmacro config do
     quote do
-      Bootleg.Config.Agent.get(:config)
+      Config.get_all()
     end
   end
 
@@ -100,13 +100,13 @@ defmodule Bootleg.DSL do
   """
   defmacro config({key, default}) do
     quote bind_quoted: binding() do
-      Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
+      Config.get_key(key, default)
     end
   end
 
   defmacro config(key) do
     quote bind_quoted: binding() do
-      Keyword.get(Bootleg.Config.Agent.get(:config), key)
+      Config.get_key(key)
     end
   end
 
@@ -126,11 +126,7 @@ defmodule Bootleg.DSL do
   """
   defmacro config(key, value) do
     quote bind_quoted: binding() do
-      Bootleg.Config.Agent.merge(
-        :config,
-        key,
-        value
-      )
+      Config.set_key(key, value)
     end
   end
 
@@ -564,7 +560,7 @@ defmodule Bootleg.DSL do
   end
 
   defmacro load(file) do
-    quote do
+    quote bind_quoted: binding() do
       Config.load(file)
     end
   end

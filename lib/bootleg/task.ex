@@ -28,7 +28,6 @@ defmodule Bootleg.Task do
   defmodule Bootleg.Tasks.Other do
     use Bootleg.Task
     def load do
-      use Bootleg.DSL
 
       task :other do
         IO.puts "World?"
@@ -49,7 +48,7 @@ defmodule Bootleg.Task do
   """
   @callback load() :: any
 
-  alias Bootleg.{UI, Config}
+  alias Bootleg.{UI, DSL}
 
   defmacro __using__(task_def) do
     quote do
@@ -61,7 +60,7 @@ defmodule Bootleg.Task do
       end
 
       def load do
-        use Config
+        use DSL
 
         unquote(task_def)
       end

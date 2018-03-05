@@ -54,14 +54,20 @@ defmodule Bootleg.Config do
   end
 
   @doc false
-  @spec get_config(atom, any) :: any
-  def get_config(key, default \\ nil) do
+  @spec get_all() :: any
+  def get_all do
+    Bootleg.Config.Agent.get(:config)
+  end
+
+  @doc false
+  @spec get_key(atom, any) :: any
+  def get_key(key, default \\ nil) do
     Keyword.get(Bootleg.Config.Agent.get(:config), key, default)
   end
 
   @doc false
-  @spec set_config(atom, any) :: any
-  def set_config(key, value) do
+  @spec set_key(atom, any) :: any
+  def set_key(key, value) do
     Bootleg.Config.Agent.merge(
       :config,
       key,
@@ -100,13 +106,13 @@ defmodule Bootleg.Config do
   @doc false
   @spec env() :: any
   def env do
-    get_config(:env, :production)
+    get_key(:env, :production)
   end
 
   @doc false
   @spec env(any) :: :ok
   def env(env) do
     {:ok, _} = Bootleg.Config.Agent.start_link(env)
-    set_config(:env, env)
+    set_key(:env, env)
   end
 end
