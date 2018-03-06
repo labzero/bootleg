@@ -7,6 +7,11 @@ defmodule Bootleg.Config do
 
   defmacro __using__(_) do
     quote do
+      IO.warn(
+        "`use Bootleg.Config` is deprecated; call `use Bootleg.DSL` instead.",
+        Macro.Env.stacktrace(__ENV__)
+      )
+
       import Bootleg.DSL,
         only: [
           role: 2,
