@@ -1,4 +1,4 @@
-alias Bootleg.Config
+alias Bootleg.{Config, DSL}
 use Bootleg.DSL
 
 task :verify_config do
