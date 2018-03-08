@@ -1,5 +1,4 @@
 alias Bootleg.{UI, Config}
-use Bootleg.Config
 use Bootleg.DSL
 
 task :deploy do
