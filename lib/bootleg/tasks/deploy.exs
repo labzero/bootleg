@@ -1,3 +1,4 @@
+alias Bootleg.{UI, Config}
 use Bootleg.Config
 
 task :deploy do
