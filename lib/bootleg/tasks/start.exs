@@ -1,5 +1,5 @@
 alias Bootleg.{UI, Config}
-use Bootleg.Config
+use Bootleg.DSL
 
 task :start do
   remote :app do

@@ -1,5 +1,5 @@
 alias Bootleg.{UI, Config}
-use Bootleg.Config
+use Bootleg.DSL
 
 task :deploy do
   app_role = Config.get_role(:app)

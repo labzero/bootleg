@@ -19,7 +19,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   end
 
   Generator.embed_text(:deploy_file, """
-  use Bootleg.Config
+  use Bootleg.DSL
 
   # Configure the following roles to match your environment.
   # `build` defines what remote server your distillery release should be built on.
@@ -35,7 +35,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   """)
 
   Generator.embed_text(:production_file, """
-  use Bootleg.Config
+  use Bootleg.DSL
 
   # Configure the following roles to match your environment.
   # `app` defines what remote servers your distillery release should be deployed and managed on.

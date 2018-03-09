@@ -1,10 +1,11 @@
 defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
+  use Bootleg.DSL
   use Bootleg.FunctionalCase, async: false
   alias Bootleg.Fixtures
   import ExUnit.CaptureIO
 
   setup %{hosts: [host], role_opts: role_opts} do
-    use Bootleg.Config
+    use Bootleg.DSL
     config :app, :build_me
     config :version, "0.1.0"
     workspace = if role_opts[:workspace], do: role_opts[:workspace], else: "workspace"
@@ -27,7 +28,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
   end
 
   test "builds the application", %{project_location: location} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     File.cd!(location, fn ->
       capture_io(fn ->
@@ -38,7 +39,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   @tag role_opts: %{workspace: "/home/me/workspace_abs"}
   test "builds the application with an absolute workspace path", %{project_location: location} do
-    use Bootleg.Config
+    use Bootleg.DSL
 
     File.cd!(location, fn ->
       capture_io(fn ->
@@ -49,7 +50,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   test "builds the application locally", %{project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     config :local_build, true
 
@@ -69,7 +70,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     project_location: location
   } do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     File.cd!(location, fn ->
       capture_io(fn ->
@@ -84,7 +85,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   test "cleans the workspace before building", %{project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     File.cd!(location, fn ->
       capture_io(fn ->
@@ -98,7 +99,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
   test "cleans the customized locations before building", %{project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
-    use Bootleg.Config
+    use Bootleg.DSL
 
     File.cd!(location, fn ->
       capture_io(fn ->

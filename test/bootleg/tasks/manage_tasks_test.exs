@@ -1,11 +1,10 @@
 defmodule Bootleg.Tasks.ManageTasksTest do
-  use Bootleg.FunctionalCase, async: false
-  alias Bootleg.{SSH, Config}
+  use Bootleg.{FunctionalCase, DSL}, async: false
+  # use Bootleg.DSL
+  alias Bootleg.SSH
   import ExUnit.CaptureIO
 
   setup %{hosts: [host]} do
-    use Bootleg.Config
-
     role(
       :app,
       [host.ip],
@@ -32,53 +31,53 @@ defmodule Bootleg.Tasks.ManageTasksTest do
 
   test "start" do
     capture_io(fn ->
-      assert :ok = Config.invoke(:start)
+      assert :ok = invoke(:start)
     end)
   end
 
   test "invoke start with app running", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "bin/build_me start")
-      assert :ok = Config.invoke(:start)
+      assert :ok = invoke(:start)
     end)
   end
 
   test "invoke stop", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
-      assert :ok = Config.invoke(:stop)
+      assert :ok = invoke(:stop)
     end)
   end
 
   test "invoke stop with app not running" do
     capture_io(fn ->
-      assert_raise SSHError, fn -> Config.invoke(:stop) end
+      assert_raise SSHError, fn -> invoke(:stop) end
     end)
   end
 
   test "invoke restart", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
-      assert :ok = Config.invoke(:restart)
+      assert :ok = invoke(:restart)
     end)
   end
 
   test "invoke restart with app not running" do
     capture_io(fn ->
-      assert_raise SSHError, fn -> Config.invoke(:restart) end
+      assert_raise SSHError, fn -> invoke(:restart) end
     end)
   end
 
   test "invoke ping", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
-      assert :ok = Config.invoke(:ping)
+      assert :ok = invoke(:ping)
     end)
   end
 
   test "invoke ping with app not running" do
     capture_io(fn ->
-      assert_raise SSHError, fn -> Config.invoke(:ping) end
+      assert_raise SSHError, fn -> invoke(:ping) end
     end)
   end
 end

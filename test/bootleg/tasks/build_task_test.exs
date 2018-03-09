@@ -5,7 +5,7 @@ defmodule Bootleg.Tasks.BuildTaskTest do
   alias Bootleg.{SSH, Git, Config}
 
   test "building without specified port" do
-    use Bootleg.Config
+    use Bootleg.DSL
     role(:build, "build.example.com", user: "foo", workspace: "bar")
 
     ssh_host =

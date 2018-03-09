@@ -1,4 +1,4 @@
-use Bootleg.Config
+use Bootleg.DSL
 
 role(:app, ["www1.example.com", "www2.example.com"])
 role(:app, ["www3.example.com"], port: 2222, user: "deploy")

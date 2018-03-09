@@ -1,5 +1,5 @@
-alias Bootleg.Config
-use Bootleg.Config
+alias Bootleg.{Config, DSL}
+use Bootleg.DSL
 
 task :verify_config do
   if Config.app() == nil || Config.version() == nil do
@@ -11,7 +11,7 @@ task :verify_config do
 end
 
 task :build do
-  if Config.config(:local_build) do
+  if config(:local_build) do
     invoke(:local_build)
   else
     invoke(:remote_build)

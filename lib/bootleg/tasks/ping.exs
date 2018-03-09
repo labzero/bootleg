@@ -1,5 +1,5 @@
-alias Bootleg.Config
-use Bootleg.Config
+alias Bootleg.{UI, Config}
+use Bootleg.DSL
 
 task :ping do
   remote :app do

@@ -1,5 +1,5 @@
 alias Bootleg.{UI, Config}
-use Bootleg.Config
+use Bootleg.DSL
 
 task :remote_build do
   UI.info("Starting remote build")

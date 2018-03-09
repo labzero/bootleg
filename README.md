@@ -39,7 +39,7 @@ $ mix bootleg.init
 
 ```elixir
 # config/deploy.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 role :build, "your-build-server.local", user: "develop", identity: "~/.ssh/id_deploy_rsa", workspace: "/some/build/workspace"
 role :app, ["web1", "web2", "web3"], user: "admin", identity: "~/.ssh/id_deploy_rsa", workspace: "/var/myapp"
@@ -61,7 +61,7 @@ Create and configure Bootleg's `config/deploy.exs` file:
 
 ```elixir
 # config/deploy.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 role :build, "build.example.com", user, "build", port: 2222, workspace: "/tmp/build/myapp"
 role :app, ["web1.example.com", "web2.myapp.com"], user: "admin", workspace: "/var/www/myapp"
@@ -80,7 +80,7 @@ For example, say you have both a `production` and a `staging` cluster. Your conf
 
 ```elixir
 # config/deploy.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 task :my_nifty_thing do
   Some.jazz()
@@ -93,14 +93,14 @@ role :build, "build.example.com", user, "build", port: 2222, workspace: "/tmp/bu
 
 ```elixir
 # config/deploy/production.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 role :app, ["web1.example.com", "web2.example.com"], user: "admin", workspace: "/var/www/myapp"
 ```
 
 ```elixir
 # config/deploy/staging.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 role :app, ["stage1.example.com", "stage2.example.com"], user: "admin", workspace: "/var/www/myapp"
 ```
@@ -129,7 +129,7 @@ config :version, "1.2.3"
 Any additional `config` settings can be set the same way and then looked up later with `config/1`.
 
 ```elixir
-  use Bootleg.Config
+  use Bootleg.DSL
   config :foo, :bar
 
   # local_foo will be :bar
@@ -167,7 +167,7 @@ You may not need a remote build server for all situations. In these cases, you c
 
 ```elixir
 # deploy.exs
-use Bootleg.Config
+use Bootleg.DSL
 
 config :local_build, true
 ```
@@ -291,7 +291,7 @@ There's also a way to invoke Bootleg tasks from Mix. Similar to the built-in Mix
 `config/deploy.exs`:
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 task :zap do
   IO.puts "do the zap thing"
 end
@@ -300,7 +300,7 @@ end
 `config/deploy/qa.exs`:
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 task :zap do
   IO.puts "no zappy"
 end
@@ -370,7 +370,7 @@ To register a hook, use:
 For example:
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 
 before_task :build do
   IO.puts "Starting build..."
@@ -384,7 +384,7 @@ end
 You can define multiple hooks for a task, and they will be executed in the order they are defined. For example:
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 
 before_task :start do
   IO.puts "This may take a bit"
@@ -424,7 +424,7 @@ pieces.
 **NOTE:** Invoking an undefined task is not an error and any registered hooks will still be executed.
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 
 before_task :build do
   IO.puts "Hello"
@@ -471,7 +471,7 @@ belonging to the role, and raises an `SSHError` if an error is encountered. Opti
 can be provided to filter the hosts where the commands are run.
 
 ```elixir
-use Bootleg.Config
+use Bootleg.DSL
 
 # basic
 remote :app do

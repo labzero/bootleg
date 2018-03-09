@@ -1,6 +1,6 @@
 defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
   use Bootleg.FunctionalCase, async: false
-  use Bootleg.Config
+  use Bootleg.DSL
   import ExUnit.CaptureIO
 
   setup %{hosts: [host], role_opts: role_opts} do

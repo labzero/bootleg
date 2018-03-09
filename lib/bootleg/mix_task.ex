@@ -1,6 +1,6 @@
 defmodule Bootleg.MixTask do
   @moduledoc "Extends `Mix.Task` to provide Bootleg specific bootstrapping."
-  alias Bootleg.{Config, Tasks}
+  alias Bootleg.{Config, DSL, Tasks}
 
   defmacro __using__(task) do
     quote do
@@ -15,7 +15,7 @@ defmodule Bootleg.MixTask do
             Config.env(env)
           end
 
-          use Config
+          use DSL
 
           invoke(unquote(task))
         end

@@ -1,10 +1,10 @@
 defmodule Bootleg.Tasks.Other do
   @moduledoc false
-  alias Bootleg.{Task, Config}
+  alias Bootleg.{Task, DSL}
   use Task
 
   def load do
-    use Config
+    use DSL
 
     task :other do
       IO.puts("~~OTHER TASK~~")

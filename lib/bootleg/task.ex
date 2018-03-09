@@ -22,13 +22,12 @@ defmodule Bootleg.Task do
 
   Technically speaking, any module in the namespace `Bootleg.Tasks` that exports a `load/0` function will
   be discovered and executed by Bootleg automatically. This usage is not recommended unless you need to
-  do work before `use Bootleg.Config`.
+  do work before `use Bootleg.DSL`.
 
   ```
   defmodule Bootleg.Tasks.Other do
     use Bootleg.Task
     def load do
-      use Bootleg.Config
 
       task :other do
         IO.puts "World?"
@@ -49,7 +48,7 @@ defmodule Bootleg.Task do
   """
   @callback load() :: any
 
-  alias Bootleg.{UI, Config}
+  alias Bootleg.{UI, DSL}
 
   defmacro __using__(task_def) do
     quote do
@@ -61,7 +60,7 @@ defmodule Bootleg.Task do
       end
 
       def load do
-        use Config
+        use DSL
 
         unquote(task_def)
       end

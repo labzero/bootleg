@@ -1,4 +1,4 @@
-use Bootleg.Config
+use Bootleg.DSL
 
 before_task(:foo, :bar)
 after_task(:bar, do: invoke(:hello))

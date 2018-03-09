@@ -33,7 +33,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :hello, do: IO.puts "HELLO WORLD!"
       """,
       [:write]
@@ -56,7 +56,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :foo, do: IO.puts "FOOBAR!"
       """,
       [:write]
@@ -74,7 +74,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :foo, do: IO.puts "FOOBAR!"
       """,
       [:write]
@@ -86,7 +86,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :foo, do: IO.puts "WIZBANG!"
       """,
       [:write]
@@ -108,7 +108,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         config :env, "production"
       """,
       [:write]
@@ -120,7 +120,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :foo, do: IO.puts "KATPOW!"
       """,
       [:write]
@@ -141,7 +141,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         config :env, :production
       """,
       [:write]
@@ -153,7 +153,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         task :foo, do: IO.puts "KATPOW!"
       """,
       [:write]
@@ -172,7 +172,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
     |> Path.join()
     |> File.write(
       """
-        use Bootleg.Config
+        use Bootleg.DSL
         config :env, :bloop
       """,
       [:write]
