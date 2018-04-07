@@ -1,3 +1,4 @@
+# credo:disable-for-this-file Credo.Check.Design.DuplicatedCode
 # Import all plugins from `rel/plugins`
 # They can then be used by adding `plugin MyPlugin` to
 # either an environment, or release definition, where

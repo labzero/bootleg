@@ -1,6 +1,5 @@
 alias Bootleg.{UI, Config}
 use Bootleg.DSL
-require Logger
 
 task :verify_repo_config do
   if config(:repo_url) == nil do
@@ -207,7 +206,9 @@ task :pull_remote do
       "ls -la"
     end
 
-  result = Keyword.get_values(result, :stdout)
+  result =
+    result
+    |> Keyword.get_values(:stdout)
     |> Enum.join("\n")
 
   unless result =~ "#{Config.app()}.git" do

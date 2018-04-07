@@ -41,7 +41,6 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     end)
   end
 
-
   test "builds the application", %{project_location: location} do
     use Bootleg.DSL
 
