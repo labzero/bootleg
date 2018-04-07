@@ -8,6 +8,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     use Bootleg.DSL
     config :app, :build_me
     config :version, "0.1.0"
+
     workspace = if role_opts[:workspace], do: role_opts[:workspace], else: "workspace"
 
     role(
@@ -26,6 +27,20 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
       project_location: Fixtures.inflate_project()
     }
   end
+
+  test "builds the application via git pull", %{project_location: location} do
+    use Bootleg.DSL
+    config :git_mode, :pull
+    config :repo_url, "/opt/app/repos/build_me.git"
+
+    File.cd!(location, fn ->
+      capture_io(fn ->
+        invoke(:build)
+        assert [{:ok, _, 0, _}] = remote(:build, "[ -f GITPULL.txt ]")
+      end)
+    end)
+  end
+
 
   test "builds the application", %{project_location: location} do
     use Bootleg.DSL

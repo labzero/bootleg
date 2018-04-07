@@ -1,5 +1,6 @@
 alias Bootleg.{UI, Config}
 use Bootleg.DSL
+require Logger
 
 task :verify_repo_config do
   if config(:repo_url) == nil do
@@ -189,7 +190,6 @@ task :push_remote do
 end
 
 task :pull_remote do
-  alias Bootleg.{SSH, Git}
   refspec = config({:refspec, "master"})
   repo_url = config(:repo_url)
   build_role = Config.get_role(:build)
@@ -202,12 +202,15 @@ task :pull_remote do
     "mkdir -p #{repo_path}"
   end
 
-  [{:ok, [stdout: files], 0, _}] =
+  [{:ok, result, 0, _}] =
     remote :build, cd: repo_path do
       "ls -la"
     end
 
-  unless files =~ "#{Config.app()}.git" do
+  result = Keyword.get_values(result, :stdout)
+    |> Enum.join("\n")
+
+  unless result =~ "#{Config.app()}.git" do
     remote :build, cd: repo_path do
       "git clone --mirror #{repo_url} #{Config.app()}.git"
     end
