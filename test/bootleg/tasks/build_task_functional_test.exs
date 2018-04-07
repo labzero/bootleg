@@ -32,7 +32,14 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
     File.cd!(location, fn ->
       capture_io(fn ->
+        release_name = "#{config(:version)}.tar.gz"
+        mix_env = config({:mix_env, "prod"})
+        app_name = config(:app)
+        app_version = config(:version)
         invoke(:build)
+        assert [{:ok, _, 0, _}] =
+          remote(:build, "[ -f _build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]")
+        assert true == File.exists?(Path.join([File.cwd!(), "releases", release_name]))
       end)
     end)
   end
@@ -43,7 +50,14 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
 
     File.cd!(location, fn ->
       capture_io(fn ->
+        release_name = "#{config(:version)}.tar.gz"
+        mix_env = config({:mix_env, "prod"})
+        app_name = config(:app)
+        app_version = config(:version)
         invoke(:build)
+        assert [{:ok, _, 0, _}] =
+          remote(:build, "[ -f /home/me/workspace_abs/_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]")
+        assert true == File.exists?(Path.join([File.cwd!(), "releases", release_name]))
       end)
     end)
   end
