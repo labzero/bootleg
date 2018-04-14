@@ -11,11 +11,8 @@ task :verify_config do
 end
 
 task :build do
-  if config(:local_build) do
-    invoke(:local_build)
-  else
-    invoke(:remote_build)
-  end
+  build_type = config({:build_type, "remote"})
+  invoke(:"#{build_type}_build")
 end
 
 before_task(:build, :verify_config)

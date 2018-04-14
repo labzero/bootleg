@@ -66,7 +66,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.DSL
 
-    config :local_build, true
+    config :build_type, "local"
 
     File.cd!(location, fn ->
       capture_io(fn ->
