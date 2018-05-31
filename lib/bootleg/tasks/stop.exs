@@ -4,7 +4,7 @@ use Bootleg.DSL
 task :stop do
   app_name = Config.app()
 
-  remote :app do
+  remote :app, cd: "current" do
     "bin/#{app_name} stop"
   end
 

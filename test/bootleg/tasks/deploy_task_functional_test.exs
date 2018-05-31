@@ -59,8 +59,8 @@ defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
         app_name = "#{Config.app()}.tar.gz"
         assert [{:ok, _, 0, _}] = remote(:app, "[ -f /fixtures/#{release_name} ]")
         invoke(:deploy)
-        assert [{:ok, _, 0, _}] = remote(:app, "[ -f #{app_name} ]")
-        assert [{:ok, _, 0, _}] = remote(:app, "[ -f release.txt ]")
+        assert [{:ok, _, 0, _}] = remote(:app, "[ -f current/#{app_name} ]")
+        assert [{:ok, _, 0, _}] = remote(:app, "[ -f current/release.txt ]")
       end)
     end)
   end

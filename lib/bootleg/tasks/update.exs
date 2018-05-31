@@ -11,7 +11,7 @@ end
 task :stop_silent do
   nodetool = "bin/#{Config.app()}"
 
-  remote :app do
+  remote :app, cd: "current" do
     "#{nodetool} describe && (#{nodetool} stop || true)"
   end
 end

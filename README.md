@@ -118,12 +118,13 @@ The `config` macro can be used to get and set arbitrary key value pairs for use 
 There are a few config settings that are directly used within Bootleg itself, they can be overwritten if needed, but can generally be left alone.
 
 ```elixir
-config :app, :myapp
-config :env, :staging # sets/overrides the bootleg environment
-config :ex_path, "/path/to/project" # Path to the project. Default is current directory.
-config :build_type, "local" # build releases locally without a `:build` role, (default `"remote"`)
-config :refspec, "develop" # Set a git branch used for the build. Default is "master"
-config :version, "1.2.3"
+config(:app, :myapp)
+config(:env, :staging) # sets/overrides the bootleg environment
+config(:ex_path, "/path/to/project") # Path to the project. Default is current directory.
+config(:build_type, "local") # build releases locally without a `:build` role, (default `"remote"`)
+config(:refspec, "develop") # Set a git branch used for the build. Default is "master"
+config(:version, "1.2.3")
+config(:keep_releases, 4) # Number of release kept for rollback, Default is 3.
 ```
 
 Any additional `config` settings can be set the same way and then looked up later with `config/1`.

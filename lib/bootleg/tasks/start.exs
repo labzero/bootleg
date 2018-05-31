@@ -2,7 +2,7 @@ alias Bootleg.{UI, Config}
 use Bootleg.DSL
 
 task :start do
-  remote :app do
+  remote :app, cd: "current" do
     "bin/#{Config.app()} start"
   end
 
