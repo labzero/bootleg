@@ -42,6 +42,7 @@ defmodule Bootleg.SSH do
     workspace = Keyword.get(options, :workspace, ".")
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
+    sudo = Keyword.get(options, :sudo, [])
     UI.puts("Creating remote context at '#{workspace}'")
 
     :ssh.start()
@@ -53,6 +54,7 @@ defmodule Bootleg.SSH do
     |> prepare_remote_env(options)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
+    |> sudo(sudo)
   end
 
   def ssh_host_options(%Host{} = host) do
@@ -112,6 +114,10 @@ defmodule Bootleg.SSH do
       true -> SSHKit.env(context, Map.merge(%{REPLACE_OS_VARS: true}, env))
       _ -> SSHKit.env(context, env)
     end
+  end
+
+  defp sudo(context, sudo) do
+    %Context{context | user: Keyword.get(sudo, :user), group: Keyword.get(sudo, :group)}
   end
 
   @last_new_line ~r/\A(?<bulk>.*)((?<newline>\n)(?<remainder>[^\n]*))?\z/msU
