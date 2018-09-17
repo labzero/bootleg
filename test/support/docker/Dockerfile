@@ -1,4 +1,4 @@
-FROM bitwalker/alpine-elixir:latest
+FROM bitwalker/alpine-elixir:1.7.3
 
 # Set up an Alpine Linux machine running an SSH server.
 # Autogenerate missing host keys.
