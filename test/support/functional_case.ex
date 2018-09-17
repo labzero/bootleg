@@ -76,7 +76,7 @@ defmodule Bootleg.FunctionalCase do
     chpasswd!(host, @user, @pass)
     private_key = keygen!(host, @user)
 
-    private_key_path = Temp.open!("docker-key", &IO.write(&1, private_key))
+    private_key_path = Temp.open!("docker-key", &IO.puts(&1, private_key))
     File.chmod!(private_key_path, 0o600)
 
     Map.merge(host, %{
