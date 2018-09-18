@@ -2,7 +2,7 @@ defmodule Bootleg.Tasks.BuildTaskTest do
   use Bootleg.TestCase, async: false
   import ExUnit.CaptureIO
   import Mock
-  alias Bootleg.{SSH, Git, Config}
+  alias Bootleg.{Config, Git, SSH}
 
   test "building without specified port" do
     use Bootleg.DSL

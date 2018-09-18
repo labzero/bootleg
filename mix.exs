@@ -43,13 +43,13 @@ defmodule Bootleg.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:sshkit, "0.0.3"},
+      {:sshkit, "0.1.0"},
       {:ssh_client_key_api, "~> 0.1"},
-      {:credo, "~> 0.7", only: [:dev, :test]},
+      {:credo, "~> 0.10", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
-      {:mock, "~> 0.2.0", only: :test},
+      {:mock, "~> 0.3.0", only: :test},
       {:junit_formatter, "~> 2.0", only: :test},
       {:temp, "~> 0.4.3", only: :test}
     ]

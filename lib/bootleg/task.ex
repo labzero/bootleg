@@ -48,7 +48,7 @@ defmodule Bootleg.Task do
   """
   @callback load() :: any
 
-  alias Bootleg.{UI, DSL}
+  alias Bootleg.{DSL, UI}
 
   defmacro __using__(task_def) do
     quote do

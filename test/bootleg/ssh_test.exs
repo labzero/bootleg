@@ -1,6 +1,6 @@
 defmodule Bootleg.SSHTest do
   use Bootleg.TestCase, async: false
-  alias Bootleg.{SSH, Host}
+  alias Bootleg.{Host, SSH}
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
   import ExUnit.CaptureIO

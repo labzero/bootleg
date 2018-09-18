@@ -1,5 +1,5 @@
 defmodule Bootleg.Role do
-  @moduledoc ""
+  @moduledoc false
   @enforce_keys [:name, :hosts, :user]
   defstruct [:name, :hosts, :user, options: []]
 

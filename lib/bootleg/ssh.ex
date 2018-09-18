@@ -4,7 +4,7 @@ defmodule Bootleg.SSH do
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
-  alias Bootleg.{UI, Host, Role, Config}
+  alias Bootleg.{Config, Host, Role, UI}
 
   def init(%Role{} = role, options, filter) do
     role_options = Keyword.merge(role.options, user: role.user)
