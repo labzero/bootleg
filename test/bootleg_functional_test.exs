@@ -52,7 +52,7 @@ defmodule Bootleg.FunctionalTest do
     end)
   end
 
-  @tag boot: 3, ui_verbosity: :info, timeout: 120_000
+  @tag boot: 3, ui_verbosity: :info, timeout: 240_000
   test "update: build, deploy, manage roll-up", %{hosts: hosts} do
     location = Fixtures.inflate_project()
 
