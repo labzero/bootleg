@@ -1,6 +1,6 @@
 defmodule Bootleg.TasksFunctionalTest do
   use Bootleg.TestCase, async: false
-  alias Bootleg.{Fixtures, UI, Config}
+  alias Bootleg.{Config, Fixtures, UI}
   import Mock
 
   setup do

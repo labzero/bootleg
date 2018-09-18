@@ -1,5 +1,5 @@
 defmodule Bootleg.Host do
-  @moduledoc ""
+  @moduledoc false
   @enforce_keys [:host, :options]
   defstruct [:host, :options]
 

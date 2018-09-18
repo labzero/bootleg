@@ -1,8 +1,8 @@
 defmodule Mix.Tasks.Bootleg.Init do
   use Bootleg.MixTask
   require Mix.Generator
-  alias Mix.Generator
   alias Bootleg.Env
+  alias Mix.Generator
 
   @shortdoc "Initializes a project for use with Bootleg"
 

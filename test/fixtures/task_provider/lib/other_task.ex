@@ -1,6 +1,6 @@
 defmodule Bootleg.Tasks.Other do
   @moduledoc false
-  alias Bootleg.{Task, DSL}
+  alias Bootleg.{DSL, Task}
   use Task
 
   def load do

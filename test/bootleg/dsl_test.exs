@@ -1,6 +1,6 @@
 defmodule Bootleg.DSLTest do
   use Bootleg.TestCase, async: false
-  alias Bootleg.{Config, UI, SSH}
+  alias Bootleg.{Config, SSH, UI}
   import Mock
 
   doctest Bootleg.Config
