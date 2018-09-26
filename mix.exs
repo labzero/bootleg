@@ -15,7 +15,7 @@ defmodule Bootleg.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
       dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :sshkit]],
-      docs: [source_ref: "release-#{@version}", main: "readme", extras: ["README.md"]],
+      docs: docs(),
       description: description(),
       deps: deps(),
       package: package(),
@@ -53,6 +53,20 @@ defmodule Bootleg.Mixfile do
       {:junit_formatter, "~> 2.0", only: :test},
       {:temp, "~> 0.4.3", only: :test}
     ]
+  end
+
+  defp docs do
+    [
+      source_ref: "release-#{@version}",
+      main: "about",
+      extras: ["CONTRIBUTING.md"] ++ doc_files()
+    ]
+  end
+
+  defp doc_files do
+    File.ls!('docs')
+    |> Enum.sort()
+    |> Enum.map( fn x-> "docs/" <> x end)
   end
 
   defp description do
