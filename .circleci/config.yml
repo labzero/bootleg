@@ -20,7 +20,7 @@ jobs:
           paths:
             - ~/dependencies
       - restore_cache:
-          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "mix.lock" }}-{{ arch }}
+          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
       - run:
           name: Preparing dependencies
           command: |
@@ -31,7 +31,7 @@ jobs:
             mix dialyzer --plt;
           no_output_timeout: 10m
       - save_cache:
-          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "mix.lock" }}-{{ arch }}
+          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
           paths:
             - ~/.mix
             - _build
