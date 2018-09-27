@@ -32,6 +32,7 @@ by Bootleg:
   * `workspace` - remote path specifying where to perform a build or push a deploy (default `.`)
   * `user` - ssh username (default to local user)
   * `password` - ssh password
+  * `sudo` - user and / or group to run commands with (default `[user: nil, group: nil]`)
   * `identity` - unencrypted private key file path (passphrases are not supported at this time)
   * `port` - ssh port (default `22`)
   * `env` - map of environment variable and values. ie: `%{PORT: "1234", FOO: "bar"}`
@@ -73,6 +74,13 @@ role :build, "example.com", workspace: "/home/deployer/builds", release_workspac
 role :app, "example.com", release_workspace: "/home/deployer"
 ```
 > In this example, the release is built and deployed on the same remote. By specifying a `release_workspace` on the `:build` role, a release is placed in `home/deployer`. and by specifying a `release_workspace` on the `:app` role, the release is copied from the `/home/deployer` directory to the app workspace. Note that the release is not downloaded.
+
+```elixir
+role :app1, user: "bob", sudo: [user: "www"]
+```
+
+> In this example, SSH will be authenticated with `bob` and commands will be prepended with `sudo -n -e www`. This will cause an error if a password is required (can only be used with `NOPASSWD` in `sudoers`).
+
 ### SSH options
 
 If you include any common `:ssh.connect` options they will not be included in role or host options and will only be used when establishing SSH connections (exception: *user* is always passed to role and hosts due to its relevance to source code management).
@@ -83,6 +91,7 @@ Supported SSH options include:
 * port
 * timeout
 * recv_timeout
+* sudo
 
 > Refer to `Bootleg.SSH.supported_options/0` for the complete list of supported options, and [:ssh.connect](http://erlang.org/doc/man/ssh.html#connect-2) for more information.
 
