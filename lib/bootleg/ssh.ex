@@ -42,7 +42,6 @@ defmodule Bootleg.SSH do
     workspace = Keyword.get(options, :workspace, ".")
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
-    UI.puts("Creating remote context at '#{workspace}'")
 
     :ssh.start()
 

@@ -1,7 +1,7 @@
 defmodule Bootleg.Mixfile do
   use Mix.Project
 
-  @version "0.7.0"
+  @version "0.8.0"
   @source "https://github.com/labzero/bootleg"
   @homepage "https://labzero.github.io/bootleg/"
 
@@ -9,7 +9,7 @@ defmodule Bootleg.Mixfile do
     [
       app: :bootleg,
       version: @version,
-      elixir: "~> 1.4",
+      elixir: "~> 1.6",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
