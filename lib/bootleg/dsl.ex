@@ -42,7 +42,7 @@ defmodule Bootleg.DSL do
 
   `options` is an optional `Keyword` used to provide configuration details about a specific host
   (or collection of hosts). Certain options are passed to SSH directly (see
-  `Bootleg.SSH.supported_options/0`), others are used internally (`user` for example, is used
+  `Bootleg.SSH.ssh_options/0`), others are used internally (`user` for example, is used
   by both SSH and Git), and unknown options are simply stored. In the future `remote/1,2` will
   allow for host filtering based on role options. Some Bootleg extensions may also add support
   for additional options.

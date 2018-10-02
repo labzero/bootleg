@@ -214,7 +214,7 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp ssh_opts(options) do
+  def ssh_opts(options) do
     opts = Enum.map(options, &ssh_opt/1)
 
     opts
@@ -223,10 +223,10 @@ defmodule Bootleg.SSH do
     |> Enum.filter(&ssh_option?/1)
   end
 
-  defp ssh_opt({_, nil}), do: []
+  def ssh_opt({_, nil}), do: []
 
-  defp ssh_opt({:passphrase_provider, {module, fun}})
-       when is_atom(module) and is_atom(fun) do
+  def ssh_opt({:passphrase_provider, {module, fun}})
+      when is_atom(module) and is_atom(fun) do
     case function_exported?(module, fun, 0) do
       false ->
         []
@@ -238,8 +238,8 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp ssh_opt({:passphrase_provider, {command, args}})
-       when is_binary(command) and is_list(args) do
+  def ssh_opt({:passphrase_provider, {command, args}})
+      when is_binary(command) and is_list(args) do
     case System.cmd(command, args) do
       {v, 0} ->
         v
@@ -251,13 +251,13 @@ defmodule Bootleg.SSH do
     end
   end
 
-  defp ssh_opt({:passphrase_provider, fun}) when is_function(fun, 0) do
+  def ssh_opt({:passphrase_provider, fun}) when is_function(fun, 0) do
     fun
     |> apply([])
     |> parse_passphrase()
   end
 
-  defp ssh_opt(option), do: option
+  def ssh_opt(option), do: option
 
   defp parse_passphrase(v) when is_binary(v) and byte_size(v) > 0, do: {:passphrase, v}
   defp parse_passphrase(_v), do: []

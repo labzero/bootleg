@@ -28,7 +28,7 @@ defmodule Bootleg.SSHTest do
   end
 
   test "init/3 raises an error if the host is not found" do
-    host = Bootleg.Host.init("bad-host-name.local", [], [])
+    host = Bootleg.Host.init("bad-host-name.local", [])
 
     capture_io(fn ->
       assert_raise SSHError, fn -> SSH.init(host, []) end
@@ -51,8 +51,8 @@ defmodule Bootleg.SSHTest do
     capture_io(fn ->
       assert_raise File.Error, fn ->
         host = %Host{
-          host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]},
-          options: []
+          host: %SSHKitHost{name: "localhost.1", options: []},
+          options: [identity: "foo"]
         }
 
         SSH.ssh_host_options(host)
@@ -65,9 +65,9 @@ defmodule Bootleg.SSHTest do
     assert [user: "foobar"] == SSH.ssh_opts(options)
   end
 
-  test "ssh_opts/1 allows arbitrary options" do
+  test "ssh_opts/1 does not allow arbitrary options" do
     options = [foobar: true, user: "foobar"]
-    assert [foobar: true, user: "foobar"] == SSH.ssh_opts(options)
+    assert [user: "foobar"] == SSH.ssh_opts(options)
   end
 
   test "ssh_opts/1 discards identity with nil value" do
@@ -102,7 +102,7 @@ defmodule Bootleg.SSHTest do
     assert [[1, 2], [4]] = SSH.merge_run_results([2, 4], [1])
   end
 
-  test "supported_options/0" do
-    assert Enum.member?(SSH.supported_options(), :quiet_mode)
+  test "ssh_options/0" do
+    assert Enum.member?(SSH.ssh_options(), :quiet_mode)
   end
 end

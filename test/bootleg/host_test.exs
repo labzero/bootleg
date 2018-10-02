@@ -7,8 +7,8 @@ defmodule Bootleg.HostTest do
   setup do
     %{
       host: %Bootleg.Host{
-        host: %SSHKit.Host{name: "127.0.0.1", options: [port: 22, user: "jsmith"]},
-        options: []
+        host: %SSHKit.Host{name: "127.0.0.1", options: []},
+        options: [port: 22, user: "jsmith"]
       },
       bare_host: %Bootleg.Host{
         host: %SSHKit.Host{name: "localhost", options: []},
@@ -17,15 +17,15 @@ defmodule Bootleg.HostTest do
     }
   end
 
-  test "init/3", %{host: host} do
+  test "init/2", %{host: host} do
     # ssh options are preserved in Bootleg.Host
-    assert host == Host.init("127.0.0.1", [port: 22, user: "jsmith"], [])
+    assert host == Host.init("127.0.0.1", port: 22, user: "jsmith")
 
     # role options are preserved in Bootleg.Host
     assert %Bootleg.Host{
-             host: %SSHKit.Host{name: "127.0.0.1", options: [user: "ssh_user"]},
+             host: %SSHKit.Host{name: "127.0.0.1", options: []},
              options: [user: "scm_user"]
-           } == Host.init("127.0.0.1", [user: "ssh_user"], user: "scm_user")
+           } == Host.init("127.0.0.1", user: "scm_user")
   end
 
   test "host_name/1", %{host: host} do
@@ -38,21 +38,9 @@ defmodule Bootleg.HostTest do
 
   test "option/3", %{host: host} do
     assert %Bootleg.Host{
-             host: %SSHKit.Host{name: "127.0.0.1", options: [port: 22, user: "jsmith"]},
-             options: [foo: "bar"]
+             host: %SSHKit.Host{name: "127.0.0.1", options: []},
+             options: [foo: "bar", port: 22, user: "jsmith"]
            } == Host.option(host, :foo, "bar")
-  end
-
-  test "ssh_option/2", %{host: host} do
-    assert 22 == Host.ssh_option(host, :port)
-    assert "jsmith" == Host.ssh_option(host, :user)
-  end
-
-  test "ssh_option/3", %{host: host} do
-    assert %Bootleg.Host{
-             host: %SSHKit.Host{name: "127.0.0.1", options: [port: 2222, user: "jsmith"]},
-             options: []
-           } == Host.ssh_option(host, :port, 2222)
   end
 
   describe "combine_uniq/2" do
@@ -65,19 +53,19 @@ defmodule Bootleg.HostTest do
 
       assert [
                %Bootleg.Host{
-                 host: %SSHKit.Host{name: "127.0.0.1", options: [port: 22, user: "jsmith"]},
-                 options: [foo: "bar"]
+                 host: %SSHKit.Host{name: "127.0.0.1", options: []},
+                 options: [foo: "bar", port: 22, user: "jsmith"]
                }
              ] == Host.combine_uniq([host1] ++ [host2])
     end
 
     test "combines and overwrites ssh options", %{host: host1} do
-      host2 = Host.ssh_option(host1, :user, "andy")
+      host2 = Host.option(host1, :user, "andy")
 
       assert [
                %Bootleg.Host{
-                 host: %SSHKit.Host{name: "127.0.0.1", options: [port: 22, user: "andy"]},
-                 options: []
+                 host: %SSHKit.Host{name: "127.0.0.1", options: []},
+                 options: [port: 22, user: "andy"]
                }
              ] == Host.combine_uniq([host1] ++ [host2])
     end

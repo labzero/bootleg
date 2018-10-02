@@ -78,7 +78,7 @@ defmodule Bootleg.DSLTest do
              build: %Bootleg.Role{
                hosts: [
                  %Bootleg.Host{
-                   host: %SSHKit.Host{name: "build.labzero.com", options: [user: "brien"]},
+                   host: %SSHKit.Host{name: "build.labzero.com", options: []},
                    options: [user: "brien"]
                  }
                ],
@@ -104,7 +104,7 @@ defmodule Bootleg.DSLTest do
              build: %Bootleg.Role{
                hosts: [
                  %Bootleg.Host{
-                   host: %SSHKit.Host{name: "build.labzero.com", options: [user: "brien"]},
+                   host: %SSHKit.Host{name: "build.labzero.com", options: []},
                    options: [user: "brien", env: %{FOO: "1234"}]
                  }
                ],
