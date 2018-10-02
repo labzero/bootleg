@@ -215,10 +215,47 @@ defmodule Bootleg.SSH do
     |> Enum.map(&ssh_opt/1)
     |> Enum.map(&ssh_transform_opt(&1, options))
     |> List.flatten()
+    |> Enum.dedup_by(fn {k, _} -> k end)
   end
 
   def ssh_opt({_, nil}), do: []
+
+  def ssh_opt({:passphrase_provider, {module, fun}})
+      when is_atom(module) and is_atom(fun) do
+    case function_exported?(module, fun, 0) do
+      false ->
+        []
+
+      true ->
+        module
+        |> apply(fun, [])
+        |> parse_passphrase()
+    end
+  end
+
+  def ssh_opt({:passphrase_provider, {command, args}})
+      when is_binary(command) and is_list(args) do
+    case System.cmd(command, args) do
+      {v, 0} ->
+        v
+        |> String.trim_trailing("\n")
+        |> parse_passphrase()
+
+      _ ->
+        []
+    end
+  end
+
+  def ssh_opt({:passphrase_provider, fun}) when is_function(fun, 1) do
+    fun
+    |> apply([])
+    |> parse_passphrase()
+  end
+
   def ssh_opt(option), do: option
+
+  def parse_passphrase(v) when is_binary(v) and byte_size(v) > 0, do: {:passphrase, v}
+  def parse_passphrase(_v), do: []
 
   @doc """
   Convert an identity option to a proper `key_cb` tuple, passing related options to it via
@@ -231,9 +268,7 @@ defmodule Bootleg.SSH do
     key_cb =
       options
       |> Enum.map(&ssh_opt/1)
-      |> Enum.filter(
-        &(Enum.member?(supported_key_cb_options(), Atom.to_string(elem(&1, 0))) == true)
-      )
+      |> Enum.filter(&key_cb_option_exists?/1)
       |> Keyword.put(:identity, identity)
       |> SSHClientKeyAPI.with_options()
 
@@ -243,15 +278,22 @@ defmodule Bootleg.SSH do
   def ssh_transform_opt(option, _), do: option
 
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
-    idle_time silently_accept_hosts user_dir timeout connection_timeout identity quiet_mode)a
+    idle_time user_dir timeout connection_timeout identity quiet_mode
+    silently_accept_hosts passphrase passphrase_provider known_hosts)a
   def supported_options do
     @ssh_options
   end
 
-  @key_cb_options ~w(silently_accept_hosts)
+  @key_cb_options ~w(silently_accept_hosts passphrase known_hosts)
   def supported_key_cb_options do
     @key_cb_options
   end
+
+  defp key_cb_option_exists?(v) when is_tuple(v) do
+    Enum.member?(supported_key_cb_options(), Atom.to_string(elem(v, 0)))
+  end
+
+  defp key_cb_option_exists?(_), do: false
 
   @doc false
   @spec merge_run_results(list, list) :: list
