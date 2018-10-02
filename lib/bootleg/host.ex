@@ -3,10 +3,10 @@ defmodule Bootleg.Host do
   @enforce_keys [:host, :options]
   defstruct [:host, :options]
 
-  def init(host, ssh_options, role_options) do
+  def init(host, options) do
     %__MODULE__{
-      host: SSHKit.host(host, ssh_options),
-      options: role_options
+      host: SSHKit.host(host),
+      options: options
     }
   end
 
