@@ -21,7 +21,7 @@
   "nimble_parsec": {:hex, :nimble_parsec, "0.4.0", "ee261bb53214943679422be70f1658fff573c5d0b0a1ecd0f18738944f818efe", [:mix], [], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm"},
   "poison": {:hex, :poison, "4.0.1", "bcb755a16fac91cad79bfe9fc3585bb07b9331e50cfe3420a24bcc2d735709ae", [:mix], [], "hexpm"},
-  "ssh_client_key_api": {:hex, :ssh_client_key_api, "0.1.1", "eb191625fdca68fc2740de44820e124748d9e27fb75fc85a6f1653371bf9b4ba", [:mix], [], "hexpm"},
+  "ssh_client_key_api": {:git, "https://github.com/rjanja/ssh_client_key_api.git", "a3acdf42c19fb8d6b30928ce009b02ebdf484255", [branch: "passphrase-protected-keys"]},
   "sshkit": {:hex, :sshkit, "0.1.0", "e8f74a9e35e6929df7cd581ce43a5a9ac840cc0757381a8fc9d706909cdee4c3", [:mix], [], "hexpm"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.4", "f0eafff810d2041e93f915ef59899c923f4568f4585904d010387ed74988e77b", [:make, :mix, :rebar3], [], "hexpm"},
   "temp": {:hex, :temp, "0.4.5", "c62ee92c778ddebb2738212fecea372f1a9beba10bacbd7e54e7efe29357a82e", [:mix], [], "hexpm"},
