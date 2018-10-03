@@ -28,9 +28,10 @@ defmodule Bootleg.FunctionalCase do
     count = Map.get(tags, :boot, 1)
     verbosity = Map.get(tags, :ui_verbosity, :silent)
     role_opts = Map.get(tags, :role_opts, %{})
+    key_passphrase = Map.get(tags, :key_passphrase, "")
 
     conf = %{image: @image, cmd: @cmd, args: @args}
-    hosts = Enum.map(1..count, fn _ -> init(boot(conf)) end)
+    hosts = Enum.map(1..count, fn _ -> init(boot(conf), passphrase: key_passphrase) end)
 
     if Map.get(tags, :verbose, System.get_env("TEST_VERBOSE")) do
       Logger.info("started docker hosts: #{inspect(hosts, pretty: true)}")
@@ -71,17 +72,24 @@ defmodule Bootleg.FunctionalCase do
     Map.merge(config, %{id: id, ip: ip, port: port})
   end
 
-  def init(host) do
+  def init(host, options \\ []) do
     adduser!(host, @user)
     chpasswd!(host, @user, @pass)
-    private_key = keygen!(host, @user)
+    passphrase = Keyword.get(options, :passphrase, "")
+    {public_key, private_key} = keygen!(host, @user, passphrase)
 
-    private_key_path = Temp.open!("docker-key", &IO.write(&1, private_key))
+    key_path = Temp.mkdir!("docker-key")
+    public_key_path = Path.join(key_path, "id_rsa.pub")
+    private_key_path = Path.join(key_path, "id_rsa")
+    File.write(public_key_path, public_key)
+    File.write(private_key_path, private_key)
     File.chmod!(private_key_path, 0o600)
 
     Map.merge(host, %{
       user: @user,
       password: @pass,
+      public_key: public_key,
+      public_key_path: public_key_path,
       private_key: private_key,
       private_key_path: private_key_path
     })
