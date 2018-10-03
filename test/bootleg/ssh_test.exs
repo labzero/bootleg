@@ -23,7 +23,8 @@ defmodule Bootleg.SSHTest do
           %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
         ]
       },
-      blank_key_path: tmp_file_path
+      blank_key_path: tmp_file_path,
+      host_with_identity: %Host{host: %SSHKitHost{}, options: %{identity: tmp_file_path}}
     }
   end
 
@@ -58,6 +59,60 @@ defmodule Bootleg.SSHTest do
         SSH.ssh_host_options(host)
       end
     end)
+  end
+
+  test "ssh_host_options/1 with an identity", %{host_with_identity: host} do
+    %SSHKit.Host{
+      options: [
+        key_cb: _
+      ]
+    } = SSH.ssh_host_options(host)
+  end
+
+  test "ssh_host_options/1 with public key and passphrase", %{host_with_identity: host} do
+    host = Host.option(host, :passphrase, "foobar")
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "foobar"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider anonymous function", %{
+    host_with_identity: host
+  } do
+    host = Host.option(host, :passphrase_provider, fn -> "batfoo" end)
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "batfoo"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider function reference", %{
+    host_with_identity: host
+  } do
+    defmodule Bootleg.SSHTest.Foo do
+      def baz, do: "foobaz"
+    end
+
+    host = Host.option(host, :passphrase_provider, {Bootleg.SSHTest.Foo, :baz})
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "foobaz"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider system command", %{
+    host_with_identity: host
+  } do
+    host = Host.option(host, :passphrase_provider, {"echo", ["barfoo"]})
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "barfoo"
   end
 
   test "ssh_opts/1 discards nil value options" do
