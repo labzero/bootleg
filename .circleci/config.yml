@@ -38,7 +38,7 @@ jobs:
             - deps
       - run: mix compile
       - run: mix dialyzer
-      - run: mix format --check-formatted --dry-run || (mix format && git diff)
+      - run: mix format --check-formatted --dry-run || (mix format && git --no-pager diff)
       - run: mix credo --strict
       - run: mix coveralls.html
       - store_test_results:
