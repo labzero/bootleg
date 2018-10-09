@@ -73,8 +73,8 @@ defmodule Bootleg.UI do
   defp validate_verbosity(verbosity) when verbosity in @verbosities, do: verbosity
   defp validate_verbosity(_), do: :info
 
-  defp verbosity_includes(setting, _) when not (setting in @verbosities), do: false
-  defp verbosity_includes(_, level) when not (level in @verbosities), do: false
+  defp verbosity_includes(setting, _) when setting not in @verbosities, do: false
+  defp verbosity_includes(_, level) when level not in @verbosities, do: false
 
   defp verbosity_includes(setting, level) do
     index = fn value -> Enum.find_index(@verbosities, &(&1 == value)) end

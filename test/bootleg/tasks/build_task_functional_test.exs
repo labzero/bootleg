@@ -38,8 +38,13 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
         app_name = config(:app)
         app_version = config(:version)
         invoke(:build)
+
         assert [{:ok, _, 0, _}] =
-          remote(:build, "[ -f _build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]")
+                 remote(
+                   :build,
+                   "[ -f _build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]"
+                 )
+
         assert true == File.exists?(Path.join([File.cwd!(), "releases", release_name]))
       end)
     end)
@@ -56,8 +61,15 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
         app_name = config(:app)
         app_version = config(:version)
         invoke(:build)
+
         assert [{:ok, _, 0, _}] =
-          remote(:build, "[ -f /home/me/workspace_abs/_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]")
+                 remote(
+                   :build,
+                   "[ -f /home/me/workspace_abs/_build/#{mix_env}/rel/#{app_name}/releases/#{
+                     app_version
+                   }/#{app_name}.tar.gz ]"
+                 )
+
         assert true == File.exists?(Path.join([File.cwd!(), "releases", release_name]))
       end)
     end)

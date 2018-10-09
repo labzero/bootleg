@@ -66,7 +66,7 @@ defmodule Bootleg.Mixfile do
   defp doc_files do
     File.ls!('docs')
     |> Enum.sort()
-    |> Enum.map( fn x-> "docs/" <> x end)
+    |> Enum.map(fn x -> "docs/" <> x end)
   end
 
   defp description do
