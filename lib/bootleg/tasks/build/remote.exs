@@ -190,51 +190,6 @@ task :push_remote do
   end
 end
 
-task :pull_remote do
-  refspec = config({:refspec, "master"})
-  repo_url = config(:repo_url)
-  build_role = Config.get_role(:build)
-  workspace = build_role.options[:workspace]
-
-  repo_path =
-    if build_role.options[:repo_path], do: build_role.options[:repo_path], else: "/tmp/repos"
-
-  remote :build do
-    "mkdir -p #{repo_path}"
-  end
-
-  [{:ok, result, 0, _}] =
-    remote :build, cd: repo_path do
-      "ls -la"
-    end
-
-  result =
-      [Keyword.get(build_role.options, :identity)],
-      env: [{"SSH_ASKPASS", temp_file}],
-      stderr_to_stdout: true
-    )
-  end
-end
-
-after_task :push_remote do
-  build_role = Config.get_role(:build)
-  ssh_agent_add = Config.get_key(:ssh_agent_add, "ssh-add")
-
-      _ ->
-        "/home/#{build_role.user}/#{workspace}"
-    end
-
-  UI.info("Pulling new commits with git from: #{repo_url}")
-
-  remote :build, cd: "#{repo_path}/#{Config.app()}.git" do
-    "git remote set-url origin #{repo_url}"
-    "git remote update --prune"
-    "git archive #{refspec} | tar -x -f - -C #{workspace_path}"
-  end
-end
-
-before_task(:pull_remote, :verify_repo_config)
-
 before_task :push_remote do
   build_role = Config.get_role(:build)
   ssh_agent_add = Config.get_key(:ssh_agent_add, "ssh-add")
@@ -273,3 +228,51 @@ after_task :push_remote do
   end
 end
 
+task :pull_remote do
+  refspec = config({:refspec, "master"})
+  repo_url = config(:repo_url)
+  build_role = Config.get_role(:build)
+  workspace = build_role.options[:workspace]
+
+  repo_path =
+    if build_role.options[:repo_path], do: build_role.options[:repo_path], else: "/tmp/repos"
+
+  remote :build do
+    "mkdir -p #{repo_path}"
+  end
+
+  [{:ok, result, 0, _}] =
+    remote :build, cd: repo_path do
+      "ls -la"
+    end
+
+  result =
+    result
+    |> Keyword.get_values(:stdout)
+    |> Enum.join("\n")
+
+  unless result =~ "#{Config.app()}.git" do
+    remote :build, cd: repo_path do
+      "git clone --mirror #{repo_url} #{Config.app()}.git"
+    end
+  end
+
+  workspace_path =
+    case Path.type(workspace) do
+      :absolute ->
+        workspace
+
+      _ ->
+        "/home/#{build_role.user}/#{workspace}"
+    end
+
+  UI.info("Pulling new commits with git from: #{repo_url}")
+
+  remote :build, cd: "#{repo_path}/#{Config.app()}.git" do
+    "git remote set-url origin #{repo_url}"
+    "git remote update --prune"
+    "git archive #{refspec} | tar -x -f - -C #{workspace_path}"
+  end
+end
+
+before_task(:pull_remote, :verify_repo_config)
