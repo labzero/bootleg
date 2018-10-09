@@ -13,7 +13,7 @@ task :remote_build do
   build_role = Config.get_role(:build)
   invoke(:init)
   invoke(:clean)
-  invoke :remote_scm_update
+  invoke(:remote_scm_update)
   invoke(:compile)
   invoke(:generate_release)
 
@@ -26,10 +26,10 @@ end
 
 task :remote_scm_update do
   if config({:git_mode, :push}) == :pull do
-    invoke :pull_remote
+    invoke(:pull_remote)
   else
-    invoke :push_remote
-    invoke :reset_remote
+    invoke(:push_remote)
+    invoke(:reset_remote)
   end
 end
 

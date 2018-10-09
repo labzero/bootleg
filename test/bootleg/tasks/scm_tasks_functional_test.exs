@@ -45,10 +45,12 @@ defmodule Bootleg.Tasks.ScmTasksFunctionalTest do
     config :git_mode, :push
 
     File.cd!(location, fn ->
-      out = capture_io(fn ->
-        invoke(:init)
-        invoke(:remote_scm_update)
-      end)
+      out =
+        capture_io(fn ->
+          invoke(:init)
+          invoke(:remote_scm_update)
+        end)
+
       assert String.match?(out, ~r/Pushing new commits/)
       assert String.match?(out, ~r/HEAD is now at/)
     end)
