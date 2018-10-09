@@ -28,19 +28,6 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     }
   end
 
-  test "builds the application via git pull", %{project_location: location} do
-    use Bootleg.DSL
-    config :git_mode, :pull
-    config :repo_url, "/opt/app/repos/build_me.git"
-
-    File.cd!(location, fn ->
-      capture_io(fn ->
-        invoke(:build)
-        assert [{:ok, _, 0, _}] = remote(:build, "[ -f GITPULL.txt ]")
-      end)
-    end)
-  end
-
   test "builds the application", %{project_location: location} do
     use Bootleg.DSL
 
