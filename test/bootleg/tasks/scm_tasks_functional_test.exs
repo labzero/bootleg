@@ -19,8 +19,7 @@ defmodule Bootleg.Tasks.ScmTasksFunctionalTest do
       password: host.password,
       silently_accept_hosts: true,
       workspace: workspace,
-      identity: host.private_key_path,
-      release_workspace: role_opts[:release_workspace]
+      identity: host.private_key_path
     )
 
     %{
@@ -29,6 +28,7 @@ defmodule Bootleg.Tasks.ScmTasksFunctionalTest do
   end
 
   test "'git_mode pull' downloads source via git pull" do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.DSL
     config :git_mode, :pull
     config :repo_url, "/opt/repos/simple.git"
@@ -41,6 +41,7 @@ defmodule Bootleg.Tasks.ScmTasksFunctionalTest do
   end
 
   test "'git_mode push' uploads source via git push", %{project_location: location} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.DSL
     config :git_mode, :push
 
