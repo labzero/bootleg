@@ -31,6 +31,21 @@ RUN chmod -R a+x /fixtures/bin
 RUN printf 'export PATH=$PATH:/fixtures/bin\n' >> /etc/profile
 RUN printf "PATH=$PATH:/fixtures/bin\nBOOTLEG_PATH=/project\n" > /etc/skel/.ssh/environment
 
+# Create git repository
+RUN mkdir -p /opt/repos/
+RUN git init --bare /opt/repos/simple.git
+
+RUN mkdir -p /tmp/app/simple
+WORKDIR /tmp/app/simple
+RUN git init
+RUN git config user.email local@example.com
+RUN git config user.name Miscellaneous Minstrel
+RUN echo "Foobar" > README.md
+RUN git add .
+RUN git commit -m "Initial commit"
+RUN git remote add origin /opt/repos/simple.git
+RUN git push origin master
+
 # Run SSH daemon and expose the standard SSH port.
 EXPOSE 22
 

@@ -1,13 +1,19 @@
 alias Bootleg.{UI, Config}
 use Bootleg.DSL
 
+task :verify_repo_config do
+  if config(:repo_url) == nil do
+    raise "Error: repo_url is not set.\n" <>
+            "# config(:repo_url, \"git@github.com/me/my_app.git\")"
+  end
+end
+
 task :remote_build do
   UI.info("Starting remote build")
   build_role = Config.get_role(:build)
   invoke(:init)
   invoke(:clean)
-  invoke(:push_remote)
-  invoke(:reset_remote)
+  invoke(:remote_scm_update)
   invoke(:compile)
   invoke(:generate_release)
 
@@ -15,6 +21,15 @@ task :remote_build do
     invoke(:copy_build_release)
   else
     invoke(:download_release)
+  end
+end
+
+task :remote_scm_update do
+  if config({:git_mode, :push}) == :pull do
+    invoke(:pull_remote)
+  else
+    invoke(:push_remote)
+    invoke(:reset_remote)
   end
 end
 
@@ -174,3 +189,52 @@ task :push_remote do
       {:error, status}
   end
 end
+
+task :pull_remote do
+  refspec = config({:refspec, "master"})
+  repo_url = config(:repo_url)
+  build_role = Config.get_role(:build)
+  workspace = build_role.options[:workspace]
+
+  repo_path =
+    if build_role.options[:repo_path], do: build_role.options[:repo_path], else: "/tmp/repos"
+
+  remote :build do
+    "mkdir -p #{repo_path}"
+  end
+
+  [{:ok, result, 0, _}] =
+    remote :build, cd: repo_path do
+      "ls -la"
+    end
+
+  result =
+    result
+    |> Keyword.get_values(:stdout)
+    |> Enum.join("\n")
+
+  unless result =~ "#{Config.app()}.git" do
+    remote :build, cd: repo_path do
+      "git clone --mirror #{repo_url} #{Config.app()}.git"
+    end
+  end
+
+  workspace_path =
+    case Path.type(workspace) do
+      :absolute ->
+        workspace
+
+      _ ->
+        "/home/#{build_role.user}/#{workspace}"
+    end
+
+  UI.info("Pulling new commits with git from: #{repo_url}")
+
+  remote :build, cd: "#{repo_path}/#{Config.app()}.git" do
+    "git remote set-url origin #{repo_url}"
+    "git remote update --prune"
+    "git archive #{refspec} | tar -x -f - -C #{workspace_path}"
+  end
+end
+
+before_task(:pull_remote, :verify_repo_config)

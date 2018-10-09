@@ -8,6 +8,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     use Bootleg.DSL
     config :app, :build_me
     config :version, "0.1.0"
+
     workspace = if role_opts[:workspace], do: role_opts[:workspace], else: "workspace"
 
     role(
