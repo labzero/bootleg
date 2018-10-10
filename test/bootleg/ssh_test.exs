@@ -23,12 +23,13 @@ defmodule Bootleg.SSHTest do
           %Host{host: %SSHKitHost{name: "localhost.2", options: []}, options: []}
         ]
       },
-      blank_key_path: tmp_file_path
+      blank_key_path: tmp_file_path,
+      host_with_identity: %Host{host: %SSHKitHost{}, options: %{identity: tmp_file_path}}
     }
   end
 
   test "init/3 raises an error if the host is not found" do
-    host = Bootleg.Host.init("bad-host-name.local", [], [])
+    host = Bootleg.Host.init("bad-host-name.local", [])
 
     capture_io(fn ->
       assert_raise SSHError, fn -> SSH.init(host, []) end
@@ -51,8 +52,8 @@ defmodule Bootleg.SSHTest do
     capture_io(fn ->
       assert_raise File.Error, fn ->
         host = %Host{
-          host: %SSHKitHost{name: "localhost.1", options: [identity: "foo"]},
-          options: []
+          host: %SSHKitHost{name: "localhost.1", options: []},
+          options: [identity: "foo"]
         }
 
         SSH.ssh_host_options(host)
@@ -60,14 +61,68 @@ defmodule Bootleg.SSHTest do
     end)
   end
 
+  test "ssh_host_options/1 with an identity", %{host_with_identity: host} do
+    %SSHKit.Host{
+      options: [
+        key_cb: _
+      ]
+    } = SSH.ssh_host_options(host)
+  end
+
+  test "ssh_host_options/1 with public key and passphrase", %{host_with_identity: host} do
+    host = Host.option(host, :passphrase, "foobar")
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "foobar"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider anonymous function", %{
+    host_with_identity: host
+  } do
+    host = Host.option(host, :passphrase_provider, fn -> "batfoo" end)
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "batfoo"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider function reference", %{
+    host_with_identity: host
+  } do
+    defmodule Bootleg.SSHTest.Foo do
+      def baz, do: "foobaz"
+    end
+
+    host = Host.option(host, :passphrase_provider, {Bootleg.SSHTest.Foo, :baz})
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "foobaz"
+  end
+
+  test "ssh_host_options/1 with public key and passphrase provider system command", %{
+    host_with_identity: host
+  } do
+    host = Host.option(host, :passphrase_provider, {"echo", ["barfoo"]})
+
+    assert %SSHKit.Host{options: [key_cb: {SSHClientKeyAPI, cb_opts}]} =
+             SSH.ssh_host_options(host)
+
+    assert cb_opts[:passphrase] == "barfoo"
+  end
+
   test "ssh_opts/1 discards nil value options" do
     options = [port: nil, user: "foobar"]
     assert [user: "foobar"] == SSH.ssh_opts(options)
   end
 
-  test "ssh_opts/1 allows arbitrary options" do
+  test "ssh_opts/1 does not allow arbitrary options" do
     options = [foobar: true, user: "foobar"]
-    assert [foobar: true, user: "foobar"] == SSH.ssh_opts(options)
+    assert [user: "foobar"] == SSH.ssh_opts(options)
   end
 
   test "ssh_opts/1 discards identity with nil value" do
@@ -102,7 +157,7 @@ defmodule Bootleg.SSHTest do
     assert [[1, 2], [4]] = SSH.merge_run_results([2, 4], [1])
   end
 
-  test "supported_options/0" do
-    assert Enum.member?(SSH.supported_options(), :quiet_mode)
+  test "ssh_options/0" do
+    assert Enum.member?(SSH.ssh_options(), :quiet_mode)
   end
 end

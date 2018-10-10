@@ -190,6 +190,44 @@ task :push_remote do
   end
 end
 
+before_task :push_remote do
+  build_role = Config.get_role(:build)
+  ssh_agent_add = Config.get_key(:ssh_agent_add, "ssh-add")
+
+  if build_role.options[:passphrase] && build_role.options[:insecure_agent] do
+    temp_file = Path.join(System.tmp_dir!(), "bootleg_askpass")
+
+    File.write(
+      temp_file,
+      "#!/bin/bash\necho '#{Keyword.get(build_role.options, :passphrase)}'"
+    )
+
+    File.chmod!(temp_file, 0o500)
+
+    System.cmd(
+      ssh_agent_add,
+      [Keyword.get(build_role.options, :identity)],
+      env: [{"SSH_ASKPASS", temp_file}],
+      stderr_to_stdout: true
+    )
+  end
+end
+
+after_task :push_remote do
+  build_role = Config.get_role(:build)
+  ssh_agent_add = Config.get_key(:ssh_agent_add, "ssh-add")
+
+  if build_role.options[:passphrase] && build_role.options[:insecure_agent] do
+    System.cmd(
+      ssh_agent_add,
+      ["-d", Keyword.get(build_role.options, :identity)],
+      stderr_to_stdout: true
+    )
+
+    File.rm!(Path.join(System.tmp_dir!(), "bootleg_askpass"))
+  end
+end
+
 task :pull_remote do
   refspec = config({:refspec, "master"})
   repo_url = config(:repo_url)

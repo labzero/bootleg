@@ -8,13 +8,13 @@ defmodule Bootleg.SSHFunctionalTest do
   setup %{hosts: hosts} do
     %{
       role: %Role{
-        hosts: Enum.map(hosts, &Host.init(&1.ip, docker_ssh_opts(&1), [])),
+        hosts: Enum.map(hosts, &Host.init(&1.ip, docker_ssh_opts(&1))),
         name: :build,
         user: "blammo",
         options: [workspace: "some_workspace"]
       },
       role_env: %Role{
-        hosts: Enum.map(hosts, &Host.init(&1.ip, docker_ssh_opts(&1), [])),
+        hosts: Enum.map(hosts, &Host.init(&1.ip, docker_ssh_opts(&1))),
         name: :build,
         user: "blammo",
         options: [workspace: "some_workspace", env: %{"BOOTLEG_ENV_TEST" => "ENV_TEST_VALUE"}]
@@ -49,7 +49,7 @@ defmodule Bootleg.SSHFunctionalTest do
   end
 
   test "init/3 raises an error if the host refuses the connection", %{hosts: hosts} do
-    bootleg_hosts = Enum.map(hosts, &Host.init(&1.ip, [port: 404], []))
+    bootleg_hosts = Enum.map(hosts, &Host.init(&1.ip, port: 404))
 
     capture_io(fn ->
       assert_raise SSHError, fn -> SSH.init(bootleg_hosts) end

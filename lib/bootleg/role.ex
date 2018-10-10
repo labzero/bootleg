@@ -3,44 +3,25 @@ defmodule Bootleg.Role do
   @enforce_keys [:name, :hosts, :user]
   defstruct [:name, :hosts, :user, options: []]
 
-  alias Bootleg.{Host, SSH}
+  alias Bootleg.Host
 
   def combine_hosts(%Bootleg.Role{} = role, hosts) do
     %Bootleg.Role{role | hosts: Host.combine_uniq(role.hosts ++ hosts)}
   end
 
   def define(name, hosts, options \\ []) do
-    # user is in the role options for scm
-
-    user = Keyword.get(options, :user, System.get_env("USER"))
-
-    ssh_options =
-      Enum.filter(options, &(Enum.member?(SSH.supported_options(), elem(&1, 0)) == true))
-
-    # identity needs to be present in both options lists
-    role_options =
-      (options -- ssh_options)
-      |> Keyword.put(:user, user)
-      |> Keyword.put(:identity, ssh_options[:identity])
-      |> Keyword.get_and_update(:identity, fn val ->
-        if val || Keyword.has_key?(ssh_options, :identity) do
-          {val, val || ssh_options[:identity]}
-        else
-          :pop
-        end
-      end)
-      |> elem(1)
+    opts = Keyword.merge(default_options(), options)
 
     hosts =
       hosts
       |> List.wrap()
-      |> Enum.map(&Host.init(&1, ssh_options, role_options))
+      |> Enum.map(&Host.init(&1, opts))
 
     new_role = %Bootleg.Role{
       name: name,
-      user: user,
+      user: opts[:user],
       hosts: [],
-      options: role_options
+      options: opts
     }
 
     role =
@@ -54,6 +35,10 @@ defmodule Bootleg.Role do
       name,
       role
     )
+  end
+
+  def default_options do
+    [user: System.get_env("USER")]
   end
 
   @doc false

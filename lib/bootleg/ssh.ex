@@ -54,11 +54,15 @@ defmodule Bootleg.SSH do
     |> working_directory(working_directory)
   end
 
+  @doc """
+  Take a Bootleg.Host and make it an SSHKit.Host. We limit the options to a
+  predefined list in order to support a mixture of role options and ssh options.
+  """
   def ssh_host_options(%Host{} = host) do
-    sshkit_host = get_in(host, [Access.key!(:host)])
-    sshkit_host_options = get_in(sshkit_host, [Access.key!(:options)])
+    ssh_host = get_in(host, [Access.key!(:host)])
+    options = get_in(host, [Access.key!(:options)])
 
-    %SSHKitHost{sshkit_host | options: ssh_opts(sshkit_host_options)}
+    %SSHKitHost{ssh_host | options: ssh_opts(options)}
   end
 
   def run(context, cmd) do
@@ -79,6 +83,24 @@ defmodule Bootleg.SSH do
     end
 
     Enum.map(context.hosts, run)
+  end
+
+  def run!(context, command)
+
+  def run!(context, commands) when is_list(commands) do
+    Enum.map(commands, fn c -> run!(context, c) end)
+  end
+
+  def run!(context, command) do
+    context
+    |> run(command)
+    |> Enum.map(&run_result(&1, command))
+  end
+
+  defp run_result({:ok, _, 0, _} = result, _), do: result
+
+  defp run_result({:ok, output, status, host}, command) do
+    raise SSHError, [command, output, status, host]
   end
 
   defp validate_workspace(context, workspace, create_workspace)
@@ -172,24 +194,6 @@ defmodule Bootleg.SSH do
     {:cont, next}
   end
 
-  def run!(conn, command)
-
-  def run!(conn, commands) when is_list(commands) do
-    Enum.map(commands, fn c -> run!(conn, c) end)
-  end
-
-  def run!(conn, command) do
-    conn
-    |> run(command)
-    |> Enum.map(&run_result(&1, command))
-  end
-
-  defp run_result({:ok, _, 0, _} = result, _), do: result
-
-  defp run_result({:ok, output, status, host}, command) do
-    raise SSHError, [command, output, status, host]
-  end
-
   def download(conn, remote_path, local_path) do
     UI.puts_download(conn, remote_path, local_path)
 
@@ -211,47 +215,97 @@ defmodule Bootleg.SSH do
   end
 
   def ssh_opts(options) do
-    options
-    |> Enum.map(&ssh_opt/1)
-    |> Enum.map(&ssh_transform_opt(&1, options))
+    opts = Enum.map(options, &ssh_opt/1)
+
+    opts
+    |> Enum.map(&ssh_transform_opt(&1, opts))
     |> List.flatten()
+    |> Enum.filter(&ssh_option?/1)
   end
 
   def ssh_opt({_, nil}), do: []
+
+  def ssh_opt({:passphrase_provider, {module, fun}})
+      when is_atom(module) and is_atom(fun) do
+    case function_exported?(module, fun, 0) do
+      false ->
+        []
+
+      true ->
+        module
+        |> apply(fun, [])
+        |> parse_passphrase()
+    end
+  end
+
+  def ssh_opt({:passphrase_provider, {command, args}})
+      when is_binary(command) and is_list(args) do
+    case System.cmd(command, args) do
+      {v, 0} ->
+        v
+        |> String.trim_trailing("\n")
+        |> parse_passphrase()
+
+      _ ->
+        []
+    end
+  end
+
+  def ssh_opt({:passphrase_provider, fun}) when is_function(fun, 0) do
+    fun
+    |> apply([])
+    |> parse_passphrase()
+  end
+
   def ssh_opt(option), do: option
 
-  @doc """
-  Convert an identity option to a proper `key_cb` tuple, passing related options to it via
-  `key_cb_private`. While it would be nice to support the arbitrary passing of callback options,
-  our SSH options have already been filtered by the role configuration.
-  """
-  def ssh_transform_opt({:identity, identity_file}, options) do
+  defp parse_passphrase(v) when is_binary(v) and byte_size(v) > 0, do: {:passphrase, v}
+  defp parse_passphrase(_v), do: []
+
+  defp ssh_transform_opt({:identity, identity_file}, options) do
     identity = File.open!(Path.expand(identity_file))
 
     key_cb =
       options
       |> Enum.map(&ssh_opt/1)
-      |> Enum.filter(
-        &(Enum.member?(supported_key_cb_options(), Atom.to_string(elem(&1, 0))) == true)
-      )
+      |> Enum.filter(&ssh_key_cb_option?/1)
       |> Keyword.put(:identity, identity)
       |> SSHClientKeyAPI.with_options()
 
     [{:key_cb, key_cb}]
   end
 
-  def ssh_transform_opt(option, _), do: option
+  defp ssh_transform_opt(option, _), do: option
 
   @ssh_options ~w(user password port key_cb auth_methods connection_timeout id_string
-    idle_time silently_accept_hosts user_dir timeout connection_timeout identity quiet_mode)a
-  def supported_options do
-    @ssh_options
+    idle_time user_dir timeout connection_timeout identity quiet_mode
+    silently_accept_hosts known_hosts)a
+  @doc """
+  Return a list of options which are specific to SSH
+  """
+  def ssh_options do
+    Application.get_env(:bootleg, :ssh_options, @ssh_options)
   end
 
-  @key_cb_options ~w(silently_accept_hosts)
-  def supported_key_cb_options do
-    @key_cb_options
+  def ssh_option?({k, _v}) do
+    Enum.member?(ssh_options(), k) == true
   end
+
+  def ssh_option?(_), do: false
+
+  @ssh_key_cb_options ~w(silently_accept_hosts passphrase known_hosts)a
+  @doc """
+  Return a list of options which may be passed through to the public_key callback
+  """
+  def ssh_key_cb_options do
+    Application.get_env(:bootleg, :ssh_key_cb_options, @ssh_key_cb_options)
+  end
+
+  defp ssh_key_cb_option?({k, _v}) do
+    Enum.member?(ssh_key_cb_options(), k) == true
+  end
+
+  defp ssh_key_cb_option?(_), do: false
 
   @doc false
   @spec merge_run_results(list, list) :: list

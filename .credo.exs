@@ -20,7 +20,7 @@
         # You can give explicit globs or simply directories.
         # In the latter case `**/*.{ex,exs}` will be used.
         included: ["config/", "lib/", "test/"],
-        excluded: [~r"/_build/", ~r"/deps/"]
+        excluded: [~r"/_build/", ~r"/deps/", "config/deploy/"]
       },
       #
       # If you create your own checks, you must specify the source files for

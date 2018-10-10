@@ -3,10 +3,10 @@ defmodule Bootleg.Host do
   @enforce_keys [:host, :options]
   defstruct [:host, :options]
 
-  def init(host, ssh_options, role_options) do
+  def init(host, options) do
     %__MODULE__{
-      host: SSHKit.host(host, ssh_options),
-      options: role_options
+      host: SSHKit.host(host),
+      options: options
     }
   end
 
@@ -22,20 +22,12 @@ defmodule Bootleg.Host do
     put_in(host, [Access.key!(:options), option], value)
   end
 
-  def ssh_option(%__MODULE__{} = host, option) when is_atom(option) do
-    get_in(host, [Access.key!(:host), Access.key!(:options), option])
-  end
-
-  def ssh_option(%__MODULE__{} = host, option, value) when is_atom(option) do
-    put_in(host, [Access.key!(:host), Access.key!(:options), option], value)
-  end
-
   def combine_uniq(hosts) do
     do_combine_uniq(hosts, %{}, &host_id/1, [])
   end
 
   defp host_id(host) do
-    {host_name(host), ssh_option(host, :port)}
+    {host_name(host), option(host, :port)}
   end
 
   defp do_combine_uniq([h | t], set, fun, acc) do
@@ -60,11 +52,9 @@ defmodule Bootleg.Host do
   end
 
   defp combine_host_options(host1, host2) do
-    ssh_options = Keyword.merge(host1.host.options, host2.host.options)
     host_options = Keyword.merge(host1.options, host2.options)
 
     host1
-    |> put_in([Access.key!(:host), Access.key!(:options)], ssh_options)
     |> put_in([Access.key!(:options)], host_options)
   end
 end

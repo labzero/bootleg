@@ -218,4 +218,71 @@ defmodule Bootleg.FunctionalTest do
 
     assert String.match?(output, ~r/Build done/)
   end
+
+  @tag boot: 1, timeout: 60_000, key_passphrase: "secretcodes"
+  test "build fails using passphrase-protected key without a passphrase", %{hosts: hosts} do
+    location = Fixtures.inflate_project()
+
+    File.cd!(location, fn ->
+      use Bootleg.DSL
+
+      build_host = List.first(hosts)
+
+      role(
+        :build,
+        build_host.ip,
+        port: build_host.port,
+        user: build_host.user,
+        silently_accept_hosts: true,
+        workspace: "workspace",
+        identity: build_host.private_key_path
+      )
+
+      config :app, :build_me
+      config :version, "0.1.0"
+
+      assert_raise SSHError, fn ->
+        capture_io(fn ->
+          use Bootleg.DSL
+          invoke(:build)
+        end)
+      end
+    end)
+  end
+
+  @tag boot: 1, timeout: 120_000, ui_verbosity: :info, key_passphrase: "secretcodes"
+  test "build succeeds using passphrase-protected key with a passphrase", %{hosts: hosts} do
+    location = Fixtures.inflate_project()
+
+    File.cd!(location, fn ->
+      use Bootleg.DSL
+
+      build_host = List.first(hosts)
+
+      role(
+        :build,
+        build_host.ip,
+        port: build_host.port,
+        user: build_host.user,
+        silently_accept_hosts: true,
+        workspace: "workspace",
+        identity: build_host.private_key_path,
+        passphrase: "secretcodes",
+        insecure_agent: true
+      )
+
+      config :app, :build_me
+      config :version, "0.1.0"
+
+      assert String.match?(
+               capture_io(fn ->
+                 # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+                 use Bootleg.DSL
+
+                 invoke(:build)
+               end),
+               ~r/Release successfully built!/
+             )
+    end)
+  end
 end

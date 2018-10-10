@@ -44,7 +44,7 @@ defmodule Bootleg.Mixfile do
   defp deps do
     [
       {:sshkit, "0.1.0"},
-      {:ssh_client_key_api, "~> 0.1"},
+      {:ssh_client_key_api, "~> 0.2.1"},
       {:credo, "~> 0.10", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false},

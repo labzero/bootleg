@@ -87,11 +87,8 @@ defmodule Bootleg.ConfigTest do
                  options: [user: ^local_user]
                },
                %Bootleg.Host{
-                 host: %SSHKit.Host{
-                   name: "www3.example.com",
-                   options: [port: 2222, user: "deploy"]
-                 },
-                 options: [user: "deploy"]
+                 host: %SSHKit.Host{name: "www3.example.com", options: []},
+                 options: [port: 2222, user: "deploy"]
                }
              ],
              name: :app,
@@ -102,16 +99,16 @@ defmodule Bootleg.ConfigTest do
     assert %Bootleg.Role{
              hosts: [
                %Bootleg.Host{
-                 host: %SSHKit.Host{name: "db.example.com", options: [user: "foo"]},
-                 options: [user: "foo", primary: true]
+                 host: %SSHKit.Host{name: "db.example.com", options: []},
+                 options: [primary: true, user: "foo"]
                },
                %Bootleg.Host{
-                 host: %SSHKit.Host{name: "db2.example.com", options: [user: "foo"]},
+                 host: %SSHKit.Host{name: "db2.example.com", options: []},
                  options: [user: "foo"]
                }
              ],
              name: :db,
-             options: [user: "foo", primary: true],
+             options: [primary: true, user: "foo"],
              user: "foo"
            } = roles[:db]
 
