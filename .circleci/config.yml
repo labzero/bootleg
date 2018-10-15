@@ -64,8 +64,7 @@ jobs:
 
       - store_test_results:
           path: ~/bootleg/_build/test/lib/bootleg
-      - store_artifacts:
-          path: cover
+
   functional:
     <<: *defaults
     machine:
@@ -103,3 +102,9 @@ jobs:
           path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
           path: cover
+workflows:
+  version: 2
+  build-and-verify:
+    jobs:
+      - build
+      - functional
