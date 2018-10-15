@@ -30,7 +30,7 @@ defmodule Bootleg.Tasks do
   end
 
   @doc false
-  @spec pop_env_task(binary, [binary]) :: {nil, nil} | {nil, atom} | {binary, atom}
+  @spec pop_env_task(any, [binary]) :: {nil, nil} | {nil, atom} | {binary, atom}
   defp pop_env_task(env, args) when args == [] do
     {env, nil}
   end

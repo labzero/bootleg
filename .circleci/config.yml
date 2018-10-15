@@ -3,24 +3,86 @@ general:
   branches:
     ignore:
       - gh-pages
+defaults: &defaults
+  working_directory: ~/bootleg
 jobs:
   build:
-    machine: true
-    working_directory: ~/bootleg
+    <<: *defaults
+    parallelism: 1 # run only one instance of this job in parallel
+    docker: # run the steps with Docker
+      - image: circleci/elixir:1.6
+        environment: # environment variables for primary container
+          MIX_ENV: test
+          SHELL: /bin/bash
+    steps:
+      - checkout
+
+      - run: mix local.hex --force
+      - run: mix local.rebar --force
+
+      - restore_cache: # restores saved mix cache
+          keys: # list of cache keys, in decreasing specificity
+            - mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - mix-cache-{{ .Branch }}
+            - mix-cache
+      - restore_cache: # restores saved build cache
+          keys:
+            - build-cache-{{ .Branch }}
+            - build-cache
+      - restore_cache:  # restores saved plt cache
+          keys:
+            - dialyzer-cache
+
+      - run: mix do deps.get, deps.compile # get updated dependencies & compile them
+
+      - save_cache: # generate and store cache so `restore_cache` works
+          key: mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths: "deps"
+      - save_cache: # make another less specific cache
+          key: mix-cache-{{ .Branch }}
+          paths: "deps"
+      - save_cache: # and one more build cache for good measure
+          key: mix-cache
+          paths: "deps"
+
+      - run: mix compile
+
+      - save_cache: # save a *build* cache, too
+          key: build-cache-{{ .Branch }}
+          paths: "_build"
+      - save_cache: # and one more build cache for good measure
+          key: build-cache
+          paths: "_build"
+
+      - run: mix do format --check-formatted, credo --strict
+      - run: mix test --exclude functional
+      - run: MIX_ENV=dev mix dialyzer --halt-exit-status
+
+      - save_cache:
+          key: dialyzer-cache
+          paths: "_build/test/dialyxir*.plt"
+
+      - store_test_results:
+          path: ~/bootleg/_build/test/lib/bootleg
+
+  functional:
+    <<: *defaults
+    machine:
+      image: circleci/classic:latest
     steps:
       - checkout
       - run: echo 'export INSTALL_PATH="$HOME/dependencies";export PATH="$INSTALL_PATH/bin:$PATH";export MIX_ENV=test;export VERSION_CIRCLECI=2' >> $BASH_ENV
       - restore_cache:
-          key: environment-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
+          key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
       - run:
           name: Install Elixir
           command: script/ci/prepare.sh
       - save_cache:
-          key: environment-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
+          key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
           paths:
             - ~/dependencies
       - restore_cache:
-          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
+          key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
       - run:
           name: Preparing dependencies
           command: |
@@ -28,20 +90,21 @@ jobs:
             mix local.rebar --force
             mix deps.get;
             mix deps.compile;
-            mix dialyzer --plt;
-          no_output_timeout: 10m
       - save_cache:
-          key: dependencies-cache-{{ checksum ".circleci/config.yml" }}-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
+          key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
           paths:
             - ~/.mix
             - _build
             - deps
       - run: mix compile
-      - run: mix dialyzer
-      - run: mix format --check-formatted --dry-run || (mix format && git --no-pager diff && false)
-      - run: mix credo --strict
       - run: mix coveralls.html
       - store_test_results:
           path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
           path: cover
+workflows:
+  version: 2
+  build-and-verify:
+    jobs:
+      - build
+      - functional

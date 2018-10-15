@@ -1,7 +1,11 @@
 defmodule Bootleg.Fixtures do
   @moduledoc false
 
-  def inflate_project(name \\ :build_me) do
+  @dialyzer {:no_return, inflate_project: 0, inflate_project: 1}
+  @spec inflate_project(atom) :: binary
+  def inflate_project(name \\ :build_me)
+
+  def inflate_project(name) do
     project_dir = Temp.mkdir!("git-#{name}")
     File.cp_r!("./test/fixtures/#{name}", project_dir)
 
