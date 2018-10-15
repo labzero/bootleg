@@ -14,7 +14,7 @@ defmodule Bootleg.Mixfile do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
-      dialyzer: [plt_add_deps: :transitive, plt_add_apps: [:mix, :sshkit]],
+      dialyzer: [plt_add_apps: [:mix, :sshkit, :ex_unit]],
       docs: docs(),
       description: description(),
       deps: deps(),

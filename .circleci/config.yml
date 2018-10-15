@@ -56,7 +56,7 @@ jobs:
 
       - run: mix do format --check-formatted, credo --strict
       - run: mix test --exclude functional
-      - run: mix dialyzer --halt-exit-status
+      - run: MIX_ENV=dev mix dialyzer --halt-exit-status
 
       - save_cache:
           key: dialyzer-cache
