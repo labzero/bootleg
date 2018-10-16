@@ -97,7 +97,7 @@ jobs:
             - _build
             - deps
       - run: mix compile
-      - run: mix coveralls.circle
+      - run: COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN mix coveralls.circle
       - store_test_results:
           path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
