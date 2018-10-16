@@ -14,6 +14,13 @@ defmodule Bootleg.Mixfile do
       start_permanent: Mix.env() == :prod,
       elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
+      preferred_cli_env: [
+        dialyzer: :dev,
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.circle": :test,
+        "coveralls.html": :test
+      ],
       dialyzer: [plt_add_apps: [:mix, :sshkit, :ex_unit]],
       docs: docs(),
       description: description(),
@@ -48,7 +55,7 @@ defmodule Bootleg.Mixfile do
       {:credo, "~> 0.10", only: [:dev, :test]},
       {:dialyxir, "~> 0.5", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.6", only: :test},
+      {:excoveralls, "~> 0.10", only: :test},
       {:mock, "~> 0.3.0", only: :test},
       {:junit_formatter, "~> 2.0", only: :test},
       {:temp, "~> 0.4.3", only: :test}
