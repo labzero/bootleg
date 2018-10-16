@@ -97,7 +97,7 @@ jobs:
             - _build
             - deps
       - run: mix compile
-      - run: mix coveralls.html
+      - run: mix coveralls.circle
       - store_test_results:
           path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
@@ -107,4 +107,6 @@ workflows:
   build-and-verify:
     jobs:
       - build
-      - functional
+      - functional:
+          requires:
+            - build
