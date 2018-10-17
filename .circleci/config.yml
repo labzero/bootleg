@@ -103,7 +103,7 @@ jobs:
             - _build
             - deps
       - run: mix compile
-      - run: mix coveralls.circle
+      - run: mix coveralls.html
       - store_test_results:
           path: ~/bootleg/_build/test/lib/bootleg
       - store_artifacts:
