@@ -204,4 +204,18 @@ defmodule Bootleg.UITest do
     assert Enum.count(char_out, fn codepoint -> codepoint === 8217 end) == 2000
     assert size == 273_036, "Received data not in expected form."
   end
+
+  test "prompt returns user input" do
+    assert capture_io([input: "foobar", capture_prompt: false], fn ->
+             input = UI.prompt(">")
+             IO.write(input)
+           end) == "foobar"
+  end
+
+  test "prompt pads input prompt with a space" do
+    assert capture_io([input: "bazfoo"], fn ->
+             input = UI.prompt(">")
+             IO.write(input)
+           end) == "> bazfoo"
+  end
 end
