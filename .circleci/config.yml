@@ -77,6 +77,7 @@ jobs:
             echo 'export PATH="$INSTALL_PATH/bin:$PATH"' >> $BASH_ENV
             echo 'export VERSION_CIRCLECI=2' >> $BASH_ENV
             echo 'export COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN' >> $BASH_ENV
+            echo 'export CI_PULL_REQUEST=$CIRCLE_PR_NUMBER' >> $BASH_ENV
       - restore_cache:
           key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
       - run:
