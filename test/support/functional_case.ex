@@ -72,6 +72,8 @@ defmodule Bootleg.FunctionalCase do
     Map.merge(config, %{id: id, ip: ip, port: port})
   end
 
+  @dialyzer {:no_return, init: 1, init: 2}
+  @spec init(binary, []) :: %{}
   def init(host, options \\ []) do
     adduser!(host, @user)
     chpasswd!(host, @user, @pass)
