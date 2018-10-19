@@ -1,7 +1,7 @@
 defmodule Bootleg.Mixfile do
   use Mix.Project
 
-  @version "0.8.0"
+  @version "0.8.1"
   @source "https://github.com/labzero/bootleg"
   @homepage "https://labzero.github.io/bootleg/"
 
@@ -74,6 +74,8 @@ defmodule Bootleg.Mixfile do
     File.ls!('docs')
     |> Enum.sort()
     |> Enum.map(fn x -> "docs/" <> x end)
+  rescue
+    _ -> []
   end
 
   defp description do
