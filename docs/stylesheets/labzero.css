@@ -1,0 +1,106 @@
+.md-header {
+  background-color: #795786 !important;
+}
+
+// Hero teaser
+.md-hero {
+  background-color: #795786;
+}
+
+.md-nav__link--active {
+  color: #795786 !important;
+}
+.md-nav__link:active {
+  color: #795786 !important;
+}
+.md-nav__link:hover {
+  color: #613B71 !important;
+}
+// Current or active link
+.md-nav__link,
+.md-nav__link:active,
+.md-nav__link--active {
+  color: #795786 !important;
+}
+
+.md-typeset .headerlink,
+.md-typeset .headerlink:hover,
+.md-typeset .headerlink:focus,
+.md-typeset .headerlink:active {
+  color: #795786 !important;
+}
+
+
+// Reset active color for nested list titles
+.md-nav__item--nested > .md-nav__link {
+  color: inherit;
+}
+
+
+  // Typesetted content
+  .md-typeset {
+
+    // Hovered and active links
+    a:hover,
+    a:active {
+      color: #795786 !important;
+    }
+
+    // Hovered scrollbar thumb
+    pre code::-webkit-scrollbar-thumb:hover,
+    .codehilite pre::-webkit-scrollbar-thumb:hover {
+      background-color: #795786 !important;
+    }
+
+    // Copy to clipboard active icon
+    .md-clipboard:hover::before,
+    .md-clipboard:active::before {
+      color: #795786 !important;
+    }
+
+    // Active or targeted back reference
+    .footnote li:hover  .footnote-backref:hover,
+    .footnote li:target .footnote-backref {
+      color: #795786 !important;
+    }
+
+    // Active, targeted or focused permalink
+    [id]:hover  .headerlink:hover,
+    [id]:target .headerlink,
+    [id] .headerlink:focus {
+      color: #795786 !important;
+    }
+  }
+
+  // Focused or hovered link
+  .md-nav__link:focus,
+  .md-nav__link:hover {
+    color: #795786 !important;
+  }
+
+  // Search container scrollbar thumb
+  .md-search__scrollwrap::-webkit-scrollbar-thumb:hover {
+    background-color: #795786 !important;
+  }
+
+  // Search result link
+  .md-search-result__link {
+
+    // Active or hovered link
+    &[data-md-state="active"],
+    &:hover {
+      background-color: transparentize(#795786, 0.9) !important;
+    }
+  }
+
+  // Wrapper for scrolling on overflow
+  .md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover {
+    background-color: #795786 !important;
+  }
+
+  // Source file icon
+  .md-source-file:hover::before {
+    background-color: #795786 !important;
+  }
+
+

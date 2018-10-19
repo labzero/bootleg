@@ -1,0 +1,52 @@
+site_name: Bootleg Documentation
+docs_dir: 'docs'
+site_dir: 'doc'
+theme:
+    name: 'material'
+    font:
+        text: 'Source Sans Pro'
+use_directory_urls: false
+markdown_extensions:
+    - markdown.extensions.toc:
+        permalink: true
+    - markdown.extensions.admonition
+    - markdown.extensions.smarty:
+        smart_quotes: false
+    - markdown.extensions.wikilinks
+    - markdown.extensions.codehilite:
+        linenums: true
+    - pymdownx.caret
+    - pymdownx.details
+    - pymdownx.inlinehilite
+    - pymdownx.magiclink
+    - pymdownx.mark
+    - pymdownx.smartsymbols
+    - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+extra:
+    social:
+        - type: 'github'
+          link: 'https://github.com/labzero/bootleg'
+
+repo_name: 'labzero/bootleg'
+repo_url: 'https://github.com/labzero/bootleg'
+nav:
+    - Home: 'home.md'
+    - Installation: 'installing.md'
+    - Configuration:
+        - 'Build Strategies': 'build.md'
+        - Environments: 'environments.md'
+        - 'Defining roles and hosts': 'roles.md'
+        - 'Using tasks and hooks': 'tasks.md'
+    - Reference:
+        - 'Config Macro': 'config_macro.md'
+        - 'Custom Workflows': 'custom.md'
+        - 'Mix Tasks': 'mix.md'
+    - 'Phoenix Support': 'phoenix.md'
+    - 'Public Key Support': 'public_keys.md'
+    
+copyright: |
+  Copyright 2018 <a href="http://www.labzero.com">Lab Zero Innovations</a>
+extra_css: [stylesheets/labzero.css]

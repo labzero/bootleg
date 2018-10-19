@@ -15,6 +15,8 @@ defmodule Bootleg.Mixfile do
       elixirc_paths: elixirc_paths(Mix.env()),
       test_coverage: [tool: ExCoveralls],
       preferred_cli_env: [
+        docs: :docs,
+        "hex.publish": :docs,
         dialyzer: :dev,
         coveralls: :test,
         "coveralls.detail": :test,
@@ -23,6 +25,7 @@ defmodule Bootleg.Mixfile do
       ],
       dialyzer: [plt_add_apps: [:mix, :sshkit, :ex_unit]],
       docs: docs(),
+      aliases: aliases(),
       description: description(),
       deps: deps(),
       package: package(),
@@ -31,51 +34,41 @@ defmodule Bootleg.Mixfile do
     ]
   end
 
-  # Configuration for the OTP application
-  #
-  # Type "mix help compile.app" for more information
   def application do
-    # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger, :sshkit, :mix]]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:my_dep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options
   defp deps do
     [
       {:sshkit, "0.1.0"},
       {:ssh_client_key_api, "~> 0.2.1"},
       {:credo, "~> 0.10", only: [:dev, :test]},
       {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.18.0", only: :dev, runtime: false},
-      {:excoveralls, "~> 0.10", only: :test},
-      {:mock, "~> 0.3.0", only: :test},
-      {:junit_formatter, "~> 2.0", only: :test},
-      {:temp, "~> 0.4.3", only: :test}
+      {:ex_doc, "~> 0.18", only: [:docs], runtime: false},
+      {:excoveralls, "~> 0.10", only: [:test]},
+      {:mock, "~> 0.3.0", only: [:test]},
+      {:junit_formatter, "~> 2.0", only: [:test]},
+      {:temp, "~> 0.4.3", only: [:test]}
     ]
+  end
+
+  defp aliases do
+    [
+      docs: [&mkdocs/1, "docs"],
+    ]
+  end
+
+  defp mkdocs(_args) do
+    docs = Path.join([File.cwd!, "script", "docs", "docs.sh"])
+    {_, 0} = System.cmd(docs, ["build"], into: IO.stream(:stdio, :line))
   end
 
   defp docs do
     [
-      source_ref: "release-#{@version}",
-      main: "about",
-      extras: ["CONTRIBUTING.md"] ++ doc_files()
+      source_url: @source,
+      homepage_url: @homepage,
+      main: "home"
     ]
-  end
-
-  defp doc_files do
-    File.ls!('docs')
-    |> Enum.sort()
-    |> Enum.map(fn x -> "docs/" <> x end)
-  rescue
-    _ -> []
   end
 
   defp description do
