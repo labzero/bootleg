@@ -8,6 +8,10 @@ task :verify_config do
             "If this is an umbrella app, you must set these in your deploy.exs, e.g.:\n" <>
             "# config(:app, :myapp)\n" <> "# config(:version, \"0.0.1\")"
   end
+
+  if config(:build_type) == :docker && !config(:docker_image) do
+    raise "Error: Docker builds require `docker_image` to be specified"
+  end
 end
 
 task :build do

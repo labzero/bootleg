@@ -3,7 +3,15 @@ defmodule Bootleg.Host do
   @enforce_keys [:host, :options]
   defstruct [:host, :options]
 
+  def init(host, :docker) do
+    %__MODULE__{
+      host: nil,
+      options: []
+    }
+  end
+
   def init(host, options) do
+    IO.inspect options
     %__MODULE__{
       host: SSHKit.host(host),
       options: options

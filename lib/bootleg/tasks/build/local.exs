@@ -20,39 +20,21 @@ end
 
 task :local_compile do
   mix_env = config({:mix_env, "prod"})
-  source_path = config({:ex_path, "."})
+  source_path = config({:ex_path, File.cwd!()})
   UI.info("Compiling build")
 
+  commands = [
+    ["mix", ["local.rebar", "--force"]],
+    ["mix", ["local.hex", "--force"]],
+    ["mix", ["deps.get", "--only=#{mix_env}"]],
+    ["mix", ["deps.compile"]],
+    ["mix", ["compile"]]
+  ]
+
   File.cd!(source_path, fn ->
-    System.cmd(
-      "mix",
-      ["local.rebar", "--force"],
-      env: [{"MIX_ENV", mix_env}],
-      into: IO.stream(:stdio, :line)
-    )
-
-    System.cmd(
-      "mix",
-      ["local.hex", "--force"],
-      env: [{"MIX_ENV", mix_env}],
-      into: IO.stream(:stdio, :line)
-    )
-
-    System.cmd(
-      "mix",
-      ["deps.get", "--only=#{mix_env}"],
-      env: [{"MIX_ENV", mix_env}],
-      into: IO.stream(:stdio, :line)
-    )
-
-    System.cmd(
-      "mix",
-      ["deps.compile"],
-      env: [{"MIX_ENV", mix_env}],
-      into: IO.stream(:stdio, :line)
-    )
-
-    System.cmd("mix", ["compile"], env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
+    Enum.each(commands, fn [c, args] ->
+      System.cmd(c, args, env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
+    end)
   end)
 end
 
