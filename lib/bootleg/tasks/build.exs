@@ -1,4 +1,4 @@
-alias Bootleg.{Config, DSL}
+alias Bootleg.{UI, Config, DSL}
 use Bootleg.DSL
 
 task :verify_config do
@@ -9,13 +9,14 @@ task :verify_config do
             "# config(:app, :myapp)\n" <> "# config(:version, \"0.0.1\")"
   end
 
-  if config(:build_type) == :docker && !config(:docker_image) do
-    raise "Error: Docker builds require `docker_image` to be specified"
+  if config(:build_type) == :docker && !config(:build_image) do
+    raise "Docker builds require `build_image` to be specified"
   end
 end
 
 task :build do
   build_type = config({:build_type, "remote"})
+  UI.info("Starting #{build_type} build")
   invoke(:"#{build_type}_build")
 end
 

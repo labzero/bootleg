@@ -2,28 +2,26 @@ alias Bootleg.{UI, Config}
 use Bootleg.DSL
 
 task :docker_build do
-  UI.info("Starting Docker build")
   invoke(:docker_compile)
-  invoke(:docker_archive)
+  invoke(:docker_copy_release)
 end
 
 task :docker_compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, File.cwd!()})
-  docker_image = config(:docker_image)
-  UI.info("Compiling build within Docker")
+  docker_image = config(:build_image)
+
+  UI.info("Building in image \"#{docker_image}\" with mix env #{mix_env}...")
 
   commands = [
     ["mix", ["local.rebar", "--force"]],
     ["mix", ["local.hex", "--if-missing", "--force"]],
     ["mix", ["deps.get", "--only=#{mix_env}"]],
-    ["mix", ["do", "clean", "compile", "--force"]],
-    ["mix", ["release"]]
+    ["mix", ["do", "clean,", "compile", "--force"]],
+    ["mix", ["release", "--quiet"]]
   ]
 
-  UI.info("Building in Docker (#{docker_image}) with mix env #{mix_env}")
-
-  d_args = [
+  docker_args = [
     "run",
     "-v",
     "#{source_path}:/opt/build",
@@ -35,21 +33,20 @@ task :docker_compile do
   ]
 
   Enum.each(commands, fn [c, args] ->
-    IO.inspect(d_args ++ [c | args])
+    UI.info("[docker] #{c} " <> Enum.join(args, " "))
     System.cmd(
       "docker",
-      d_args ++ [c | args],
+      docker_args ++ [c | args],
       into: IO.stream(:stdio, :line)
     )
   end)
 end
 
-task :docker_archive do
+task :docker_copy_release do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, File.cwd!()})
   app_name = Config.app()
   app_version = Config.version()
-  UI.info("Archiving Docker build")
 
   archive_path =
     Path.join(
@@ -60,4 +57,6 @@ task :docker_archive do
   local_archive_folder = Path.join([File.cwd!(), "releases"])
   File.mkdir_p!(local_archive_folder)
   File.cp!(archive_path, Path.join(local_archive_folder, "#{app_version}.tar.gz"))
+
+  UI.info("Saved: releases/#{app_version}.tar.gz")
 end
