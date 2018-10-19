@@ -9,8 +9,8 @@ task :verify_config do
             "# config(:app, :myapp)\n" <> "# config(:version, \"0.0.1\")"
   end
 
-  if config(:build_type) == :docker && !config(:build_image) do
-    raise "Docker builds require `build_image` to be specified"
+  if config(:build_type) == :docker && !config(:docker_build_image) do
+    raise "Docker builds require `docker_build_image` to be specified"
   end
 end
 
