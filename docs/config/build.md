@@ -65,8 +65,12 @@ To tell Bootleg to use Docker, set the `build_type` and specify the image name i
 use Bootleg.DSL
 
 config(:build_type, :docker)
-config(:build_image, elixir-ubuntu:latest")
+config(:build_image, "elixir-ubuntu:latest")
 ```
+
+> :bulb: **Title**
+
+Got local or unpublished dependencies, or a different Docker workdir? See [docker options](reference/docker.md) for more ways of fine-tuning this process.
 
 ### Remote Build Server
 

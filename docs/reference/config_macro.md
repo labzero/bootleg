@@ -1,6 +1,6 @@
-# The Config Macro
+# Config macro
 
-The `config` macro can be used to get and set arbitrary key value pairs for use within Bootleg.
+Within your Bootleg config files, `config/1` and `config/2` can be used to get and set arbitrary key value pairs.
 
 In addition to the [built-in config options](environments.md#internal-config-options), you can set your own as needed:
 
