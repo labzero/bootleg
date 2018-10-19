@@ -9,7 +9,7 @@ set -e
 export ERLANG_VERSION="20.3"
 export ELIXIR_VERSION="v1.6.0"
 
-export ERLANG_PATH="$INSTALL_PATH/otp_src_$ERLANG_VERSION"
+export ERLANG_PATH="$INSTALL_PATH/OTP-$ERLANG_VERSION"
 export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
 
 mkdir -p $INSTALL_PATH
@@ -17,9 +17,10 @@ cd $INSTALL_PATH
 
 # Install erlang
 if [ ! -e $INSTALL_PATH/bin/erl ]; then
-  curl -L -O http://www.erlang.org/download/otp_src_$ERLANG_VERSION.tar.gz
-  tar xzf otp_src_$ERLANG_VERSION.tar.gz
+  curl -L -O https://github.com/erlang/otp/archive/OTP-$ERLANG_VERSION.tar.gz
+  tar xzf OTP-$ERLANG_VERSION.tar.gz
   cd $ERLANG_PATH
+  ./otp_build autoconf
   ./configure --enable-smp-support \
               --enable-m64-build \
               --disable-native-libs \
