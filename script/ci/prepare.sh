@@ -18,7 +18,8 @@ cd $INSTALL_PATH
 # Install erlang
 if [ ! -e $INSTALL_PATH/bin/erl ]; then
   curl -L -O https://github.com/erlang/otp/archive/OTP-$ERLANG_VERSION.tar.gz
-  tar xzf OTP-$ERLANG_VERSION.tar.gz
+  mkdir OTP-$ERLANG_VERSION
+  tar -xf OTP-$ERLANG_VERSION.tar.gz --strip-components=1 -C OTP-$ERLANG_VERSION
   cd $ERLANG_PATH
   ./otp_build autoconf
   ./configure --enable-smp-support \
