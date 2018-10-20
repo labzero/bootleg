@@ -4,7 +4,7 @@
 
 Add to your `mix.exs` dependencies:
 
-```
+```elixir
 def deps do
   [{:distillery, "~> 2.0", runtime: false},
    {:bootleg, "~> 0.8", runtime: false}]
@@ -13,13 +13,14 @@ end
 
 Install Bootleg:
 
-```sh
+```bash
 $ mix deps.get
 ```
 
 ## Set-up Distillery
 
-If upgrading from an earlier version of Distillery, you may want to generate a new `rel/config.exs` with which to compare your existing configuration.
+!!! tip
+    If upgrading from an earlier version of Distillery, you may want to generate a new `rel/config.exs` with which to compare your existing configuration.
 
 If you do not have a `rel/config.exs` file, please follow the [Distillery guide](https://hexdocs.pm/distillery/introduction/installation.html) to create one. Generally this consists of running `mix release.init` and reviewing the resulting file.
 
@@ -29,7 +30,7 @@ Bootleg will read configuration from the `config/deploy.exs` file.
 
 A mix task is provided to bootstrap this file for you:
 
-```sh
+```bash
 $ mix bootleg.init
 ```
 

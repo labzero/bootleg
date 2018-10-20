@@ -1,24 +1,35 @@
-# Configuration options
+# Options
 
-Bootleg has several built-in configuration options. These can be overridden if needed, but can generally be left alone.
+Various Bootleg options can be set to help tailor the building and deploying of your application.
 
 ## Setting config options
 
-## Internal config options
+Options can be set in the main configuration file or within an environment configuration file.
 
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
+    config :build_type, :local
+    ```
 
-```elixir
-# config/deploy.exs
-use Bootleg.DSL
+!!! tip
+    The config macro is used here to set internally-used options, but you can also use it via `config/1` and `config/2` to read and set your own arbitrary key-value pairs. See [Config Macro](/reference/config_macro.md) for more information.
 
-config :app, :myapp
-config :env, :staging # sets/overrides the bootleg environment
-config :ex_path, "/path/to/project" # Base path to the project. Default is current directory.
-config :build_type, "local" # build releases locally without a `:build` role, (default `"remote"`)
-config :refspec, "develop" # Set a git branch used for the build. Default is "master"
-config :version, "1.2.3"
-config :build_type, :remote # :remote, :local, or :docker
-```
+## Overriding options from deployment environments
 
-The config macro is used here to set internally-used options, but you can also use it via `config/1` and `config/2` to read and set your own arbitrary key-value pairs. See [Config Macro](config_macro.md) for more information.
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
+    config :build_type, :local
+    ```
 
+Setting the same option in an environment configuration file will override the existing value:
+
+!!! example "config/deploy/production.exs"
+    ```elixir
+    use Bootleg.DSL
+    config :build_type, :remote
+    role :remote, "buildprod.example.com", workspace: "/opt/build"
+    ```
+
+For the full list of options you can set, see the [options reference](/reference/options.md) page.

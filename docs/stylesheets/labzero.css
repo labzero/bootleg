@@ -2,9 +2,47 @@
   background-color: #795786 !important;
 }
 
-// Hero teaser
 .md-hero {
-  background-color: #795786;
+  background-color: #795786 !important;
+}
+
+.md-tabs {
+  background-color: #4C245C !important;
+}
+
+.md-typeset__table {
+   min-width: 100%;
+}
+
+.md-typeset__table th:first-child {
+   min-width: 18rem !important;
+}
+
+.md-typeset .admonition.example, .md-typeset details.example,
+.md-typeset .admonition.note, .md-typeset details.note {
+  border-left-color: #795786 !important;
+}
+
+.md-typeset .admonition.example > .admonition-title::before,
+.md-typeset details.example > .admonition-title::before,
+.md-typeset .admonition.example > summary::before,
+.md-typeset details.example > summary::before,
+.md-typeset .admonition.note > .admonition-title::before,
+.md-typeset details.note > .admonition-title::before,
+.md-typeset .admonition.note > summary::before,
+.md-typeset details.note > summary::before {
+  color: #795786 !important;
+}
+@media only screen and (max-width: 76.1875em) {
+  .md-nav__title--site {
+    background-color: #795786 !important;
+  }
+}
+
+@media only screen and (max-width: 59.9375em) {
+  .md-nav__source {
+    background-color: #795786 !important;
+  }
 }
 
 .md-nav__link--active {
@@ -36,71 +74,67 @@
   color: inherit;
 }
 
-
-  // Typesetted content
-  .md-typeset {
-
-    // Hovered and active links
-    a:hover,
-    a:active {
-      color: #795786 !important;
-    }
-
-    // Hovered scrollbar thumb
-    pre code::-webkit-scrollbar-thumb:hover,
-    .codehilite pre::-webkit-scrollbar-thumb:hover {
-      background-color: #795786 !important;
-    }
-
-    // Copy to clipboard active icon
-    .md-clipboard:hover::before,
-    .md-clipboard:active::before {
-      color: #795786 !important;
-    }
-
-    // Active or targeted back reference
-    .footnote li:hover  .footnote-backref:hover,
-    .footnote li:target .footnote-backref {
-      color: #795786 !important;
-    }
-
-    // Active, targeted or focused permalink
-    [id]:hover  .headerlink:hover,
-    [id]:target .headerlink,
-    [id] .headerlink:focus {
-      color: #795786 !important;
-    }
-  }
-
-  // Focused or hovered link
-  .md-nav__link:focus,
-  .md-nav__link:hover {
+// Typesetted content
+.md-typeset {
+  // Hovered and active links
+  a:hover,
+  a:active {
     color: #795786 !important;
   }
 
-  // Search container scrollbar thumb
-  .md-search__scrollwrap::-webkit-scrollbar-thumb:hover {
+  // Hovered scrollbar thumb
+  pre code::-webkit-scrollbar-thumb:hover,
+  .codehilite pre::-webkit-scrollbar-thumb:hover {
     background-color: #795786 !important;
   }
 
-  // Search result link
-  .md-search-result__link {
-
-    // Active or hovered link
-    &[data-md-state="active"],
-    &:hover {
-      background-color: transparentize(#795786, 0.9) !important;
-    }
+  // Copy to clipboard active icon
+  .md-clipboard:hover::before,
+  .md-clipboard:active::before {
+    color: #795786 !important;
   }
 
-  // Wrapper for scrolling on overflow
-  .md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover {
-    background-color: #795786 !important;
+  // Active or targeted back reference
+  .footnote li:hover  .footnote-backref:hover,
+  .footnote li:target .footnote-backref {
+    color: #795786 !important;
   }
 
-  // Source file icon
-  .md-source-file:hover::before {
-    background-color: #795786 !important;
+  // Active, targeted or focused permalink
+  [id]:hover  .headerlink:hover,
+  [id]:target .headerlink,
+  [id] .headerlink:focus {
+    color: #795786 !important;
   }
+}
 
+// Focused or hovered link
+.md-nav__link:focus,
+.md-nav__link:hover {
+  color: #795786 !important;
+}
 
+// Search container scrollbar thumb
+.md-search__scrollwrap::-webkit-scrollbar-thumb:hover {
+  background-color: #795786 !important;
+}
+
+// Search result link
+.md-search-result__link {
+
+  // Active or hovered link
+  &[data-md-state="active"],
+  &:hover {
+    background-color: transparentize(#795786, 0.9) !important;
+  }
+}
+
+// Wrapper for scrolling on overflow
+.md-sidebar__scrollwrap::-webkit-scrollbar-thumb:hover {
+  background-color: #795786 !important;
+}
+
+// Source file icon
+.md-source-file:hover::before {
+  background-color: #795786 !important;
+}

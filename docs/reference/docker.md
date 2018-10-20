@@ -1,12 +1,6 @@
-# Docker options
+# Working with Docker images
 
 The below options are relevant to working with Docker images:
-
-## Options
-
-- `docker_build_image`
-- `docker_build_opts`
-- `docker_build_mount`
 
 ## Troubleshooting
 
