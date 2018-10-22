@@ -21,9 +21,9 @@ To build your app within a Docker container, create a Dockerfile that reproduces
 
 #### Create a Dockerfile
 
-Create a file named `Dockerfile` in your project directory.
+Create a file named `Dockerfile.build` in your project directory.
 
-!!! note "Dockerfile"
+!!! note "Dockerfile.build"
     ```docker
     FROM ubuntu:16.04
 
@@ -53,7 +53,7 @@ Create a file named `Dockerfile` in your project directory.
 A one-time build command is needed to set up your Docker image:
 
 ```sh
-$ docker build -t elixir-ubuntu:latest .
+$ docker build -f Dockerfile.build -t elixir-ubuntu:latest .
 ```
 
 #### Use Docker with Bootleg
