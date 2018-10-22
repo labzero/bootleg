@@ -180,6 +180,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
   end
 
   test "docker build is aborted on error", %{docker_image: docker_image_name} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.DSL
     config(:build_type, :docker)
     config(:docker_build_image, docker_image_name)

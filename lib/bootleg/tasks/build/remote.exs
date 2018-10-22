@@ -41,8 +41,10 @@ end
 task :compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
+
   release_args =
-    config({:release_args, ["--quiet"]})
+    {:release_args, ["--quiet"]}
+    |> config()
     |> Enum.join(" ")
 
   UI.info("Building on remote server with mix env #{mix_env}...")

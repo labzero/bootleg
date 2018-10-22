@@ -54,12 +54,12 @@ defmodule Bootleg.Mixfile do
 
   defp aliases do
     [
-      docs: [&mkdocs/1, "docs"],
+      docs: [&mkdocs/1, "docs"]
     ]
   end
 
   defp mkdocs(_args) do
-    docs = Path.join([File.cwd!, "script", "docs", "docs.sh"])
+    docs = Path.join([File.cwd!(), "script", "docs", "docs.sh"])
     {_, 0} = System.cmd(docs, ["build"], into: IO.stream(:stdio, :line))
   end
 

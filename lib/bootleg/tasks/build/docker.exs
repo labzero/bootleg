@@ -41,19 +41,19 @@ task :docker_compile do
       "MIX_ENV=#{mix_env}"
     ] ++ docker_run_options ++ [docker_image]
 
-  IO.inspect docker_args
-  UI.info("Docker command prefix:\n  " <> Enum.join(docker_args, " "))
+  UI.debug("Docker command prefix:\n  " <> Enum.join(docker_args, " "))
 
   Enum.each(commands, fn [c, args] ->
     UI.info("[docker] #{c} " <> Enum.join(args, " "))
 
-    {_stream, status} = System.cmd(
-      "docker",
-      docker_args ++ [c | args],
-      into: IO.stream(:stdio, :line)
-    )
+    {_stream, status} =
+      System.cmd(
+        "docker",
+        docker_args ++ [c | args],
+        into: IO.stream(:stdio, :line)
+      )
 
-    if status != 0, do: raise "Command returned non-zero exit status #{status}"
+    if status != 0, do: raise("Command returned non-zero exit status #{status}")
   end)
 end
 
