@@ -1,25 +1,21 @@
-# Working with Docker images
 
-The below options are relevant to working with Docker images:
-
-## Troubleshooting
-
-### Build with local dependencies
+## Build with local dependencies
 
 If your application has references to unpublished or local dependencies, you may need to set extra configuration options.
 
 #### Example
 
-If a project `acme` is set up as a pango application and is set to load `acme-writer` via:
+- If the `acme` application is set up as a [poncho project](https://embedded-elixir.com/post/2017-05-19-poncho-projects/) and is set to load `acme-writer` via:
 
-```elixir
-# mix.exs
-def deps do
-  [{:acme_writer, path: "../acme-writer"}]
-end
-```
+!!! example "mix.exs"
+    ```elixir
+    # mix.exs
+    def deps do
+      [{:acme_writer, path: "../acme-writer"}]
+    end
+    ```
 
-And the folder structure is:
+- And the folder structure is:
 
 ```
 - /home/frank/proj/acme-writer
@@ -27,15 +23,11 @@ And the folder structure is:
 - /home/frank/proj/acme/config/deploy.exs
 ```
 
-And the Dockerfile sets a `WORKDIR` of:
+- And the Dockerfile sets a `WORKDIR` of `/opt/build`,
 
-```
-/opt/build
-```
+Then we need to mount the `proj` folder as `/opt/build`, and use a custom working directory when running the build commands:
 
-Then the `ex_path` should be set to the base folder (`proj`) and a custom workdir should be passed to the Docker `run` command:
-
-```elixir
+```elixir hl_lines="5 6"
 use Bootleg.DSL
 
 config(:build_type, :docker)

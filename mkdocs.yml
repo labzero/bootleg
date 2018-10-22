@@ -41,9 +41,9 @@ nav:
     - 'Supported Scenarios': 'scenarios.md'
     - Installation: 'installing.md'
     - Configuration:
-        - 'Build strategies': 'config/build.md'
         - Environments: 'config/environments.md'
-        - 'Options': 'config/options.md'
+        - 'Build strategies': 'config/build.md'
+        - 'Setting options': 'config/setting_options.md'
         - 'Defining roles and hosts': 'config/roles.md'
         - 'Using tasks and hooks': 'config/tasks.md'
     - Reference:
@@ -56,8 +56,8 @@ nav:
         - 'Working with Docker': 'reference/docker.md'
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
-    - 'Getting Help': 'help.md'
+    - 'More Resources': 'resources.md'
 
 copyright: |
   Copyright 2018 <a href="http://www.labzero.com">Lab Zero Innovations</a>
-extra_css: [stylesheets/labzero.css]
+extra_css: [stylesheets/bootleg.css]

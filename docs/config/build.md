@@ -8,12 +8,12 @@ Bootleg aims to cover the most common build strategies. Because the architecture
 
 To build your app on the same machine where you're running Bootleg, just set the `#!elixir :build_type` config option:
 
-```elixir
-# config/deploy.exs
-use Bootleg.DSL
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
 
-config(:build_type, :local)
-```
+    config(:build_type, :local)
+    ```
 
 ### Docker Container
 
@@ -60,13 +60,13 @@ $ docker build -t elixir-ubuntu:latest .
 
 To tell Bootleg to use Docker, set the `#!elixir :build_type` and specify the image name in the `#!elixir :build_image` option:
 
-```elixir
-# config/deploy.exs
-use Bootleg.DSL
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
 
-config(:build_type, :docker)
-config(:build_image, "elixir-ubuntu:latest")
-```
+    config(:build_type, :docker)
+    config(:build_image, "elixir-ubuntu:latest")
+    ```
 
 !!! info
     If your project has local dependencies, they will not be automatically available from within the Docker image. To satisfy these dependencies you'll need to specify some other options. See [docker options](/reference/docker.md) for more information.
@@ -77,12 +77,12 @@ In order to build your project remotely, Bootleg requires that your build server
 
 To build your app on a remote build server, first define a `#!elixir :build` role:
 
-```elixir
-# config/deploy.exs
-use Bootleg.DSL
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
 
-role :build, "build.example.com", user: "develop", workspace: "/some/build/workspace"
-```
+    role :build, "build.example.com", user: "develop", workspace: "/some/build/workspace"
+    ```
 
 When defining a role, host options such as public key can also be supplied. See [roles and host options](roles.md) for more information.
 

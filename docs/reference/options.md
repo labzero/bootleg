@@ -1,4 +1,4 @@
-## List of internal options
+## List of Bootleg options
 
 ### Common
 
@@ -6,7 +6,8 @@
 |:-------------|:--------------------------------------------------------------------------------------------------------|:-------------------|
 | `app`        | The OTP application name.                                                                               | Project `app_name` |
 | `version`    | The application version to build.                                                                       | Project `version`  |
-| `env`        | Sets or overrides the Bootleg environment.                                                              | "production"       |
+| `env`        | Sets or overrides the Bootleg environment.                                                              | `#!elixir "production"`       |
+| `mix_env` | Overrides the Mix environment. | `#!elixir "prod"` |
 | `build_type` | Specifies which build strategy to use, from: `#!elixir :local`, `#!elixir :docker`, `#!elixir :remote`. | `#!elixir :remote` |
 | `release_args` | List of arguments to pass to `mix release` | `#!elixir ["--quiet"]` |
 

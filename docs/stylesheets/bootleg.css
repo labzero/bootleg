@@ -18,6 +18,11 @@
    min-width: 18rem !important;
 }
 
+.md-typeset pre code::-webkit-scrollbar-thumb:hover,
+.md-typeset .codehilite pre::-webkit-scrollbar-thumb:hover {
+  background-color: #613B71;
+}
+
 .md-typeset .admonition.example, .md-typeset details.example,
 .md-typeset .admonition.note, .md-typeset details.note {
   border-left-color: #795786 !important;

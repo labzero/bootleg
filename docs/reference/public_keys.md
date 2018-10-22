@@ -1,11 +1,6 @@
 # Public key support
 
-Bootleg supports the use of SSH identity files (keys) for passwordless connections.
-
-Please note the difference in terms as used in this document:
-
-* `password` refers to a password-protected user account
-* `passphrase` refers to a passphrase-protected private SSH key
+Bootleg supports the use of SSH identity files for passwordless connections.
 
 ## Private keys
 
@@ -14,18 +9,20 @@ This is ideal for tools like Bootleg which lack a user interface.
 
 When defining your roles and hosts, simply add an `identity` option pointing to your private SSH key.
 
-```elixir
-role :app, "example.com", identity: "~/.ssh/id_rsa"
-```
+!!! example "Specifying an identity file"
+    ```elixir
+    use Bootleg.DSL
 
-The SSH private key will be used in remote builds (Git push) and for execution of remote commands.
+    role :app, "example.com", identity: "~/.ssh/id_rsa"
+    ```
+
+The SSH private key will be used in remote builds (Git push) and for remote execution of commands.
 
 ## Passphrase-protected private keys
 
-Private keys that are protected by a passphrase need to be unlocked before use. This is natively
-supported by the `ssh_client_key_api` package using Bootleg's `passphrase` or `passphrase_provider` options.
+Private keys that are protected by a passphrase need to be unlocked before use. By using the `passphrase` or `passphrase_provider` host options, the passphrase will be handed off to the `ssh_client_key_api` package, which will attempt to use it to unlock the key.
 
-However, the remote build scenario uses a Git push, which as an external process **does not** work seamlessly
+However, the remote build scenario normally uses a Git push, which as an external process **does not** work seamlessly
 with the aforementioned Bootleg options. See "[Remote builds](#remote-builds)" below for solutions.
 
 ### Options for protected private keys
