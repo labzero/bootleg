@@ -1,6 +1,12 @@
 alias Bootleg.{UI, Config}
 use Bootleg.DSL
 
+task :docker_verify_config do
+  if config(:build_type) == :docker && !config(:docker_build_image) do
+    raise "Docker builds require `docker_build_image` to be specified"
+  end
+end
+
 task :docker_build do
   invoke(:docker_compile)
   invoke(:docker_copy_release)
@@ -12,6 +18,7 @@ task :docker_compile do
   docker_image = config(:docker_build_image)
   docker_mount = config({:docker_build_mount, "#{source_path}:/opt/build"})
   docker_run_options = config({:docker_build_opts, []})
+  release_args = config({:release_args, ["--quiet"]})
 
   UI.info("Building in image \"#{docker_image}\" with mix env #{mix_env}...")
 
@@ -20,7 +27,7 @@ task :docker_compile do
     ["mix", ["local.hex", "--if-missing", "--force"]],
     ["mix", ["deps.get", "--only=#{mix_env}"]],
     ["mix", ["do", "clean,", "compile", "--force"]],
-    ["mix", ["release", "--quiet"]]
+    ["mix", ["release"] ++ release_args]
   ]
 
   docker_args =
@@ -40,11 +47,13 @@ task :docker_compile do
   Enum.each(commands, fn [c, args] ->
     UI.info("[docker] #{c} " <> Enum.join(args, " "))
 
-    System.cmd(
+    {_stream, status} = System.cmd(
       "docker",
       docker_args ++ [c | args],
       into: IO.stream(:stdio, :line)
     )
+
+    if status != 0, do: raise "Command returned non-zero exit status #{status}"
   end)
 end
 

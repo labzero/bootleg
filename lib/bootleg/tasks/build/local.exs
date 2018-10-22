@@ -9,6 +9,7 @@ end
 task :local_compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, File.cwd!()})
+  release_args = config({:release_args, ["--quiet"]})
 
   UI.info("Building locally with mix env #{mix_env}...")
 
@@ -17,7 +18,7 @@ task :local_compile do
     ["mix", ["local.hex", "--if-missing", "--force"]],
     ["mix", ["deps.get", "--only=#{mix_env}"]],
     ["mix", ["do", "clean,", "compile", "--force"]],
-    ["mix", ["release", "--quiet"]]
+    ["mix", ["release"] ++ release_args]
   ]
 
   File.cd!(source_path, fn ->

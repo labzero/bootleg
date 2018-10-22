@@ -8,6 +8,7 @@
 | `version`    | The application version to build.                                                                       | Project `version`  |
 | `env`        | Sets or overrides the Bootleg environment.                                                              | "production"       |
 | `build_type` | Specifies which build strategy to use, from: `#!elixir :local`, `#!elixir :docker`, `#!elixir :remote`. | `#!elixir :remote` |
+| `release_args` | List of arguments to pass to `mix release` | `#!elixir ["--quiet"]` |
 
 ### Miscellaneous
 
