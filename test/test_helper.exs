@@ -20,7 +20,8 @@ unless skip_functional_tests do
     exit({:shutdown, 1})
   end
 
-  Docker.build!("bootleg-test-sshd", "test/support/docker")
+  image_name = Docker.build!("bootleg-test-sshd", "test/support/docker")
+  System.put_env("BOOTLEG_DOCKER_IMAGE", image_name)
 end
 
 ExUnit.configure(formatters: [JUnitFormatter, ExUnit.CLIFormatter])
