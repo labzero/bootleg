@@ -38,6 +38,7 @@ repo_name: 'labzero/bootleg'
 repo_url: 'https://github.com/labzero/bootleg'
 nav:
     - Home: 'index.md'
+    - 'Supported Scenarios': 'scenarios.md'
     - Installation: 'installing.md'
     - Configuration:
         - 'Build strategies': 'config/build.md'
@@ -55,7 +56,6 @@ nav:
         - 'Working with Docker': 'reference/docker.md'
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
-    - 'Supported Scenarios': 'scenarios.md'
     - 'Getting Help': 'help.md'
 
 copyright: |

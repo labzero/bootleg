@@ -2,7 +2,7 @@
 
 Tasks are basically functions defined within Bootleg configuration files to accomplish one or more goals in the deployment process.
 
-!!! example "Example task that might be used to clear an application cache"
+!!! example "Example - Clear an application cache"
     ```elixir
     use Bootleg.DSL
 
@@ -94,24 +94,7 @@ Much of Bootleg is written using Bootleg tasks. This means you can hook into man
     end
     ```
 
-??? example "Compiling Phoenix assets with Brunch"
-    Here we run a few extra commands after compiling the application, but before generating the release. 
-    ```elixir
-    task :phx_digest do
-      remote :build, cd: "assets" do
-        "npm install"
-        "./node_modules/brunch/bin/brunch b -p"
-      end
-      remote :build do
-        "MIX_ENV=prod mix phx.digest"
-      end
-    end
-
-    after_task :compile, :phx_digest
-    ```
-    Phoenix-specific support is provided and maintained in the [bootleg-phoenix](https://github.com/labzero/bootleg-phoenix) task provider package.
-
-For a list of tasks that you can hook into, see the [Bootleg workflow](/reference/workflow.md).
+For a list of tasks that you can hook into, refer to the [workflows](/reference/workflow.md).
 
 ### Defining multiple hooks for the same task
 
