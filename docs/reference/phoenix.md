@@ -41,7 +41,10 @@ Here we run a few extra commands after compiling the application, but before gen
     task :phx_digest do
       remote :build, cd: "assets" do
         "npm install"
-        "./node_modules/brunch/bin/brunch b -p"
+        # npm >= 5.2.0:
+        "npx webpack -p"
+        # otherwise:
+        # "./node_modules/.bin/webpack --mode production"
       end
       remote :build do
         "MIX_ENV=prod mix phx.digest"

@@ -4,6 +4,7 @@
 ### Remote Builds
 - `verify_config`
 - `build`
+- `remote_verify_config`
 - `remote_build`
 - `init`
 - `clean`
@@ -24,6 +25,7 @@
 ### Local Builds
 - `verify_config`
 - `build`
+- `local_verify_config`
 - `local_build`
 - `local_compile`
 - `local_copy_release`
@@ -31,6 +33,7 @@
 ### Docker Builds
 - `verify_config`
 - `build`
+- `docker_verify_config`
 - `docker_build`
 - `docker_compile`
 - `docker_copy_release`
