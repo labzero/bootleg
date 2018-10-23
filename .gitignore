@@ -20,3 +20,6 @@ erl_crash.dump
 *.ez
 /_site
 /.sass-cache
+
+# Ignore virtualenv, used for building documentation
+/_venv

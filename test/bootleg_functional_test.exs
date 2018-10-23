@@ -257,6 +257,9 @@ defmodule Bootleg.FunctionalTest do
     File.cd!(location, fn ->
       use Bootleg.DSL
 
+      # override "--quiet"
+      config(:release_args, [])
+
       build_host = List.first(hosts)
 
       role(

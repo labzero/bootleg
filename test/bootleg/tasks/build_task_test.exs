@@ -47,4 +47,11 @@ defmodule Bootleg.Tasks.BuildTaskTest do
       end)
     end
   end
+
+  test "building in docker without image specified throws an error" do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.DSL
+    config(:build_type, :docker)
+    assert_raise RuntimeError, ~r/docker_build_image/, fn -> invoke(:build) end
+  end
 end
