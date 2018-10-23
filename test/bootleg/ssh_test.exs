@@ -203,4 +203,14 @@ defmodule Bootleg.SSHTest do
     assert %Context{group: "fun-data", env: %{FUT: "BOL"}, path: "/usr/local/app"} ==
              SSH.apply_context(context, user_override, workspace)
   end
+
+  @tag :apply_context
+  test "apply_context/3 with override options and workspace overrides base context" do
+    context = %Context{env: %{FOO: "BAR"}, group: "fun-data"}
+    user_override = %{env: %{FUT: "BOL"}}
+    workspace = "/usr/local/app"
+
+    assert %Context{group: "fun-data", env: %{FUT: "BOL"}} ==
+             SSH.apply_context(context, user_override, workspace)
+  end
 end
