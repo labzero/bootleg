@@ -64,16 +64,17 @@ defmodule Bootleg.SSH do
       when overrides == %{},
       do: base_context
 
-  def apply_context(%Context{} = base_context, %{} = overrides, nil),
-    do: struct(base_context, overrides)
-
-  def apply_context(%Context{} = base_context, %{path: path} = overrides, workspace) do
+  def apply_context(%Context{} = base_context, %{path: path} = overrides, workspace)
+      when not is_nil(workspace) do
     UI.warn(
       "Warning: when setting a context path (#{path}), workspace (#{workspace}) is ignored."
     )
 
     struct(base_context, overrides)
   end
+
+  def apply_context(%Context{} = base_context, %{} = overrides, _workspace),
+    do: struct(base_context, overrides)
 
   @doc """
   Take a Bootleg.Host and make it an SSHKit.Host. We limit the options to a
