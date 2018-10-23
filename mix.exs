@@ -1,7 +1,7 @@
 defmodule Bootleg.Mixfile do
   use Mix.Project
 
-  @version "0.9.0"
+  @version "0.10.0"
   @source "https://github.com/labzero/bootleg"
   @homepage "https://labzero.github.io/bootleg/"
 
