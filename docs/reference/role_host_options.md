@@ -12,6 +12,7 @@ Options are set on roles and on hosts based on the order in which the roles are 
 | `identity` | SSH private key file path | `#!elixir nil` |
 | `port` | SSH port | `22` |
 | `env` | Map of environment variables and values with which to run commands on remote servers.<br>E.g. `#!elixir %{PORT: "1234", FOO: "bar"}`| `#!elixir %{}` |
+| `context` | List of options to pass directly to SSHKit.Context. This can be used situationally, such as when you need to use `sudo` to run commands (`user` or `group`), or when you need to set a file mode creation mask (`umask`). | `#!elixir []` |
 | `replace_os_vars` | Controls the `REPLACE_OS_VARS` environment variable used by Distillery for release configuration | `#!elixir true` |
 | `release_workspace` | This option can be used when the build server is also the application server.<br>For `:build` roles, this is the path where the newly-built release should be copied.<br>For `:app` roles, this is the path where the release should be found. You probably want to use the same value for both! | `#!elixir nil`         |
 
