@@ -6,7 +6,7 @@ Options are set on roles and on hosts based on the order in which the roles are 
 
 | Option | Description | Default |
 |:---|:---|:---|
-| `workspace` | Path of the remote build workspace (`:build` role) or application workspace (`:app` role) | `.` |
+| `workspace` | Path of the remote build workspace (`:build` role) or application workspace (`:app` role) | `#!elixir nil` |
 | `user` | SSH username | `#!elixir System.get_env("USER")` |
 | `password` | SSH password | `#!elixir nil` |
 | `identity` | SSH private key file path | `#!elixir nil` |
