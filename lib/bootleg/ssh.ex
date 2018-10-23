@@ -39,9 +39,10 @@ defmodule Bootleg.SSH do
   end
 
   def init(hosts, options) do
-    workspace = Keyword.get(options, :workspace, ".")
+    workspace = Keyword.get(options, :workspace)
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
+    context_override = Keyword.get(options, :context, %{})
 
     :ssh.start()
 
@@ -52,6 +53,23 @@ defmodule Bootleg.SSH do
     |> prepare_remote_env(options)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
+    |> apply_context(context_override, workspace)
+  end
+
+  def apply_context(%Context{} = base_context, new_context, _workspace)
+      when new_context == %{},
+      do: base_context
+
+  def apply_context(%Context{} = base_context, new_context, workspace)
+      when is_map(new_context) and is_nil(workspace),
+      do: struct(base_context, Map.to_list(new_context))
+
+  def apply_context(%Context{} = base_context, %{path: path} = context_map, workspace) do
+    UI.warn(
+      "Warning: when setting a context path (#{path}), workspace (#{workspace}) is ignored."
+    )
+
+    struct(base_context, Map.to_list(context_map))
   end
 
   @doc """
@@ -104,6 +122,10 @@ defmodule Bootleg.SSH do
   end
 
   defp validate_workspace(context, workspace, create_workspace)
+
+  defp validate_workspace(context, nil, _) do
+    run!(context, "true")
+  end
 
   defp validate_workspace(context, workspace, false) do
     run!(context, "test -d #{workspace}")

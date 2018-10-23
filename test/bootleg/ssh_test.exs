@@ -160,4 +160,47 @@ defmodule Bootleg.SSHTest do
   test "ssh_options/0" do
     assert Enum.member?(SSH.ssh_options(), :quiet_mode)
   end
+
+  test "apply_context/3 with workspace and no context override leaves context unchanged" do
+    context = %Context{path: "/opt/app"}
+    user_override = %{}
+    workspace = "/opt/app"
+
+    assert %Context{path: "/opt/app"} == SSH.apply_context(context, user_override, workspace)
+  end
+
+  test "apply_context/3 with context path changes the path" do
+    context = %Context{path: "/opt/app"}
+    user_override = %{user: "tom", path: "/usr/local/app"}
+
+    assert %Context{user: "tom", path: "/usr/local/app"} ==
+             SSH.apply_context(context, user_override, nil)
+  end
+
+  test "apply_context/3 with context path and workspace emits a warning and uses context path" do
+    context = %Context{path: "/opt/app"}
+    user_override = %{path: "/usr/local/app"}
+    workspace = "/opt/app"
+
+    output =
+      capture_io(fn ->
+        assert %Context{path: "/usr/local/app"} ==
+                 SSH.apply_context(context, user_override, workspace)
+      end)
+
+    assert String.match?(
+             output,
+             ~r/Warning: when setting a context path \(.*\), workspace \(.*\) is ignored./
+           ),
+           "Output didn't include a warning about context path overriding declared workspace."
+  end
+
+  test "apply_context/3 with override options overrides base context" do
+    context = %Context{env: %{FOO: "BAR"}, group: "fun-data"}
+    user_override = %{env: %{FUT: "BOL"}, path: "/usr/local/app"}
+    workspace = nil
+
+    assert %Context{group: "fun-data", env: %{FUT: "BOL"}, path: "/usr/local/app"} ==
+             SSH.apply_context(context, user_override, workspace)
+  end
 end
