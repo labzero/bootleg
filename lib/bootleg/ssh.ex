@@ -42,7 +42,11 @@ defmodule Bootleg.SSH do
     workspace = Keyword.get(options, :workspace)
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
-    context_override = Keyword.get(options, :context, %{})
+
+    context_override =
+      options
+      |> Keyword.get(:context, [])
+      |> Enum.into(%{})
 
     :ssh.start()
 
@@ -56,20 +60,19 @@ defmodule Bootleg.SSH do
     |> apply_context(context_override, workspace)
   end
 
-  def apply_context(%Context{} = base_context, new_context, _workspace)
-      when new_context == %{},
+  def apply_context(%Context{} = base_context, %{} = overrides, _workspace)
+      when overrides == %{},
       do: base_context
 
-  def apply_context(%Context{} = base_context, new_context, workspace)
-      when is_map(new_context) and is_nil(workspace),
-      do: struct(base_context, Map.to_list(new_context))
+  def apply_context(%Context{} = base_context, %{} = overrides, nil),
+    do: struct(base_context, overrides)
 
-  def apply_context(%Context{} = base_context, %{path: path} = context_map, workspace) do
+  def apply_context(%Context{} = base_context, %{path: path} = overrides, workspace) do
     UI.warn(
       "Warning: when setting a context path (#{path}), workspace (#{workspace}) is ignored."
     )
 
-    struct(base_context, Map.to_list(context_map))
+    struct(base_context, overrides)
   end
 
   @doc """
