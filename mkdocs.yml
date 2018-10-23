@@ -37,7 +37,7 @@ extra:
 repo_name: 'labzero/bootleg'
 repo_url: 'https://github.com/labzero/bootleg'
 nav:
-    - Home: 'index.md'
+    - Home: 'home.md'
     - 'Supported Scenarios': 'scenarios.md'
     - Installation: 'installing.md'
     - Configuration:
@@ -57,6 +57,7 @@ nav:
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
     - 'More Resources': 'resources.md'
+    - 'API Reference': 'api-reference.html'
 
 copyright: |
   Copyright 2018 <a href="http://www.labzero.com">Lab Zero Innovations</a>
