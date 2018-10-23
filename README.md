@@ -5,7 +5,6 @@
 Simple deployment and server automation for Elixir.
 
  * [Documentation](https://hexdocs.pm/bootleg)
- * [Quick Start](https://hexdocs.pm/bootleg/about.html)
  * [Phoenix support](https://hexdocs.pm/bootleg/phoenix.html)
  * [Contributing](https://github.com/labzero/bootleg/blob/master/CONTRIBUTING.md)
 
@@ -20,7 +19,7 @@ add additional support.
 ```
 def deps do
   [{:distillery, "~> 2.0", runtime: false},
-   {:bootleg, "~> 0.9", runtime: false}]
+   {:bootleg, "~> 0.10", runtime: false}]
 end
 ```
 
