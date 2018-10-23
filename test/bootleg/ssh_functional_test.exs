@@ -4,6 +4,7 @@ defmodule Bootleg.SSHFunctionalTest do
   alias SSHKit.Context, as: SSHKitContext
   alias SSHKit.Host, as: SSHKitHost
   import ExUnit.CaptureIO
+  import Bootleg.FunctionalCaseHelpers, only: [add_user_to_group!: 3]
 
   setup %{hosts: hosts} do
     %{
@@ -316,6 +317,60 @@ defmodule Bootleg.SSHFunctionalTest do
                remote(:default_replace, "echo -n ${REPLACE_OS_VARS}")
 
       assert [{:ok, [], 0, _}] = remote(:no_replace, "echo -n ${REPLACE_OS_VARS}")
+    end)
+  end
+
+  test "context override umask", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.DSL
+
+    role(
+      :app,
+      host.ip,
+      port: host.port,
+      user: host.user,
+      workspace: "/tmp",
+      silently_accept_hosts: true,
+      identity: host.private_key_path,
+      context: [umask: 007]
+    )
+
+    capture_io(fn ->
+      remote(:app, "touch newfile")
+      [{:ok, [stdout: output], 0, _}] = remote(:app, "stat -c \"%a\" newfile")
+      assert "660" == String.trim_trailing(output)
+    end)
+  end
+
+  test "context override user", %{hosts: [host]} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.DSL
+
+    role(
+      :app,
+      host.ip,
+      port: host.port,
+      user: host.user,
+      workspace: "/tmp",
+      silently_accept_hosts: true,
+      identity: host.private_key_path,
+      context: [user: "root"]
+    )
+
+    # first command should fail on permissions
+    capture_io(fn ->
+      assert_raise SSHError, ~r/a password is required/, fn ->
+        remote(:app, "ls")
+      end
+    end)
+
+    # add our test user to a privileged group
+    add_user_to_group!(%{id: host.id}, host.user, "passwordless-sudoers")
+
+    # sudoer commands should now succeed
+    capture_io(fn ->
+      [{:ok, [stdout: output], 0, _}] = remote(:app, "whoami")
+      assert "root" == String.trim_trailing(output)
     end)
   end
 end
