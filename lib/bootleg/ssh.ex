@@ -129,6 +129,7 @@ defmodule Bootleg.SSH do
 
   defp validate_workspace(context, nil, _) do
     run!(context, "true")
+    context
   end
 
   defp validate_workspace(context, workspace, false) do
