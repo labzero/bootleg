@@ -17,6 +17,7 @@ defmodule Bootleg.DSL do
           after_task: 2,
           invoke: 1,
           task: 2,
+          task: 3,
           remote: 1,
           remote: 2,
           remote: 3,
@@ -251,7 +252,7 @@ defmodule Bootleg.DSL do
   end
   ```
   """
-  defmacro task(task, do: block) when is_atom(task) do
+  defmacro task(task, options \\ [], do: block) when is_atom(task) and is_list(options) do
     file = __CALLER__.file()
     line = __CALLER__.line()
     module_name = module_for_task(task)
@@ -259,14 +260,26 @@ defmodule Bootleg.DSL do
     quote do
       module_name = unquote(module_name)
 
-      if Code.ensure_compiled?(module_name) do
-        {orig_file, orig_line} = module_name.location
+      compiled = Code.ensure_compiled?(module_name)
 
-        UI.warn(
-          "warning: task '#{unquote(task)}' is being redefined. " <>
-            "The most recent definition will win, but this is probably not what you meant to do. " <>
-            "The previous definition was at: #{orig_file}:#{orig_line}"
-        )
+      cond do
+        compiled && unquote(options[:override]) != true ->
+          {orig_file, orig_line} = module_name.location
+
+          UI.warn(
+            "Warning: task '#{unquote(task)}' is being redefined. " <>
+              "The most recent definition will be used. " <>
+              "To prevent this warning, set `override: true` in the task options. " <>
+              "The previous definition was at: #{orig_file}:#{orig_line}"
+          )
+
+        !compiled && unquote(options[:override]) == true ->
+          UI.warn(
+            "Warning: task '#{unquote(task)}' is not already defined and has a needless override."
+          )
+
+        true ->
+          true
       end
 
       original_opts = Code.compiler_options()
