@@ -269,27 +269,14 @@ defmodule Bootleg.DSL do
     quote do
       module_name = unquote(module_name)
 
-      compiled = Code.ensure_compiled?(module_name)
-
-      cond do
-        compiled && unquote(options[:override]) != true ->
-          {orig_file, orig_line} = module_name.location
-
-          UI.warn(
-            "Warning: task '#{unquote(task)}' is being redefined. " <>
-              "The most recent definition will be used. " <>
-              "To prevent this warning, set `override: true` in the task options. " <>
-              "The previous definition was at: #{orig_file}:#{orig_line}"
-          )
-
-        !compiled && unquote(options[:override]) == true ->
-          UI.warn(
-            "Warning: task '#{unquote(task)}' is not already defined and has a needless override."
-          )
-
-        true ->
-          true
-      end
+      module_name
+      |> Code.ensure_compiled?()
+      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
+      |> Bootleg.DSL.warn_task_redefined(
+        unquote(task),
+        unquote(module_name),
+        unquote(options[:override])
+      )
 
       original_opts = Code.compiler_options()
       Code.compiler_options(Map.put(original_opts, :ignore_module_conflict, true))
@@ -307,6 +294,28 @@ defmodule Bootleg.DSL do
       :ok
     end
   end
+
+  @doc false
+  def warn_task_redefined(true, task, macro, override) do
+    {orig_file, orig_line} = macro.location
+
+    unless override do
+      UI.warn(
+        "Warning: task '#{task}' is being redefined. " <>
+          "The most recent definition will be used. " <>
+          "To prevent this warning, set `override: true` in the task options. " <>
+          "The previous definition was at: #{orig_file}:#{orig_line}"
+      )
+    end
+  end
+
+  @doc false
+  def warn_task_redefined(false, task, _, true) do
+    UI.warn("Warning: task '#{task}' is not already defined and has a needless override.")
+  end
+
+  @doc false
+  def warn_task_redefined(_, _, _, _), do: nil
 
   @spec invoke_task_callbacks(atom, atom) :: :ok
   defp invoke_task_callbacks(task, agent_key) do
