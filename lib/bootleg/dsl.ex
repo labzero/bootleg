@@ -242,7 +242,7 @@ defmodule Bootleg.DSL do
   and registers the code to be executed when `task` is invoked. Inside the block, the full Bootleg
   DSL is available.
 
-  A warning will be emitted if a task is redefined.
+  A warning will be emitted if a task is redefined, unless the `override` option is specified with a value of `true`.
 
   ```
   use Bootleg.DSL
@@ -251,6 +251,15 @@ defmodule Bootleg.DSL do
     IO.puts "Hello World!"
   end
   ```
+
+  Tasks can override existing tasks:
+  ```
+  use Bootleg.DSL
+
+  task :update, override: true do
+    alias Bootleg.UI
+    UI.info("No longer using stock update task")
+  end
   """
   defmacro task(task, options \\ [], do: block) when is_atom(task) and is_list(options) do
     file = __CALLER__.file()
