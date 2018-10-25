@@ -269,9 +269,9 @@ defmodule Bootleg.DSL do
     quote do
       module_name = unquote(module_name)
 
+      # credo:disable-for-lines:275 Credo.Check.Design.AliasUsage
       module_name
       |> Code.ensure_compiled?()
-      # credo:disable-for-next-line Credo.Check.Design.AliasUsage
       |> Bootleg.DSL.warn_task_redefined(
         unquote(task),
         unquote(module_name),
