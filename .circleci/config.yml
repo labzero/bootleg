@@ -37,21 +37,26 @@ jobs:
       - run: mix do deps.get, deps.compile # get updated dependencies & compile them
 
       - save_cache: # generate and store cache so `restore_cache` works
+          name: Save mix branch dependency cache
           key: mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths: "deps"
       - save_cache: # make another less specific cache
+          name: Save mix branch cache
           key: mix-cache-{{ .Branch }}
           paths: "deps"
       - save_cache: # and one more build cache for good measure
+          name: Save mix cache
           key: mix-cache
           paths: "deps"
 
       - run: mix compile
 
       - save_cache: # save a *build* cache, too
+          name: Save build cache for this branch
           key: build-cache-{{ .Branch }}
           paths: "_build"
       - save_cache: # and one more build cache for good measure
+          name: Save build cache
           key: build-cache
           paths: "_build"
 
@@ -60,6 +65,7 @@ jobs:
       - run: mix dialyzer --halt-exit-status
 
       - save_cache:
+          name: Save dialyzer cache
           key: dialyzer-cache
           paths: "_build/test/dialyxir*.plt"
 
@@ -81,15 +87,18 @@ jobs:
             echo 'export COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN' >> $BASH_ENV
             echo 'export CI_PULL_REQUEST=$CIRCLE_PR_NUMBER' >> $BASH_ENV
       - restore_cache:
+          name: Restore environment cache
           key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
       - run:
           name: Install Elixir
           command: script/ci/prepare.sh
       - save_cache:
+          name: Save environment cache 
           key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
           paths:
             - ~/dependencies
       - restore_cache:
+          name: Restore dependency cache
           key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
       - run:
           name: Preparing dependencies
@@ -99,6 +108,7 @@ jobs:
             mix deps.get;
             mix deps.compile;
       - save_cache:
+          name: Save dependency cache
           key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
           paths:
             - ~/.mix

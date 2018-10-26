@@ -17,14 +17,13 @@ export KERL_PATH="$INSTALL_PATH/bin/kerl"
 mkdir -p $INSTALL_PATH
 cd $INSTALL_PATH
 
-# Install erlang
+# Install erlang using kerl
 if [ ! -e $INSTALL_PATH/bin/erl ]; then
   mkdir bin
   curl https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $KERL_PATH
   chmod a+x $KERL_PATH
   $KERL_PATH build $ERLANG_VERSION $ERLANG_VERSION
-  $KERL_PATH install $ERLANG_VERSION $INSTALL_PATH/erl
-  . $INSTALL_PATH/erl/activate
+  $KERL_PATH install $ERLANG_VERSION $INSTALL_PATH
 else
   echo "Erlang already installed."
 fi
