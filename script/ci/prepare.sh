@@ -6,8 +6,6 @@
 
 set -e
 
-
-
 export ERLANG_VERSION="20.3"
 export ELIXIR_VERSION="v1.6.0"
 
@@ -51,9 +49,9 @@ if [ $VERSION_CIRCLECI -ne 2 ]; then
   if [ ! -e $HOME/.mix/rebar ]; then
     yes Y | LC_ALL=en_GB.UTF-8 mix local.rebar
   fi
-
   # Fetch and compile dependencies and application code (and include testing tools)
   export MIX_ENV="test"
   cd $HOME/$CIRCLE_PROJECT_REPONAME
+  . $INSTALL_PATH/erl/activate
   mix do deps.get, deps.compile, compile, dialyzer --plt
 fi
