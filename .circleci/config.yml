@@ -20,11 +20,13 @@ jobs:
       - run: mix local.rebar --force
 
       - restore_cache: # restores saved mix cache
+          name: Restore mix cache
           keys: # list of cache keys, in decreasing specificity
             - mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
             - mix-cache-{{ .Branch }}
             - mix-cache
       - restore_cache: # restores saved build cache
+          name: Restore build cach
           keys:
             - build-cache-{{ .Branch }}
             - build-cache
