@@ -3,13 +3,13 @@ use Bootleg.DSL
 
 task :local_build do
   invoke(:local_compile)
+  invoke(:local_generate_release)
   invoke(:local_copy_release)
 end
 
 task :local_compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, File.cwd!()})
-  release_args = config({:release_args, ["--quiet"]})
 
   UI.info("Building locally with mix env #{mix_env}...")
 
@@ -17,7 +17,25 @@ task :local_compile do
     ["mix", ["local.rebar", "--force"]],
     ["mix", ["local.hex", "--if-missing", "--force"]],
     ["mix", ["deps.get", "--only=#{mix_env}"]],
-    ["mix", ["do", "clean,", "compile", "--force"]],
+    ["mix", ["do", "clean,", "compile", "--force"]]
+  ]
+
+  File.cd!(source_path, fn ->
+    Enum.each(commands, fn [c, args] ->
+      UI.info("[local] #{c} " <> Enum.join(args, " "))
+      System.cmd(c, args, env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
+    end)
+  end)
+end
+
+task :local_generate_release do
+  mix_env = config({:mix_env, "prod"})
+  source_path = config({:ex_path, File.cwd!()})
+  release_args = config({:release_args, ["--quiet"]})
+
+  UI.info("Generating release...")
+
+  commands = [
     ["mix", ["release"] ++ release_args]
   ]
 

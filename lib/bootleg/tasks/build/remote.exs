@@ -14,6 +14,7 @@ task :remote_build do
   invoke(:clean)
   invoke(:remote_scm_update)
   invoke(:compile)
+  invoke(:generate_release)
 
   if build_role.options[:release_workspace] do
     invoke(:copy_build_release)
@@ -42,11 +43,6 @@ task :compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
 
-  release_args =
-    {:release_args, ["--quiet"]}
-    |> config()
-    |> Enum.join(" ")
-
   UI.info("Building on remote server with mix env #{mix_env}...")
 
   remote :build, cd: source_path do
@@ -54,6 +50,21 @@ task :compile do
     "MIX_ENV=#{mix_env} mix local.hex --if-missing --force"
     "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env}"
     "MIX_ENV=#{mix_env} mix do clean, compile --force"
+  end
+end
+
+task :generate_release do
+  mix_env = config({:mix_env, "prod"})
+  source_path = config({:ex_path, ""})
+
+  release_args =
+    {:release_args, ["--quiet"]}
+    |> config()
+    |> Enum.join(" ")
+
+  UI.info("Generating release...")
+
+  remote :build, cd: source_path do
     "MIX_ENV=#{mix_env} mix release #{release_args}"
   end
 end
