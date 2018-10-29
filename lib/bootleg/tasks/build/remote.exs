@@ -14,7 +14,7 @@ task :remote_build do
   invoke(:clean)
   invoke(:remote_scm_update)
   invoke(:compile)
-  invoke(:generate_release)
+  invoke(:remote_generate_release)
 
   if build_role.options[:release_workspace] do
     invoke(:copy_build_release)
@@ -54,6 +54,11 @@ task :compile do
 end
 
 task :generate_release do
+  UI.warn(":generate_release is deprecated, please use :remote_generate_release instead")
+  invoke(:remote_generate_release)
+end
+
+task :remote_generate_release do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
 

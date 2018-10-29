@@ -16,6 +16,7 @@
         - `push_remote`
         - `reset_remote`
 - `compile`
+- `remote_generate_release`
 - `release_workspace set?`
     - `yes`
         - `copy_build_release`
@@ -28,6 +29,7 @@
 - `local_verify_config`
 - `local_build`
 - `local_compile`
+- `local_generate_release`
 - `local_copy_release`
 
 ### Docker Builds
@@ -36,6 +38,7 @@
 - `docker_verify_config`
 - `docker_build`
 - `docker_compile`
+- `docker_generate_release`
 - `docker_copy_release`
 
 ## Deployment Workflow
