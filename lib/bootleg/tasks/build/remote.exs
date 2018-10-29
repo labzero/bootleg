@@ -78,7 +78,14 @@ task :copy_build_release do
   app_name = Config.app()
   app_version = Config.version()
   release_workspace = build_role.options[:release_workspace]
-  source_path = "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
+
+  source_path =
+    Path.join([
+      config({:ex_path, ""}),
+      "_build/#{mix_env}/rel/#{app_name}/releases/",
+      "#{app_version}/#{app_name}.tar.gz"
+    ])
+
   dest_path = Path.join(release_workspace, "#{app_version}.tar.gz")
 
   UI.info("Copying release archive to release workspace")
