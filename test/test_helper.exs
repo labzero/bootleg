@@ -24,5 +24,9 @@ unless skip_functional_tests do
   System.put_env("BOOTLEG_DOCKER_IMAGE", image_name)
 end
 
+# For tasks testing
+Mix.start()
+Mix.shell(Mix.Shell.Process)
+
 ExUnit.configure(formatters: [JUnitFormatter, ExUnit.CLIFormatter])
 ExUnit.start()
