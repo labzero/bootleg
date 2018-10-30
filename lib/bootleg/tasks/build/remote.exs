@@ -54,7 +54,6 @@ task :compile do
 end
 
 task :generate_release do
-  UI.warn(":generate_release is deprecated, please use :remote_generate_release instead")
   invoke(:remote_generate_release)
 end
 
