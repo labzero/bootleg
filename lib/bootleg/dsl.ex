@@ -17,6 +17,7 @@ defmodule Bootleg.DSL do
           after_task: 2,
           invoke: 1,
           task: 2,
+          task: 3,
           remote: 1,
           remote: 2,
           remote: 3,
@@ -241,7 +242,7 @@ defmodule Bootleg.DSL do
   and registers the code to be executed when `task` is invoked. Inside the block, the full Bootleg
   DSL is available.
 
-  A warning will be emitted if a task is redefined.
+  A warning will be emitted if a task is redefined, unless the `override` option is specified with a value of `true`.
 
   ```
   use Bootleg.DSL
@@ -250,8 +251,17 @@ defmodule Bootleg.DSL do
     IO.puts "Hello World!"
   end
   ```
+
+  Tasks can override existing tasks:
+  ```
+  use Bootleg.DSL
+
+  task :update, override: true do
+    alias Bootleg.UI
+    UI.info("No longer using stock update task")
+  end
   """
-  defmacro task(task, do: block) when is_atom(task) do
+  defmacro task(task, options \\ [], do: block) when is_atom(task) and is_list(options) do
     file = __CALLER__.file()
     line = __CALLER__.line()
     module_name = module_for_task(task)
@@ -259,15 +269,14 @@ defmodule Bootleg.DSL do
     quote do
       module_name = unquote(module_name)
 
-      if Code.ensure_compiled?(module_name) do
-        {orig_file, orig_line} = module_name.location
-
-        UI.warn(
-          "warning: task '#{unquote(task)}' is being redefined. " <>
-            "The most recent definition will win, but this is probably not what you meant to do. " <>
-            "The previous definition was at: #{orig_file}:#{orig_line}"
-        )
-      end
+      # credo:disable-for-lines:275 Credo.Check.Design.AliasUsage
+      module_name
+      |> Code.ensure_compiled?()
+      |> Bootleg.DSL.warn_task_redefined(
+        unquote(task),
+        unquote(module_name),
+        unquote(options[:override])
+      )
 
       original_opts = Code.compiler_options()
       Code.compiler_options(Map.put(original_opts, :ignore_module_conflict, true))
@@ -285,6 +294,28 @@ defmodule Bootleg.DSL do
       :ok
     end
   end
+
+  @doc false
+  def warn_task_redefined(true, task, macro, override) do
+    {orig_file, orig_line} = macro.location
+
+    unless override do
+      UI.warn(
+        "Warning: task '#{task}' is being redefined. " <>
+          "The most recent definition will be used. " <>
+          "To prevent this warning, set `override: true` in the task options. " <>
+          "The previous definition was at: #{orig_file}:#{orig_line}"
+      )
+    end
+  end
+
+  @doc false
+  def warn_task_redefined(false, task, _, true) do
+    UI.warn("Warning: task '#{task}' is not already defined and has a needless override.")
+  end
+
+  @doc false
+  def warn_task_redefined(_, _, _, _), do: nil
 
   @spec invoke_task_callbacks(atom, atom) :: :ok
   defp invoke_task_callbacks(task, agent_key) do

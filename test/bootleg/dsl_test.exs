@@ -259,11 +259,28 @@ defmodule Bootleg.DSLTest do
     refute called(UI.warn(:_))
   end
 
-  test_with_mock "task/2 redefine task warning", UI, [], warn: fn _string -> :ok end do
+  test_with_mock "task/2 redefining a task shows a warning", UI, [], warn: fn _string -> :ok end do
     use Bootleg.DSL
 
     task(:task_redefine_test, do: true)
     task(:task_redefine_test, do: false)
+    assert called(UI.warn(:_))
+  end
+
+  test_with_mock "task/3 redefining a task with override does not show a warning", UI, [],
+    warn: fn _string -> :ok end do
+    use Bootleg.DSL
+
+    task(:task_redefine_test, do: true)
+    task(:task_redefine_test, [override: true], do: false)
+    refute called(UI.warn(:_))
+  end
+
+  test_with_mock "task/3 defining a task with unnecessary override shows warning", UI, [],
+    warn: fn _string -> :ok end do
+    use Bootleg.DSL
+
+    task(:task_redefine_test, [override: true], do: true)
     assert called(UI.warn(:_))
   end
 
