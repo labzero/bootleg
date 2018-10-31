@@ -5,8 +5,7 @@
 Simple deployment and server automation for Elixir.
 
  * [Documentation](https://hexdocs.pm/bootleg)
- * [Quick Start](https://hexdocs.pm/bootleg/about.html)
- * [Phoenix support](https://hexdocs.pm/bootleg/phoenix.html)
+ * [Phoenix support](https://hexdocs.pm/bootleg/reference/phoenix.html)
  * [Contributing](https://github.com/labzero/bootleg/blob/master/CONTRIBUTING.md)
 
 **Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
@@ -20,7 +19,7 @@ add additional support.
 ```
 def deps do
   [{:distillery, "~> 2.0", runtime: false},
-   {:bootleg, "~> 0.9", runtime: false}]
+   {:bootleg, "~> 0.10", runtime: false}]
 end
 ```
 

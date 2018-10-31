@@ -24,7 +24,8 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
     )
 
     %{
-      project_location: Fixtures.inflate_project()
+      project_location: Fixtures.inflate_project(),
+      docker_image: System.get_env("BOOTLEG_DOCKER_IMAGE")
     }
   end
 
@@ -147,5 +148,50 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
         assert [{:ok, _, 0, _}] = remote(:build, "[ ! -d woo ]")
       end)
     end)
+  end
+
+  @tag timeout: 120_000
+  test "the release can be built in docker", %{
+    project_location: location,
+    docker_image: docker_image_name
+  } do
+    use Bootleg.DSL
+    config(:build_type, :docker)
+    config(:docker_build_image, docker_image_name)
+
+    config(
+      :docker_build_mount,
+      Path.join(File.cwd!(), "test/fixtures/build_me") <> ":/tmp/app/simple"
+    )
+
+    config(:ex_path, Path.join(File.cwd!(), "test/fixtures/build_me"))
+    config(:release_args, [])
+
+    File.cd!(location, fn ->
+      output =
+        capture_io(fn ->
+          invoke(:build)
+        end)
+
+      assert String.match?(output, ~r/Release successfully built!/)
+      assert String.match?(output, ~r/Saved: releases\/0.1.0.tar.gz/)
+      assert File.exists?("releases/0.1.0.tar.gz")
+    end)
+  end
+
+  test "docker build is aborted on error", %{docker_image: docker_image_name} do
+    # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
+    use Bootleg.DSL
+    config(:build_type, :docker)
+    config(:docker_build_image, docker_image_name)
+
+    output =
+      capture_io(fn ->
+        assert_raise RuntimeError, ~r/Command returned non-zero exit status/, fn ->
+          invoke(:build)
+        end
+      end)
+
+    assert String.match?(output, ~r/Could not find a Mix.Project/)
   end
 end

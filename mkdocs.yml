@@ -1,0 +1,64 @@
+site_name: Bootleg Documentation
+docs_dir: 'docs'
+site_dir: 'doc'
+theme:
+    name: 'material'
+    font:
+        text: 'Source Sans Pro'
+    feature:
+        tabs: true
+use_directory_urls: false
+markdown_extensions:
+    - markdown.extensions.toc:
+        permalink: true
+    - markdown.extensions.admonition
+    - markdown.extensions.footnotes
+    - markdown.extensions.smarty:
+        smart_quotes: false
+    - markdown.extensions.wikilinks
+    - markdown.extensions.codehilite:
+        linenums: true
+    - pymdownx.caret
+    - pymdownx.details
+    - pymdownx.inlinehilite
+    - pymdownx.magiclink
+    - pymdownx.mark:
+        smart_mark: true
+    - pymdownx.smartsymbols
+    - pymdownx.superfences
+    - pymdownx.tasklist:
+        custom_checkbox: true
+    - pymdownx.tilde
+extra:
+    social:
+        - type: 'github'
+          link: 'https://github.com/labzero/bootleg'
+
+repo_name: 'labzero/bootleg'
+repo_url: 'https://github.com/labzero/bootleg'
+nav:
+    - Home: 'home.md'
+    - 'Supported Scenarios': 'scenarios.md'
+    - Installation: 'installing.md'
+    - Configuration:
+        - Environments: 'config/environments.md'
+        - 'Build strategies': 'config/build.md'
+        - 'Setting options': 'config/setting_options.md'
+        - 'Defining roles and hosts': 'config/roles.md'
+        - 'Using tasks and hooks': 'config/tasks.md'
+    - Reference:
+        - 'Available Options': 'reference/options.md'
+        - 'Role and Host Options': 'reference/role_host_options.md'
+        - 'Workflows': 'reference/workflow.md'
+        - 'Phoenix Support': 'reference/phoenix.md'
+        - 'Public Key Support': 'reference/public_keys.md'
+        - 'Built-in Macros': 'reference/macros.md'
+        - 'Working with Docker': 'reference/docker.md'
+        - 'Mix Tasks': 'reference/mix.md'
+        - 'Bootleg Task Providers': 'reference/task_providers.md'
+    - 'More Resources': 'resources.md'
+    - 'API Reference': 'api-reference.html'
+
+copyright: |
+  Copyright 2018 <a href="http://www.labzero.com">Lab Zero Innovations</a>
+extra_css: [stylesheets/bootleg.css]

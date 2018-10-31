@@ -9,13 +9,12 @@ task :verify_repo_config do
 end
 
 task :remote_build do
-  UI.info("Starting remote build")
   build_role = Config.get_role(:build)
   invoke(:init)
   invoke(:clean)
   invoke(:remote_scm_update)
   invoke(:compile)
-  invoke(:generate_release)
+  invoke(:remote_generate_release)
 
   if build_role.options[:release_workspace] do
     invoke(:copy_build_release)
@@ -33,16 +32,6 @@ task :remote_scm_update do
   end
 end
 
-task :generate_release do
-  UI.info("Generating release")
-  mix_env = config({:mix_env, "prod"})
-  source_path = config({:ex_path, ""})
-
-  remote :build, cd: source_path do
-    "MIX_ENV=#{mix_env} mix release"
-  end
-end
-
 task :init do
   remote :build do
     "git init"
@@ -53,14 +42,34 @@ end
 task :compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
-  UI.info("Compiling remote build")
+
+  UI.info("Building on remote server with mix env #{mix_env}...")
 
   remote :build, cd: source_path do
     "MIX_ENV=#{mix_env} mix local.rebar --force"
-    "MIX_ENV=#{mix_env} mix local.hex --force"
-    "MIX_ENV=#{mix_env} mix deps.get --only=prod"
-    "MIX_ENV=#{mix_env} mix deps.compile"
-    "MIX_ENV=#{mix_env} mix compile"
+    "MIX_ENV=#{mix_env} mix local.hex --if-missing --force"
+    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env}"
+    "MIX_ENV=#{mix_env} mix do clean, compile --force"
+  end
+end
+
+task :generate_release do
+  invoke(:remote_generate_release)
+end
+
+task :remote_generate_release do
+  mix_env = config({:mix_env, "prod"})
+  source_path = config({:ex_path, ""})
+
+  release_args =
+    {:release_args, ["--quiet"]}
+    |> config()
+    |> Enum.join(" ")
+
+  UI.info("Generating release...")
+
+  remote :build, cd: source_path do
+    "MIX_ENV=#{mix_env} mix release #{release_args}"
   end
 end
 
@@ -84,7 +93,14 @@ task :copy_build_release do
   app_name = Config.app()
   app_version = Config.version()
   release_workspace = build_role.options[:release_workspace]
-  source_path = "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
+
+  source_path =
+    Path.join([
+      config({:ex_path, ""}),
+      "_build/#{mix_env}/rel/#{app_name}/releases/",
+      "#{app_version}/#{app_name}.tar.gz"
+    ])
+
   dest_path = Path.join(release_workspace, "#{app_version}.tar.gz")
 
   UI.info("Copying release archive to release workspace")
@@ -114,6 +130,8 @@ task :download_release do
   File.mkdir_p!(local_archive_folder)
 
   download(:build, remote_path, local_path)
+
+  UI.info("Saved: releases/#{app_version}.tar.gz")
 end
 
 task :reset_remote do

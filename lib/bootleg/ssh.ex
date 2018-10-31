@@ -39,9 +39,14 @@ defmodule Bootleg.SSH do
   end
 
   def init(hosts, options) do
-    workspace = Keyword.get(options, :workspace, ".")
+    workspace = Keyword.get(options, :workspace)
     create_workspace = Keyword.get(options, :create_workspace, true)
     working_directory = Keyword.get(options, :cd)
+
+    context_override =
+      options
+      |> Keyword.get(:context, [])
+      |> Enum.into(%{})
 
     :ssh.start()
 
@@ -52,7 +57,24 @@ defmodule Bootleg.SSH do
     |> prepare_remote_env(options)
     |> validate_workspace(workspace, create_workspace)
     |> working_directory(working_directory)
+    |> apply_context(context_override, workspace)
   end
+
+  def apply_context(%Context{} = base_context, %{} = overrides, _workspace)
+      when overrides == %{},
+      do: base_context
+
+  def apply_context(%Context{} = base_context, %{path: path} = overrides, workspace)
+      when not is_nil(workspace) do
+    UI.warn(
+      "Warning: when setting a context path (#{path}), workspace (#{workspace}) is ignored."
+    )
+
+    struct(base_context, overrides)
+  end
+
+  def apply_context(%Context{} = base_context, %{} = overrides, _workspace),
+    do: struct(base_context, overrides)
 
   @doc """
   Take a Bootleg.Host and make it an SSHKit.Host. We limit the options to a
@@ -104,6 +126,11 @@ defmodule Bootleg.SSH do
   end
 
   defp validate_workspace(context, workspace, create_workspace)
+
+  defp validate_workspace(context, nil, _) do
+    run!(context, "true")
+    context
+  end
 
   defp validate_workspace(context, workspace, false) do
     run!(context, "test -d #{workspace}")
