@@ -52,4 +52,4 @@ Check the [LICENSE](LICENSE) file for more information.
 
   [issues]: https://github.com/labzero/bootleg/issues
   [pulls]: https://github.com/labzero/bootleg/pulls
-  [writing-docs]: http://elixir-lang.org/docs/stable/elixir/writing-documentation.html
+  [writing-docs]: https://hexdocs.pm/elixir/master/writing-documentation.html
