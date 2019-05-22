@@ -7,7 +7,7 @@
 set -e
 
 export ERLANG_VERSION="20.3.8.9"
-export ELIXIR_VERSION="v1.6.0"
+export ELIXIR_VERSION="v1.6.6"
 
 export ERLANG_PATH="$INSTALL_PATH/otp_src_$ERLANG_VERSION"
 export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
