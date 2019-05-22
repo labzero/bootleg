@@ -23,3 +23,5 @@ erl_crash.dump
 
 # Ignore virtualenv, used for building documentation
 /_venv
+
+/.elixir_ls
