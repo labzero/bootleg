@@ -40,6 +40,7 @@ jobs:
       - run: mix local.rebar --force
 
       - restore_cache: # restores saved mix cache
+          name: Restore mix cache
           keys: # list of cache keys, in decreasing specificity
             - build-v<< parameters.version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
             - build-v<< parameters.version >>-{{ .Branch }}
@@ -48,12 +49,15 @@ jobs:
       - run: mix do deps.get, deps.compile, compile
 
       - save_cache: # generate and store cache so `restore_cache` works
+          name: Save build cache (3)
           key: build-v<< parameters.version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
           paths: *cache_files
       - save_cache: # make another less specific cache
+          name: Save build cache (2)
           key: build-v<< parameters.version >>-{{ .Branch }}
           paths: *cache_files
       - save_cache: # and one more for good measure
+          name: Save build cache (1)
           key: build-v<< parameters.version >>
           paths: *cache_files
 
@@ -74,15 +78,18 @@ jobs:
             echo 'export COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN' >> $BASH_ENV
             echo 'export CI_PULL_REQUEST=$CIRCLE_PR_NUMBER' >> $BASH_ENV
       - restore_cache:
+          name: Restore environment cache
           key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
       - run:
           name: Install Elixir
           command: script/ci/prepare.sh
       - save_cache:
+          name: Save environment cache 
           key: environment-cache-{{ checksum "script/ci/prepare.sh" }}-{{ arch }}
           paths:
             - ~/dependencies
       - restore_cache:
+          name: Restore dependency cache
           key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
       - run:
           name: Preparing dependencies
@@ -92,6 +99,7 @@ jobs:
             mix deps.get;
             mix deps.compile;
       - save_cache:
+          name: Save dependency cache
           key: dependencies-cache-{{ checksum "script/ci/prepare.sh" }}-{{ checksum "mix.lock" }}-{{ arch }}
           paths:
             - ~/.mix
