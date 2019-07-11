@@ -9,7 +9,7 @@ You may use the [bootleg_phoenix](https://github.com/labzero/bootleg_phoenix) pa
 !!! example "mix.exs"
     ```elixir hl_lines="4"
     def deps do
-      [{:distillery, "~> 2.0", runtime: false},
+      [{:distillery, "~> 2.1", runtime: false},
        {:bootleg, "~> 0.8", runtime: false},
        {:bootleg_phoenix, "~> 0.2", runtime: false}]
     end

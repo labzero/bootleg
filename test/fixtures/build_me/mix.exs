@@ -30,6 +30,6 @@ defmodule BuildMe.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:distillery, "~> 2.0.0", runtime: false}]
+    [{:distillery, "~> 2.1.0", runtime: false}]
   end
 end

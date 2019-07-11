@@ -31,7 +31,7 @@ defmodule TaskConsumer.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:distillery, "~> 2.0.0", runtime: false},
+      {:distillery, "~> 2.1.0", runtime: false},
       {:task_provider, ">= 0.0.0", path: System.get_env("TASK_PROVIDER_PATH"), runtime: false},
       {:bootleg, ">= 0.0.0", path: System.get_env("BOOTLEG_PATH"), runtime: false}
     ]
