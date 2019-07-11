@@ -69,7 +69,7 @@ task :remote_generate_release do
   UI.info("Generating release...")
 
   remote :build, cd: source_path do
-    "MIX_ENV=#{mix_env} mix release #{release_args}"
+    "MIX_ENV=#{mix_env} mix distillery.release #{release_args}"
   end
 end
 
