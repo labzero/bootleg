@@ -67,7 +67,7 @@ task :docker_generate_release do
   UI.info("Generating release...")
 
   commands = [
-    ["mix", ["release"] ++ release_args]
+    ["mix", ["distillery.release"] ++ release_args]
   ]
 
   docker_args =
