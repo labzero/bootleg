@@ -10,26 +10,21 @@ export ERLANG_VERSION="20.3"
 export ELIXIR_VERSION="v1.6.0"
 
 export ERLANG_PATH="$INSTALL_PATH/otp_src_$ERLANG_VERSION"
+export ERLANG_INSTALL="$ERLANG_PATH/$ERLANG_VERSION"
 export ELIXIR_PATH="$INSTALL_PATH/elixir_$ELIXIR_VERSION"
+export KERL_PATH="$INSTALL_PATH/bin/kerl"
 
-mkdir -p $INSTALL_PATH
+mkdir -p $INSTALL_PATH/bin
+mkdir -p $ERLANG_INSTALL
 cd $INSTALL_PATH
 
 # Install erlang
 if [ ! -e $INSTALL_PATH/bin/erl ]; then
-  curl -L -O http://www.erlang.org/download/otp_src_$ERLANG_VERSION.tar.gz
-  tar xzf otp_src_$ERLANG_VERSION.tar.gz
-  cd $ERLANG_PATH
-  ./configure --enable-smp-support \
-              --enable-m64-build \
-              --disable-native-libs \
-              --disable-sctp \
-              --enable-threads \
-              --enable-kernel-poll \
-              --disable-hipe \
-              --without-javac \
-              --prefix=$INSTALL_PATH
-  make install
+  curl https://raw.githubusercontent.com/kerl/kerl/master/kerl -o $KERL_PATH
+  chmod a+x $KERL_PATH
+  $KERL_PATH build $ERLANG_VERSION $ERLANG_VERSION
+  $KERL_PATH install $ERLANG_VERSION $ERLANG_INSTALL
+  cp -R $ERLANG_INSTALL @INSTALL_PATH
 else
   echo "Erlang already installed."
 fi
