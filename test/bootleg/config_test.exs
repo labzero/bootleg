@@ -158,7 +158,10 @@ defmodule Bootleg.ConfigTest do
   end
 
   test_with_mock "env/1 starts the agent", Agent, [:passthrough], [] do
-    Config.env(:test)
+    capture_io(fn ->
+      Config.env(:test)
+    end)
+
     assert called(Agent.start_link(:test))
   end
 end
