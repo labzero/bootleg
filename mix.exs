@@ -43,10 +43,10 @@ defmodule Bootleg.Mixfile do
       {:sshkit, "0.1.0"},
       {:ssh_client_key_api, "~> 0.2.1"},
       {:credo, "~> 0.10", only: [:dev, :test]},
-      {:dialyxir, "~> 1.0.0-rc.3", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18", only: [:docs], runtime: false},
       {:excoveralls, "~> 0.10", only: [:test]},
-      {:mock, "~> 0.3.0", only: [:test]},
+      {:mock, "~> 0.3.3", only: [:test]},
       {:junit_formatter, "~> 2.0", only: [:test]},
       {:temp, "~> 0.4.3", only: [:test]}
     ]
