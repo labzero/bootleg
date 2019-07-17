@@ -1,16 +1,35 @@
-version: 2
+version: 2.1
+
+default_version: &default_version 1.6.6
+default_steps: &default_steps
+  - run: mix test --exclude functional
+
 general:
   branches:
     ignore:
       - gh-pages
 defaults: &defaults
   working_directory: ~/bootleg
+cache_files: &cache_files
+  - _build
+  - deps
+  - ~/.mix
 jobs:
   build:
     <<: *defaults
-    parallelism: 1 # run only one instance of this job in parallel
-    docker: # run the steps with Docker
-      - image: circleci/elixir:1.6
+    parameters:
+      version:
+        description: Elixir version
+        type: string
+        default: *default_version
+      execute:
+        description: What steps to execute after build
+        type: steps
+        default: *default_steps
+
+    parallelism: 1
+    docker:
+      - image: elixir:<< parameters.version >>
         environment: # environment variables for primary container
           SHELL: /bin/bash
     steps:
@@ -21,44 +40,29 @@ jobs:
 
       - restore_cache: # restores saved mix cache
           keys: # list of cache keys, in decreasing specificity
-            - mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-            - mix-cache-{{ .Branch }}
-            - mix-cache
-      - restore_cache: # restores saved build cache
-          keys:
-            - build-cache-{{ .Branch }}
-            - build-cache
+            - build-v<< parameters.version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+            - build-v<< parameters.version >>-{{ .Branch }}
+            - build-v<< parameters.version >>
       - restore_cache:  # restores saved plt cache
           keys:
-            - dialyzer-cache
+            - dialyzer-v<< parameters.version >>
 
-      - run: mix do deps.get, deps.compile # get updated dependencies & compile them
+      - run: mix do deps.get --only test, deps.compile, compile
 
       - save_cache: # generate and store cache so `restore_cache` works
-          key: mix-cache-{{ .Branch }}-{{ checksum "mix.lock" }}
-          paths: "deps"
+          key: build-v<< parameters.version >>-{{ .Branch }}-{{ checksum "mix.lock" }}
+          paths: *cache_files
       - save_cache: # make another less specific cache
-          key: mix-cache-{{ .Branch }}
-          paths: "deps"
-      - save_cache: # and one more build cache for good measure
-          key: mix-cache
-          paths: "deps"
+          key: build-v<< parameters.version >>-{{ .Branch }}
+          paths: *cache_files
+      - save_cache: # and one more for good measure
+          key: build-v<< parameters.version >>
+          paths: *cache_files
 
-      - run: mix compile
-
-      - save_cache: # save a *build* cache, too
-          key: build-cache-{{ .Branch }}
-          paths: "_build"
-      - save_cache: # and one more build cache for good measure
-          key: build-cache
-          paths: "_build"
-
-      - run: mix do format --check-formatted, credo --strict
-      - run: mix test --exclude functional
-      - run: mix dialyzer --halt-exit-status
+      - steps: << parameters.execute >>
 
       - save_cache:
-          key: dialyzer-cache
+          key: dialyzer-v<< parameters.version >>
           paths: "_build/test/dialyxir*.plt"
 
       - store_test_results:
@@ -109,10 +113,28 @@ jobs:
       - store_artifacts:
           path: cover
 workflows:
-  version: 2
-  build-and-verify:
+  version: 2.1
+  all_versions:
     jobs:
-      - build
-      - functional:
-          requires:
-            - build
+      - build:
+          name: "Test in Elixir 1.6.6"
+          version: 1.6.6
+      - build:
+          name: "Test in Elixir 1.8.2"
+          version: 1.8.2
+      - build:
+          name: "Test in Elixir 1.9.0"
+          version: 1.9.0
+  code_quality:
+    jobs:
+      - build:
+          name: "Code style check"
+          execute:
+            - run: mix do format --check-formatted, credo --strict
+      - build:
+          name: "Dialyzer type check"
+          execute:
+            - run: mix dialyzer --halt-exit-status
+  validate_functional:
+    jobs:
+      - functional
