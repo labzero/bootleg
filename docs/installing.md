@@ -6,7 +6,7 @@ Add to your `mix.exs` dependencies:
 
 ```elixir
 def deps do
-  [{:distillery, "~> 2.0", runtime: false},
+  [{:distillery, "~> 2.1", runtime: false},
    {:bootleg, "~> 0.11", runtime: false}]
 end
 ```
@@ -22,7 +22,7 @@ $ mix deps.get
 !!! tip
     If upgrading from an earlier version of Distillery, you may want to generate a new `rel/config.exs` with which to compare your existing configuration.
 
-If you do not have a `rel/config.exs` file, please follow the [Distillery guide](https://hexdocs.pm/distillery/introduction/installation.html) to create one. Generally this consists of running `mix release.init` and reviewing the resulting file.
+If you do not have a `rel/config.exs` file, please follow the [Distillery guide](https://hexdocs.pm/distillery/introduction/installation.html) to create one. Generally this consists of running `mix distillery.init` and reviewing the resulting file.
 
 ## Set-up Bootleg
 

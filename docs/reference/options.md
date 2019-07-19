@@ -9,7 +9,7 @@
 | `env`        | Sets or overrides the Bootleg environment.                                                              | `#!elixir "production"`       |
 | `mix_env` | Overrides the Mix environment. | `#!elixir "prod"` |
 | `build_type` | Specifies which build strategy to use, from: `#!elixir :local`, `#!elixir :docker`, `#!elixir :remote`. | `#!elixir :remote` |
-| `release_args` | List of arguments to pass to `mix release` | `#!elixir ["--quiet"]` |
+| `release_args` | List of arguments to pass to `mix distillery.release` | `#!elixir ["--quiet"]` |
 
 ### Miscellaneous
 
