@@ -294,3 +294,73 @@ task :pull_remote do
 end
 
 before_task(:pull_remote, :verify_repo_config)
+
+# Hot Upgrade support
+task :remote_build_upgrade do
+  build_role = Config.get_role(:build)
+  invoke(:init)
+  invoke(:clean_for_upgrade)
+  invoke(:remote_scm_update)
+  invoke(:compile)
+  invoke(:remote_generate_release_upgrade)
+
+  if build_role.options[:release_workspace] do
+    invoke(:copy_build_release)
+  else
+    invoke(:download_release)
+  end
+end
+
+task :clean_for_upgrade do
+  remote :build do
+      "ls"
+    end
+  |> Enum.map( fn result ->
+      with {:ok, stdout_list, _code, _host} when stdout_list != [] <- result do
+
+            locations =
+              stdout_list
+              |> Keyword.get(:stdout)
+              |> String.split("\n")
+              |> Enum.drop(-1)
+              |> Enum.filter(fn el -> el != "_build" end)
+              |> Enum.join(" ")
+
+            if locations != "" do
+               remote :build do
+                 "rm -rvf #{locations}"
+               end
+            end
+      end
+    end)
+end
+
+task :generate_upgrade_release do
+  invoke(:remote_generate_release_upgrade)
+end
+
+task :remote_generate_release_upgrade do
+  mix_env = config({:mix_env, "prod"})
+  source_path = config({:ex_path, ""})
+
+  release_args =
+    {:release_args, ["--quiet"]}
+    |> config()
+    |> Enum.join(" ")
+
+  UI.info("Generating upgrade release...")
+
+  remote :build, cd: source_path do
+    "MIX_ENV=#{mix_env} mix distillery.release --upgrade #{release_args}"
+  end
+end
+
+task :remote_hot_upgrade do
+  app_name = "#{Config.app()}"
+
+  UI.info("Upgrading #{app_name} to version: #{Config.version()}")
+  
+  remote :app do
+    "bin/#{app_name} upgrade #{Config.version()}"
+  end
+end
