@@ -313,26 +313,25 @@ end
 
 task :clean_for_upgrade do
   remote :build do
-      "ls"
-    end
-  |> Enum.map( fn result ->
-      with {:ok, stdout_list, _code, _host} when stdout_list != [] <- result do
+    "ls"
+  end
+  |> Enum.map(fn result ->
+    with {:ok, stdout_list, _code, _host} when stdout_list != [] <- result do
+      locations =
+        stdout_list
+        |> Keyword.get(:stdout)
+        |> String.split("\n")
+        |> Enum.drop(-1)
+        |> Enum.filter(fn el -> el != "_build" end)
+        |> Enum.join(" ")
 
-            locations =
-              stdout_list
-              |> Keyword.get(:stdout)
-              |> String.split("\n")
-              |> Enum.drop(-1)
-              |> Enum.filter(fn el -> el != "_build" end)
-              |> Enum.join(" ")
-
-            if locations != "" do
-               remote :build do
-                 "rm -rvf #{locations}"
-               end
-            end
+      if locations != "" do
+        remote :build do
+          "rm -rvf #{locations}"
+        end
       end
-    end)
+    end
+  end)
 end
 
 task :generate_upgrade_release do
@@ -359,7 +358,7 @@ task :remote_hot_upgrade do
   app_name = "#{Config.app()}"
 
   UI.info("Upgrading #{app_name} to version: #{Config.version()}")
-  
+
   remote :app do
     "bin/#{app_name} upgrade #{Config.version()}"
   end

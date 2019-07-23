@@ -48,5 +48,3 @@ task :unpack_release_upgrade do
 
   UI.info("Unpacked release upgrade archive")
 end
-
-
