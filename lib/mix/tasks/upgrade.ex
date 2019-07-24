@@ -18,7 +18,7 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
   having first a good understand of how a hot upgrade is performed, 
   its limitations and steps required.
 
-  See nex section for an overview of the hot upgrade process.
+  See next sections for an overview of the hot upgrade process.
 
   ## Hot upgrading a running application
 
@@ -81,11 +81,12 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
     * mix bootleg.build_upgrade
       will tranfer the last committed source code of your application
       from the development machine to the build directory of 
-      your build machine, for example `~/build/myapp/`, then
+      your build machine (for example `~/build/myapp/`), then
       it will clean the directory from the previous code deleting
-      every file but the `_buil` directory, it will generate the
+      every file but the `_build` directory, it will generate the
       `appup` file and compile the newest app release.
-      Please note th before you can use this task for the first time, 
+
+      Please note that before you can use this task for the first time, 
       you have to deploy your _first version_ of your app using 
       `bootleg.build`, `bootleg.deploy` and `bootleg.start` 
       (or `bootleg.update`);
@@ -93,9 +94,8 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
     * mix bootleg.deploy_upgrade
       will transfer the tarball of the compiled app from the 
       build machine to the production directory of the production
-      machine, e.g. `~/production/myapp/`
-
-      then will extract and setting up the needed files;
+      machine (e.g. `~/production/myapp/`), then it will extract 
+      and setting up the needed files;
 
     * mix bootleg.hot_upgrade
       will call `mix distillery <myapp> upgrade <version>` that
@@ -112,15 +112,15 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
   Given you have configured the first version of your app with all
   the needed and appropriately customized Bootleg configuration files, 
   you can go through the following steps to release and run the 
-  first version and subsequentely hot upgrade it to the newest
+  first version, and subsequentely hot upgrade it to the newest
   versions:
 
-  First version of your app:
+  First version of your app
 
     # Step 1 - deploy the first version of your app
       edit the version number of your in the mix.exs file 
       (or in the file if you use an external reference),
-      to the first version, e.g. 0.1.0;
+      to the first version (e.g. 0.1.0);
 
     # Step 2 - Commit
       commit the changes you've made in step 1;
@@ -137,9 +137,9 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
       use `mix bootleg.start` to run the app
 
     now your first version is up and running. To upgrade it 
-    to the future version, you have to follow these steps instead.
+    to the future version, you have to follow these steps instead:
 
-  Following versions:
+  Following versions
 
     # Step 1 - update the version number
       e.g. 0.2.0
@@ -167,7 +167,7 @@ defmodule Mix.Tasks.Bootleg.Upgrade do
     
     If you are shure that you want to having the last version restarted,
     just delete the folder `~/production/myapp/var`. This folder contains
-    the file `start_erl.data` that list the version number to start with.
+    the file `start_erl.data` that lists the version number to start with.
     Deleting the `var` folder will automatically create it next time the app
     is started, with the last version number.
 
