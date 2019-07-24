@@ -60,6 +60,7 @@ nav:
         - 'Bootleg Task Providers': 'reference/task_providers.md'
         - 'Continuous Integration': 'reference/ci.md'
         - 'Customization': 'reference/customization.md'
+        - 'Hot Upgrade': 'reference/hot_upgrade.md'
     - 'More Resources': 'resources.md'
     - 'API Reference': 'api-reference.html'
 
