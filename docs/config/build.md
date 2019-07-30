@@ -58,14 +58,14 @@ $ docker build -f Dockerfile.build -t elixir-ubuntu:latest .
 
 #### Use Docker with Bootleg
 
-To tell Bootleg to use Docker, set the `#!elixir :build_type` and specify the image name in the `#!elixir :build_image` option:
+To tell Bootleg to use Docker, set the `#!elixir :build_type` and specify the image name in the `#!elixir :docker_build_image` option:
 
 !!! example "config/deploy.exs"
     ```elixir
     use Bootleg.DSL
 
     config(:build_type, :docker)
-    config(:build_image, "elixir-ubuntu:latest")
+    config(:docker_build_image, "elixir-ubuntu:latest")
     ```
 
 !!! info
