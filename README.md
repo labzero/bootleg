@@ -16,6 +16,8 @@ add additional support.
 
 ## Installation
 
+Add Distillery and Bootleg as dependencies to `mix.exs`:
+
 ```
 def deps do
   [{:distillery, "~> 2.1", runtime: false},
@@ -23,7 +25,65 @@ def deps do
 end
 ```
 
+## Quick start
+
+### Create release configuration
+
+If you're new to Distillery, run the init command to generate a `rel/` folder and configuration:
+
+```
+mix distillery.init
+```
+
+### Create deploy configuration
+
+Similarly, Bootleg configuration can be generated:
+
+```
+mix bootleg.init
+```
+
+### Configure the deploy configuration
+
+First define a build server in `config/deploy.exs`:
+
+```
+use Bootleg.DSL
+
+role :build, "build.example.com", 
+  workspace: "/home/acme/build",
+  user: "acme",
+  identity: "~/.ssh/id_acme_rsa",
+  silently_accept_hosts: true
+
+```   
+
+Next, define application server(s) in `config/deploy/production.exs`:
+
+```
+use Bootleg.DSL
+
+role :app, ["app1.example.com", "app2.example.com"],
+  workspace: "/opt/acme",
+  user: "acme",
+  identity: "~/.ssh/id_acme_rsa",
+  silently_accept_hosts: true
+```
+
+
+### Build, deploy and start your application   
+Now you can proceed to build, deploy and start your application:
+
+```
+mix bootleg.build
+mix bootleg.deploy
+mix bootleg.start
+```
+This example was for building on a remote build server and deploying to one or more remote application servers, but Bootleg supports several other [build](https://hexdocs.pm/bootleg/config/build.html) and [deployment strategies](https://hexdocs.pm/bootleg/config/deploy.html).
+
 ## Help
+
+Bootleg has [online documentation available](https://hexdocs.pm/bootleg) available:
 
 For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
 
