@@ -8,15 +8,11 @@ Simple deployment and server automation for Elixir.
  * [Phoenix support](https://hexdocs.pm/bootleg/reference/phoenix.html)
  * [Contributing](https://github.com/labzero/bootleg/blob/master/CONTRIBUTING.md)
 
-**Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
-
-Out of the box, Bootleg provides remote build and remote server automation for your [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a **git** repository and some of the build steps use this assumption
-to handle code within the build process. If you are using another source control management (SCM) tool please consider contributing to Bootleg to
-add additional support.
+**Bootleg** is an Elixir application that attempts to simplify the building and deploying of Elixir application releases. The goal of this project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
 
 ## Installation
 
-Add Distillery and Bootleg as dependencies to `mix.exs`:
+Add [Distillery](https://github.com/bitwalker/distillery) and Bootleg as dependencies to `mix.exs`:
 
 ```
 def deps do
@@ -29,7 +25,7 @@ end
 
 ### Create release configuration
 
-If you're new to Distillery, run the init command to generate a `rel/` folder and configuration:
+If you're new to [Distillery](https://github.com/bitwalker/distillery), run the init command to generate a `rel/` folder and configuration:
 
 ```
 mix distillery.init
@@ -83,11 +79,11 @@ This example was for building on a remote build server and deploying to one or m
 
 ## Help
 
-Bootleg has [online documentation available](https://hexdocs.pm/bootleg) available:
+Bootleg has [online documentation](https://hexdocs.pm/bootleg) available.
 
 For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
 
-We're usually around on Slack where you can find us on [elixir-lang's #bootleg channel](http://elixir-lang.slack.com/messages/bootleg/) if you have any questions.
+The authors and contributors are frequently found on *elixir-lang*'s Slack in the [#bootleg](http://elixir-lang.slack.com/messages/bootleg/) channel. Come say hello!
 
 -----
 
