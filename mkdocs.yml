@@ -3,6 +3,7 @@ docs_dir: 'docs'
 site_dir: 'doc'
 theme:
     name: 'material'
+    logo: 'images/labzero.svg'
     font:
         text: 'Source Sans Pro'
     feature:
