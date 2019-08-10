@@ -54,6 +54,12 @@ fixture projects. Instances of projects created via `inflate_project/1` will be 
 test suite exits, but you can suppress that by setting `TEST_LEAVE_TEMP` in the `ENV`. Fixtures are
 always inflated to your OS temporary directory.
 
+## Documentation
+
+Bootleg's documentation is built using [mkdocs](https://www.mkdocs.org/), and uses [pymdown-extensions](https://facelessuser.github.io/pymdown-extensions/) for additional styling.
+
+To build the documentation locally, see [scripts/docs/docs.sh](script/docs/docs.sh).
+
 ## Contact
 
 You can reach the core Bootleg team in [#deployment](https://elixir-lang.slack.com/messages/C0LH49EPQ)
