@@ -1,3 +1,21 @@
+## General tips
+
+From Distillery's [CLI docs](https://hexdocs.pm/distillery/tooling/cli.html):
+
+!!! quote
+    If you are building releases as part of your CI/CD pipeline, you may want to use the `--warnings-as-errors` flag to the release task. This will prevent building releases which may fail at runtime from making it through the pipeline.
+
+To set this and other options that are passed to `mix release`, you can use the `config/2` macro:
+
+!!! example "config/deploy.exs"
+    ```elixir
+    use Bootleg.DSL
+
+    config(:release_args, ["--warnings-as-errors"])
+    ```
+
+See also: [Built-in Macros](/reference/macros.md#config)
+
 ## CircleCI
 
 ### Running builds from CircleCI
