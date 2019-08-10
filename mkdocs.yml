@@ -57,6 +57,7 @@ nav:
         - 'Working with Docker': 'reference/docker.md'
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
+        - 'Continuous Integration': 'reference/ci.md'
     - 'More Resources': 'resources.md'
     - 'API Reference': 'api-reference.html'
 
