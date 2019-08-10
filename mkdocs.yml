@@ -58,6 +58,7 @@ nav:
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
         - 'Continuous Integration': 'reference/ci.md'
+        - 'Customization': 'reference/customization.md'
     - 'More Resources': 'resources.md'
     - 'API Reference': 'api-reference.html'
 
