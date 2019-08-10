@@ -296,17 +296,15 @@ defmodule Bootleg.DSL do
   end
 
   @doc false
-  def warn_task_redefined(true, task, macro, override) do
+  def warn_task_redefined(true, task, macro, true) do
     {orig_file, orig_line} = macro.location
 
-    unless override do
-      UI.warn(
-        "Warning: task '#{task}' is being redefined. " <>
-          "The most recent definition will be used. " <>
-          "To prevent this warning, set `override: true` in the task options. " <>
-          "The previous definition was at: #{orig_file}:#{orig_line}"
-      )
-    end
+    UI.warn(
+      "Warning: task '#{task}' is being redefined. " <>
+        "The most recent definition will be used. " <>
+        "To prevent this warning, set `override: true` in the task options. " <>
+        "The previous definition was at: #{orig_file}:#{orig_line}"
+    )
   end
 
   @doc false

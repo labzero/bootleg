@@ -17,6 +17,38 @@ Tasks are basically functions defined within Bootleg configuration files to acco
 
 Existing tasks, including those that come with Bootleg, can be redefined by you as needed.
 
+???+ example "Redefining a built-in task"
+    ```elixir tab="Config"
+    use Bootleg.DSL
+    task :build do
+      UI.info("Doing our own thing!")
+    end
+    ```
+
+    ```bash tab="Output"
+    $ mix bootleg.build
+    Warning: task 'build' is being redefined. The most recent definition will be used.
+    To prevent this warning, set `override: true` in the task options. The previous
+    definition was at: path/to/bootleg/lib/bootleg/tasks/build.exs:13
+    Doing our own thing!
+    ```
+
+In order to squelch the warning that a task is being overridden, you may supply `override: true` to the `task` macro:
+
+???+ example "Redefining a built-in task without triggering a warning"
+    ```elixir tab="Config"
+    use Bootleg.DSL
+    task :build, override: true do
+      UI.info("Doing our own thing!")
+    end
+    ```
+
+    ```bash tab="Output"
+    $ mix bootleg.build
+    Doing our own thing!
+    ```
+
+
 ## Running tasks
 
 ### Invoking tasks from the command line
