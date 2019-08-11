@@ -23,7 +23,7 @@ defmodule Bootleg.Tasks.InvokeTaskTest do
                cmd_options ++ [stderr_to_stdout: true]
              )
 
-    assert String.match?(out, ~r/You must supply a %Host{}, a %Role{} or a defined role_name./)
+    assert String.match?(out, ~r/role has not been defined/)
   end
 
   test "mix bootleg.invoke", %{location: location, cmd_options: cmd_options} do

@@ -36,7 +36,10 @@ defmodule Bootleg.Config do
   @doc false
   @spec get_role(atom) :: %Bootleg.Role{} | nil
   def get_role(name) do
-    Keyword.get(Bootleg.Config.Agent.get(:roles), name)
+    case Keyword.get(Bootleg.Config.Agent.get(:roles), name) do
+      nil -> raise "The \"#{name}\" role has not been defined, but a task is trying to use it!"
+      role -> role
+    end
   end
 
   @doc """

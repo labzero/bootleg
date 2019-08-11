@@ -68,6 +68,14 @@ defmodule Bootleg.ConfigTest do
            } = result
   end
 
+  test "get_role/1 with undefined role raises an exception" do
+    use Bootleg.DSL
+
+    assert_raise RuntimeError, ~r/role has not been defined/, fn ->
+      Config.get_role(:undef)
+    end
+  end
+
   test "load/1" do
     Config.load("test/fixtures/deploy.exs")
 
