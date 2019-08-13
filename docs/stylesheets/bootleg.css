@@ -143,3 +143,12 @@
 .md-source-file:hover::before {
   background-color: #795786 !important;
 }
+
+.md-nav__button img {
+  width: 200px;
+  height: 60px;
+  position: relative;
+  left: -20px;
+  top: -10px;
+  filter: invert(100%);
+}

@@ -8,13 +8,11 @@ Simple deployment and server automation for Elixir.
  * [Phoenix support](https://hexdocs.pm/bootleg/reference/phoenix.html)
  * [Contributing](https://github.com/labzero/bootleg/blob/master/CONTRIBUTING.md)
 
-**Bootleg** is a simple set of commands that attempt to simplify building and deploying Elixir applications. The goal of the project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
-
-Out of the box, Bootleg provides remote build and remote server automation for your [Distillery](https://github.com/bitwalker/distillery) releases. Bootleg assumes your project is committed into a **git** repository and some of the build steps use this assumption
-to handle code within the build process. If you are using another source control management (SCM) tool please consider contributing to Bootleg to
-add additional support.
+**Bootleg** is an Elixir application that attempts to simplify the building and deploying of Elixir application releases. The goal of this project is to provide an extensible framework that can support many different deployment scenarios with one common set of commands.
 
 ## Installation
+
+Add [Distillery](https://github.com/bitwalker/distillery) and Bootleg as dependencies to `mix.exs`:
 
 ```
 def deps do
@@ -23,11 +21,69 @@ def deps do
 end
 ```
 
+## Quick start
+
+### Create release configuration
+
+If you're new to [Distillery](https://github.com/bitwalker/distillery), run the init command to generate a `rel/` folder and configuration:
+
+```
+mix distillery.init
+```
+
+### Create deploy configuration
+
+Similarly, Bootleg configuration can be generated:
+
+```
+mix bootleg.init
+```
+
+### Configure the deploy configuration
+
+First define a build server in `config/deploy.exs`:
+
+```
+use Bootleg.DSL
+
+role :build, "build.example.com", 
+  workspace: "/home/acme/build",
+  user: "acme",
+  identity: "~/.ssh/id_acme_rsa",
+  silently_accept_hosts: true
+
+```   
+
+Next, define application server(s) in `config/deploy/production.exs`:
+
+```
+use Bootleg.DSL
+
+role :app, ["app1.example.com", "app2.example.com"],
+  workspace: "/opt/acme",
+  user: "acme",
+  identity: "~/.ssh/id_acme_rsa",
+  silently_accept_hosts: true
+```
+
+
+### Build, deploy and start your application   
+Now you can proceed to build, deploy and start your application:
+
+```
+mix bootleg.build
+mix bootleg.deploy
+mix bootleg.start
+```
+This example was for building on a remote build server and deploying to one or more remote application servers, but Bootleg supports several other [build](https://hexdocs.pm/bootleg/config/build.html) and [deployment strategies](https://hexdocs.pm/bootleg/config/deploy.html).
+
 ## Help
+
+Bootleg has [online documentation](https://hexdocs.pm/bootleg) available.
 
 For detailed information about the Bootleg commands and their options, try `mix bootleg help <command>`.
 
-We're usually around on Slack where you can find us on [elixir-lang's #bootleg channel](http://elixir-lang.slack.com/messages/bootleg/) if you have any questions.
+The authors and contributors are frequently found on *elixir-lang*'s Slack in the [#bootleg](http://elixir-lang.slack.com/messages/bootleg/) channel. Come say hello!
 
 -----
 

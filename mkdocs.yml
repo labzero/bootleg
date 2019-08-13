@@ -3,6 +3,7 @@ docs_dir: 'docs'
 site_dir: 'doc'
 theme:
     name: 'material'
+    logo: 'images/labzero.svg'
     font:
         text: 'Source Sans Pro'
     feature:
@@ -43,6 +44,7 @@ nav:
     - Configuration:
         - Environments: 'config/environments.md'
         - 'Build strategies': 'config/build.md'
+        - 'Deployment strategies': 'config/deploy.md'
         - 'Setting options': 'config/setting_options.md'
         - 'Defining roles and hosts': 'config/roles.md'
         - 'Using tasks and hooks': 'config/tasks.md'
@@ -56,6 +58,8 @@ nav:
         - 'Working with Docker': 'reference/docker.md'
         - 'Mix Tasks': 'reference/mix.md'
         - 'Bootleg Task Providers': 'reference/task_providers.md'
+        - 'Continuous Integration': 'reference/ci.md'
+        - 'Customization': 'reference/customization.md'
     - 'More Resources': 'resources.md'
     - 'API Reference': 'api-reference.html'
 
