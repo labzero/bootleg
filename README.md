@@ -18,8 +18,8 @@ add additional support.
 
 ```
 def deps do
-  [{:distillery, "~> 2.1", runtime: false},
-   {:bootleg, "~> 0.11", runtime: false}]
+  [{:distillery, "~> 2.1.0", runtime: false},
+   {:bootleg, "~> 0.12.0", runtime: false}]
 end
 ```
 
