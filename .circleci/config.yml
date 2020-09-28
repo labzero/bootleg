@@ -124,6 +124,9 @@ workflows:
       - build:
           name: "Test in Elixir 1.9.0"
           version: 1.9.0
+      - build:
+          name: "Test in Elixir 1.10.4"
+          version: 1.10.4
   code_quality:
     jobs:
       - build:
