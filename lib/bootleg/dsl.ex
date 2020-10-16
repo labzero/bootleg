@@ -271,7 +271,7 @@ defmodule Bootleg.DSL do
 
       # credo:disable-for-lines:275 Credo.Check.Design.AliasUsage
       module_name
-      |> Code.ensure_compiled?()
+      |> Code.ensure_compiled()
       |> Bootleg.DSL.warn_task_redefined(
         unquote(task),
         unquote(module_name),
@@ -296,7 +296,7 @@ defmodule Bootleg.DSL do
   end
 
   @doc false
-  def warn_task_redefined(true, task, macro, override) do
+  def warn_task_redefined({:module, _}, task, macro, override) do
     {orig_file, orig_line} = macro.location
 
     unless override do
@@ -310,7 +310,7 @@ defmodule Bootleg.DSL do
   end
 
   @doc false
-  def warn_task_redefined(false, task, _, true) do
+  def warn_task_redefined({:error, _}, task, _, true) do
     UI.warn("Warning: task '#{task}' is not already defined and has a needless override.")
   end
 
@@ -366,7 +366,7 @@ defmodule Bootleg.DSL do
 
     module_name = module_for_task(task)
 
-    if Code.ensure_compiled?(module_name) do
+    with {:module, _} <- Code.ensure_compiled(module_name) do
       apply(module_name, :execute, [])
     end
 
