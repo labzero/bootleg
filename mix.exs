@@ -44,7 +44,7 @@ defmodule Bootleg.Mixfile do
       {:ssh_client_key_api, "~> 0.2.1"},
       {:credo, "~> 0.10", only: [:dev, :test]},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.18", only: [:docs], runtime: false},
+      {:ex_doc, "~> 0.22", only: [:docs], runtime: false},
       {:excoveralls, "~> 0.10", only: [:test]},
       {:mock, "~> 0.3.3", only: [:test]},
       {:junit_formatter, "~> 2.0", only: [:test]},
