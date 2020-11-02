@@ -3,11 +3,13 @@ docs_dir: 'docs'
 site_dir: 'doc'
 theme:
     name: 'material'
-    logo: 'images/labzero.svg'
+    logo: images/labzero.svg
+    icon:
+        repo: 'material/github'
     font:
         text: 'Source Sans Pro'
-    feature:
-        tabs: true
+    features:
+        - navigation.tabs
 use_directory_urls: false
 markdown_extensions:
     - markdown.extensions.toc:
@@ -32,7 +34,7 @@ markdown_extensions:
     - pymdownx.tilde
 extra:
     social:
-        - type: 'github'
+        - icon: fontawesome/brands/github-alt
           link: 'https://github.com/labzero/bootleg'
 
 repo_name: 'labzero/bootleg'
