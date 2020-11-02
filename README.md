@@ -17,7 +17,7 @@ Add [Distillery](https://github.com/bitwalker/distillery) and Bootleg as depende
 ```
 def deps do
   [{:distillery, "~> 2.1.0", runtime: false},
-   {:bootleg, "~> 0.12.0", runtime: false}]
+   {:bootleg, "~> 0.13.0", runtime: false}]
 end
 ```
 
