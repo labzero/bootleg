@@ -36,7 +36,7 @@ task :local_generate_release do
   UI.info("Generating release...")
 
   commands = [
-    ["mix", ["distillery.release"] ++ release_args]
+    ["mix", ["release"] ++ release_args]
   ]
 
   File.cd!(source_path, fn ->

@@ -3,7 +3,7 @@ use Bootleg.DSL
 
 task :start do
   remote :app do
-    "bin/#{Config.app()} start"
+    "sudo systemctl #{Config.app()} start"
   end
 
   UI.info("#{Config.app()} started")

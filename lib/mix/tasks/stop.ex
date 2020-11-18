@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Bootleg.Stop do
   @shortdoc "Stops a deployed release."
 
   @moduledoc """
-  Stops a deployed release using the `Distillery` helper.
+  Stops a deployed release using systemd.
 
   # Usage:
 

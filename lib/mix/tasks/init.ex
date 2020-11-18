@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   use Bootleg.DSL
 
   # Configure the following roles to match your environment.
-  # `build` defines what remote server your distillery release should be built on.
+  # `build` defines what remote server your release should be built on.
   #
   # Some available options are:
   #  - `user`: ssh username to use for SSH authentication to the role's hosts
@@ -38,7 +38,7 @@ defmodule Mix.Tasks.Bootleg.Init do
   use Bootleg.DSL
 
   # Configure the following roles to match your environment.
-  # `app` defines what remote servers your distillery release should be deployed and managed on.
+  # `app` defines what remote servers your release should be deployed and managed on.
   #
   # Some available options are:
   #  - `user`: ssh username to use for SSH authentication to the role's hosts

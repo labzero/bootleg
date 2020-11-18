@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Bootleg.Start do
   @shortdoc "Starts a deployed release."
 
   @moduledoc """
-  Starts a deployed release using the `Distillery` helper.
+  Starts a deployed release using systemctl.
 
   # Usage:
 

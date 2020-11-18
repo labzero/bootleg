@@ -3,7 +3,7 @@ use Bootleg.DSL
 
 task :ping do
   remote :app do
-    "bin/#{Config.app()} ping"
+    UI.error("TODO: Make this work?")
   end
 
   :ok
