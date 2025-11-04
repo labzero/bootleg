@@ -297,7 +297,7 @@ defmodule Bootleg.DSL do
 
   @doc false
   def warn_task_redefined({:module, _}, task, macro, override) do
-    {orig_file, orig_line} = macro.location
+    {orig_file, orig_line} = macro.location()
 
     unless override do
       UI.warn(

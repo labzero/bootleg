@@ -230,7 +230,7 @@ defmodule Bootleg.DSLTest do
     before_task(:before_task_test, :some_other_task)
     hooks = Config.Agent.get(:before_hooks)
     assert [[module, :execute]] = hooks[:before_task_test]
-    assert {file, line} = module.location
+    assert {file, line} = module.location()
     assert file == __ENV__.file
     assert line
   end
@@ -241,7 +241,7 @@ defmodule Bootleg.DSLTest do
     after_task(:after_task_test, :some_other_task)
     hooks = Config.Agent.get(:after_hooks)
     assert [[module, :execute]] = hooks[:after_task_test]
-    assert {file, line} = module.location
+    assert {file, line} = module.location()
     assert file == __ENV__.file
     assert line
   end
@@ -253,7 +253,7 @@ defmodule Bootleg.DSLTest do
 
     module = Bootleg.DynamicTasks.TaskTest
     assert apply(module, :execute, [])
-    assert {file, line} = module.location
+    assert {file, line} = apply(module, :location, [])
     assert file == __ENV__.file
     assert line
     refute called(UI.warn(:_))
