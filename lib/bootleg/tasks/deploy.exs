@@ -35,6 +35,14 @@ task :upload_release do
   upload(:app, local_path, remote_path)
 end
 
+#
+# TODO: Prepare for Rollback
+# * create releases/ directory
+# * fetch timestamp
+# * unpack into releases/[timestamp]
+# * create revisions.log file
+# * create shared/ directory
+#
 task :unpack_release do
   remote_path = "#{Config.app()}.tar.gz"
   UI.info("Unpacking release archive")
