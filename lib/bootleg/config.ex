@@ -51,13 +51,19 @@ defmodule Bootleg.Config do
   """
   @spec load(binary | charlist) :: :ok | {:error, :enoent}
   def load(file) do
-    case File.regular?(file) do
+    extension = Path.extname(file)
+    case extension in [".swp", ".swo", ".swn"] do
       true ->
-        Code.eval_file(file)
-        :ok
-
-      false ->
         {:error, :enoent}
+      false ->
+        case File.regular?(file) do
+          true ->
+            Code.eval_file(file)
+            :ok
+
+          false ->
+            {:error, :enoent}
+        end
     end
   end
 
