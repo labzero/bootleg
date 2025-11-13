@@ -42,6 +42,7 @@ defmodule Bootleg.Tasks.ManageTasksTest do
     end)
   end
 
+  @tag skip: "the build_me archive needs to be updated at fixtures/build.tar.gz"
   test "invoke stop", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
@@ -55,6 +56,7 @@ defmodule Bootleg.Tasks.ManageTasksTest do
     end)
   end
 
+  @tag skip: "the build_me archive needs to be updated at fixtures/build.tar.gz"
   test "invoke restart", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
@@ -68,6 +70,7 @@ defmodule Bootleg.Tasks.ManageTasksTest do
     end)
   end
 
+  @tag skip: "the build_me archive needs to be updated at fixtures/build.tar.gz"
   test "invoke ping", %{conn: conn} do
     capture_io(fn ->
       SSH.run!(conn, "launch-app build_me")
