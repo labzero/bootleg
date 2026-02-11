@@ -25,7 +25,7 @@
   "nimble_parsec": {:hex, :nimble_parsec, "0.4.0", "ee261bb53214943679422be70f1658fff573c5d0b0a1ecd0f18738944f818efe", [:mix], [], "hexpm"},
   "parse_trans": {:hex, :parse_trans, "3.3.0", "09765507a3c7590a784615cfd421d101aec25098d50b89d7aa1d66646bc571c1", [:rebar3], [], "hexpm", "17ef63abde837ad30680ea7f857dd9e7ced9476cdd7b0394432af4bfc241b960"},
   "poison": {:hex, :poison, "4.0.1", "bcb755a16fac91cad79bfe9fc3585bb07b9331e50cfe3420a24bcc2d735709ae", [:mix], [], "hexpm"},
-  "ssh_client_key_api": {:git, "https://github.com/spinlock99/ssh_client_key_api.git", "ca3e69c01650b94cdb8f664907e896bf97d145dd", []},
+  "ssh_client_key_api": {:git, "https://github.com/labzero/ssh_client_key_api.git", "0a8e3d83420380dd41e39f008b3c496a0caead1b", []},
   "sshkit": {:hex, :sshkit, "0.3.0", "4c100e3c3ebd261b6b7de811ade713f425fb06eb730a96d583da18d29a6fca26", [:mix], [], "hexpm", "f5dba2ee21e2ddc7c1432e3329ecf7316a1032e9ce911597e1e56823ee10285c"},
   "ssl_verify_fun": {:hex, :ssl_verify_fun, "1.1.4", "f0eafff810d2041e93f915ef59899c923f4568f4585904d010387ed74988e77b", [:make, :mix, :rebar3], [], "hexpm", "603561dc0fd62f4f2ea9b890f4e20e1a0d388746d6e20557cafb1b16950de88c"},
   "temp": {:hex, :temp, "0.4.5", "c62ee92c778ddebb2738212fecea372f1a9beba10bacbd7e54e7efe29357a82e", [:mix], [], "hexpm", "850bc152a934c6b4eb47730bf3aaae7e7bc98bd0820073b9540e3e4c8c6fab86"},

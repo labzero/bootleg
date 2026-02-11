@@ -41,7 +41,7 @@ defmodule Bootleg.Mixfile do
   defp deps do
     [
       {:sshkit, "0.3.0"},
-      {:ssh_client_key_api, github: "spinlock99/ssh_client_key_api"},
+      {:ssh_client_key_api, github: "labzero/ssh_client_key_api"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18", only: [:docs], runtime: false},
