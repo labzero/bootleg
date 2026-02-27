@@ -40,7 +40,7 @@ defmodule Bootleg.Mixfile do
 
   defp deps do
     [
-      {:sshkit, "0.3.0"},
+      {:sshkit, github: "bitcrowd/sshkit.ex"},
       {:ssh_client_key_api, github: "labzero/ssh_client_key_api"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
