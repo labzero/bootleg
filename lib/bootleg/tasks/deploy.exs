@@ -45,11 +45,8 @@ end
 #
 task :unpack_release do
   remote_path = "#{Config.app()}.tar.gz"
-  UI.info("Unpacking release archive")
-
+  UI.info("Unpacking release archive: #{remote_path}")
   remote :app do
-    "tar -zxvf #{remote_path}"
+    "tar -zxf #{remote_path}"
   end
-
-  UI.info("Unpacked release archive")
 end

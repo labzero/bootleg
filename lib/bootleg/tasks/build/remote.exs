@@ -80,7 +80,8 @@ task :remote_generate_release do
     ])
 
   remote :build, cd: source_path  do
-    "tar -czvf #{app_name}.tar.gz #{app_name}/"
+    UI.info("Creating Tarball")
+    "tar -czf #{app_name}.tar.gz #{app_name}/"
   end
 end
 
@@ -92,8 +93,9 @@ task :clean do
     |> Enum.join(" ")
 
   if locations != "" do
+    UI.info("Removing #{locations}...")
     remote :build do
-      "rm -rvf #{locations}"
+      "rm -rf #{locations}"
     end
   end
 end
