@@ -48,8 +48,8 @@ task :compile do
   remote :build, cd: source_path do
     "MIX_ENV=#{mix_env} mix local.rebar --force"
     "MIX_ENV=#{mix_env} mix local.hex --if-missing --force"
-    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env}"
-    "MIX_ENV=#{mix_env} mix do clean, compile --force"
+    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env} 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix do clean, compile --force 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
   end
 end
 
@@ -70,7 +70,7 @@ task :remote_generate_release do
   UI.info("⚡ Generating release...")
 
   remote :build, cd: source_path do
-    "MIX_ENV=#{mix_env} mix release #{release_args}"
+    "MIX_ENV=#{mix_env} mix release #{release_args} 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
   end
 
   source_path =
