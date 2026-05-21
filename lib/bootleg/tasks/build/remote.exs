@@ -42,14 +42,15 @@ end
 task :compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
+  app_name = Config.app()
 
   UI.info("⚡ Building on remote server with mix env #{mix_env}...")
 
   remote :build, cd: source_path do
     "MIX_ENV=#{mix_env} mix local.rebar --force"
     "MIX_ENV=#{mix_env} mix local.hex --if-missing --force"
-    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env} 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
-    "MIX_ENV=#{mix_env} mix do clean, compile --force 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env} 2>&1 | grep -E \"^\(Resolving|[Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix do clean, compile --force 2>&1 | grep -E \"^\(Generated #{app_name}|[Ee]rror\)\" || true"
   end
 end
 
@@ -70,7 +71,7 @@ task :remote_generate_release do
   UI.info("⚡ Generating release...")
 
   remote :build, cd: source_path do
-    "MIX_ENV=#{mix_env} mix release #{release_args} 2>&1 | grep -E \"^\([Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix release #{release_args} 2>&1 | grep -E \"^\(Generated|[Ee]rror\)\" || true"
   end
 
   source_path =
