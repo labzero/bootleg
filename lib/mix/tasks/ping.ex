@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Bootleg.Ping do
   @shortdoc "Pings an app."
 
   @moduledoc """
-  Pings a deployed release using the `Distillery` helper.
+  Pings a deployed release.
 
   # Usage:
 

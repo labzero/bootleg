@@ -4,7 +4,7 @@ defmodule Mix.Tasks.Bootleg.Restart do
   @shortdoc "Restarts a deployed release."
 
   @moduledoc """
-  Restarts a deployed release using the `Distillery` helper.
+  Restarts a deployed release.
 
   # Usage:
 

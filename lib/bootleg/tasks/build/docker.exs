@@ -62,13 +62,10 @@ task :docker_generate_release do
   docker_image = config(:docker_build_image)
   docker_mount = config({:docker_build_mount, "#{source_path}:/opt/build"})
   docker_run_options = config({:docker_build_opts, []})
-  release_args = config({:release_args, ["--quiet"]})
+  release_args = config({:release_args, []})
+  app_name = Config.app()
 
   UI.info("Generating release...")
-
-  commands = [
-    ["mix", ["distillery.release"] ++ release_args]
-  ]
 
   docker_args =
     [
@@ -82,6 +79,11 @@ task :docker_generate_release do
     ] ++ docker_run_options ++ [docker_image]
 
   UI.debug("Docker command prefix:\n  " <> Enum.join(docker_args, " "))
+
+  commands = [
+    ["mix", ["release"] ++ release_args],
+    ["bash", ["-c", "cd _build/#{mix_env}/rel && tar -czvf #{app_name}.tar.gz #{app_name}/"]]
+  ]
 
   Enum.each(commands, fn [c, args] ->
     UI.info("[docker] #{c} " <> Enum.join(args, " "))
@@ -106,7 +108,7 @@ task :docker_copy_release do
   archive_path =
     Path.join(
       source_path,
-      "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
+      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
     )
 
   local_archive_folder = Path.join([File.cwd!(), "releases"])

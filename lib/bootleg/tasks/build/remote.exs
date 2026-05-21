@@ -63,7 +63,7 @@ task :remote_generate_release do
   app_name = Config.app()
 
   release_args =
-    {:release_args, ["--quiet"]}
+    {:release_args, []}
     |> config()
     |> Enum.join(" ")
 
@@ -108,8 +108,7 @@ task :copy_build_release do
   source_path =
     Path.join([
       config({:ex_path, ""}),
-      "_build/#{mix_env}/rel/#{app_name}/releases/",
-      "#{app_version}/#{app_name}.tar.gz"
+      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
     ])
 
   dest_path = Path.join(release_workspace, "#{app_version}.tar.gz")

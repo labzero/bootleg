@@ -31,19 +31,18 @@ end
 task :local_generate_release do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, File.cwd!()})
-  release_args = config({:release_args, ["--quiet"]})
+  release_args = config({:release_args, []})
+  app_name = Config.app()
 
   UI.info("Generating release...")
 
-  commands = [
-    ["mix", ["distillery.release"] ++ release_args]
-  ]
-
   File.cd!(source_path, fn ->
-    Enum.each(commands, fn [c, args] ->
-      UI.info("[local] #{c} " <> Enum.join(args, " "))
-      System.cmd(c, args, env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
-    end)
+    UI.info("[local] mix release " <> Enum.join(release_args, " "))
+    System.cmd("mix", ["release"] ++ release_args, env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
+
+    rel_dir = Path.join(source_path, "_build/#{mix_env}/rel")
+    UI.info("[local] tar -czvf #{app_name}.tar.gz #{app_name}/")
+    System.cmd("tar", ["-czvf", "#{app_name}.tar.gz", "#{app_name}/"], cd: rel_dir, into: IO.stream(:stdio, :line))
   end)
 end
 
@@ -56,7 +55,7 @@ task :local_copy_release do
   archive_path =
     Path.join(
       source_path,
-      "_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz"
+      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
     )
 
   local_archive_folder = Path.join([File.cwd!(), "releases"])
