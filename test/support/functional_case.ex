@@ -31,7 +31,8 @@ defmodule Bootleg.FunctionalCase do
     key_passphrase = Map.get(tags, :key_passphrase, "")
 
     conf = %{image: @image, cmd: @cmd, args: @args}
-    hosts = Enum.map(1..count, fn _ -> init(boot(conf), passphrase: key_passphrase) end)
+    step = if count < 1, do: -1, else: 1
+    hosts = Enum.map(1..count//step, fn _ -> init(boot(conf), passphrase: key_passphrase) end)
 
     if Map.get(tags, :verbose, System.get_env("TEST_VERBOSE")) do
       Logger.info("started docker hosts: #{inspect(hosts, pretty: true)}")
