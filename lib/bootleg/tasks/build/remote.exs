@@ -43,14 +43,16 @@ task :compile do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
   app_name = Config.app()
+  build_log = "/tmp/bootleg-#{app_name}-build.log"
 
   UI.info("⚡ Building on remote server with mix env #{mix_env}...")
+  UI.info("   Build log: #{build_log}")
 
   remote :build, cd: source_path do
     "MIX_ENV=#{mix_env} mix local.rebar --force"
     "MIX_ENV=#{mix_env} mix local.hex --if-missing --force"
-    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env} 2>&1 | grep -E \"^\(Resolving|[Ee]rror\)\" || true"
-    "MIX_ENV=#{mix_env} mix do clean, compile --force 2>&1 | grep -E \"^\(Generated #{app_name}|[Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix deps.get --only=#{mix_env} >> #{build_log} 2>&1"
+    "MIX_ENV=#{mix_env} mix do clean, compile --force >> #{build_log} 2>&1"
   end
 end
 
@@ -62,6 +64,7 @@ task :remote_generate_release do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
   app_name = Config.app()
+  build_log = config({:build_log, "/tmp/bootleg-#{app_name}-build.log"})
 
   release_args =
     {:release_args, []}
@@ -71,7 +74,7 @@ task :remote_generate_release do
   UI.info("⚡ Generating release...")
 
   remote :build, cd: source_path do
-    "MIX_ENV=#{mix_env} mix release #{release_args} 2>&1 | grep -E \"^\(Generated|[Ee]rror\)\" || true"
+    "MIX_ENV=#{mix_env} mix release #{release_args} >> #{build_log} 2>&1"
   end
 
   source_path =
