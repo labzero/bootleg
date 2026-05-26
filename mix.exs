@@ -43,7 +43,7 @@ defmodule Bootleg.Mixfile do
       {:sshkit, github: "bitcrowd/sshkit.ex"},
       {:ssh_client_key_api, github: "labzero/ssh_client_key_api"},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
+      {:dialyxir, "~> 1.4", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.18", only: [:docs], runtime: false},
       {:excoveralls, "~> 0.18", only: [:test]},
       {:mock, "~> 0.3.3", only: [:test]},
