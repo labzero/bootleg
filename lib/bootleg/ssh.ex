@@ -3,10 +3,10 @@ defmodule Bootleg.SSH do
 
   require Logger
 
+  alias Bootleg.{Config, Host, Role, UI}
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
-  alias Bootleg.{Config, Host, Role, UI}
 
   def init(%Role{} = role, options, filter) do
     role_options = Keyword.merge(role.options, user: role.user)
@@ -103,7 +103,7 @@ defmodule Bootleg.SSH do
 
       conn
       |> SSHKitSSH.run(cmd, fun: &capture(&1, &2, host), acc: {:cont, {[], nil, %{}}})
-      |> Tuple.to_list
+      |> Tuple.to_list()
       |> Enum.concat([host])
       |> List.to_tuple()
     end
@@ -284,9 +284,7 @@ defmodule Bootleg.SSH do
   end
 
   def ssh_opt({:passphrase_provider, fun}) when is_function(fun, 0) do
-    fun
-    |> apply([])
-    |> parse_passphrase()
+    parse_passphrase(fun.())
   end
 
   def ssh_opt(option), do: option

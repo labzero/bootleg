@@ -1,4 +1,4 @@
-alias Bootleg.{UI, Config, DSL}
+alias Bootleg.{Config, DSL, UI}
 use Bootleg.DSL
 
 task :verify_config do
@@ -16,6 +16,25 @@ task :build do
   UI.info("Starting #{build_type} build for #{bootleg_env} environment")
   invoke(:"#{build_type}_verify_config")
   invoke(:"#{build_type}_build")
+end
+
+task :copy_release do
+  mix_env = config({:mix_env, "prod"})
+  source_path = config({:ex_path, File.cwd!()})
+  app_name = Config.app()
+  app_version = Config.version()
+
+  archive_path =
+    Path.join(
+      source_path,
+      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
+    )
+
+  local_archive_folder = Path.join([File.cwd!(), "releases"])
+  File.mkdir_p!(local_archive_folder)
+  File.cp!(archive_path, Path.join(local_archive_folder, "#{app_version}.tar.gz"))
+
+  UI.info("Saved: releases/#{app_version}.tar.gz")
 end
 
 before_task(:build, :verify_config)

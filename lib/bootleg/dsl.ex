@@ -367,7 +367,7 @@ defmodule Bootleg.DSL do
     module_name = module_for_task(task)
 
     with {:module, _} <- Code.ensure_compiled(module_name) do
-      apply(module_name, :execute, [])
+      module_name.execute()
     end
 
     invoke_task_callbacks(task, :after_hooks)

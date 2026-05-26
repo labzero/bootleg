@@ -139,17 +139,13 @@ defmodule Bootleg.FunctionalTest do
         use Bootleg.DSL
 
         role :build, "#{build_host.ip}", port: #{build_host.port}, user: "#{build_host.user}",
-          silently_accept_hosts: true, workspace: "workspace", identity: "#{
-        build_host.private_key_path
-      }"
+          silently_accept_hosts: true, workspace: "workspace", identity: "#{build_host.private_key_path}"
       """)
 
       Enum.each(app_hosts, fn host ->
         IO.write(file, """
           role :app, "#{host.ip}", port: #{host.port}, user: "#{host.user}",
-            silently_accept_hosts: true, workspace: "workspace", identity: "#{
-          host.private_key_path
-        }"
+            silently_accept_hosts: true, workspace: "workspace", identity: "#{host.private_key_path}"
         """)
       end)
     end)
@@ -182,9 +178,7 @@ defmodule Bootleg.FunctionalTest do
         use Bootleg.DSL
 
         role :build, "#{build_host.ip}", port: #{build_host.port}, user: "#{build_host.user}",
-          silently_accept_hosts: true, workspace: "workspace", identity: "#{
-        build_host.private_key_path
-      }"
+          silently_accept_hosts: true, workspace: "workspace", identity: "#{build_host.private_key_path}"
       """)
     end)
 
@@ -250,7 +244,11 @@ defmodule Bootleg.FunctionalTest do
     end)
   end
 
-  @tag boot: 1, timeout: 120_000, ui_verbosity: :info, key_passphrase: "secretcodes", skip: "unkown error"
+  @tag boot: 1,
+       timeout: 120_000,
+       ui_verbosity: :info,
+       key_passphrase: "secretcodes",
+       skip: "unkown error"
   test "build succeeds using passphrase-protected key with a passphrase", %{hosts: hosts} do
     location = Fixtures.inflate_project()
 

@@ -34,7 +34,7 @@ defmodule Bootleg.Config do
   end
 
   @doc false
-  @spec get_role(atom) :: %Bootleg.Role{} | nil
+  @spec get_role(atom) :: Bootleg.Role.t() | nil
   def get_role(name) do
     case Keyword.get(Bootleg.Config.Agent.get(:roles), name) do
       nil -> raise "The \"#{name}\" role has not been defined, but a task is trying to use it!"
@@ -52,9 +52,11 @@ defmodule Bootleg.Config do
   @spec load(binary | charlist) :: :ok | {:error, :enoent}
   def load(file) do
     extension = Path.extname(file)
+
     case extension in [".swp", ".swo", ".swn"] do
       true ->
         {:error, :enoent}
+
       false ->
         case File.regular?(file) do
           true ->
@@ -108,12 +110,12 @@ defmodule Bootleg.Config do
   @doc false
   @spec cache_project_config(atom) :: any
   def cache_project_config(prop) do
-    unless Project.umbrella?() do
+    if Project.umbrella?() do
+      nil
+    else
       val = Project.config()[prop]
       Bootleg.Config.Agent.merge(:config, prop, val)
       val
-    else
-      nil
     end
   end
 

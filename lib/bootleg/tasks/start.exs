@@ -1,4 +1,4 @@
-alias Bootleg.{UI, Config}
+alias Bootleg.{Config, UI}
 use Bootleg.DSL
 
 task :start do

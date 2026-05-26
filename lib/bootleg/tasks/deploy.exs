@@ -1,4 +1,4 @@
-alias Bootleg.{UI, Config}
+alias Bootleg.{Config, UI}
 use Bootleg.DSL
 
 task :deploy do
@@ -35,7 +35,7 @@ task :upload_release do
   upload(:app, local_path, remote_path)
 end
 
-#
+# credo:disable-for-next-line Credo.Check.Design.TagTODO
 # TODO: Prepare for Rollback
 # * create releases/ directory
 # * fetch timestamp
@@ -46,6 +46,7 @@ end
 task :unpack_release do
   remote_path = "#{Config.app()}.tar.gz"
   UI.info("Unpacking release archive: #{remote_path}")
+
   remote :app do
     "tar -zxf #{remote_path}"
   end

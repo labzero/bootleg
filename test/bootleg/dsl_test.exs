@@ -252,14 +252,15 @@ defmodule Bootleg.DSLTest do
     task(:task_test, do: true)
 
     module = Bootleg.DynamicTasks.TaskTest
-    assert apply(module, :execute, [])
-    assert {file, line} = apply(module, :location, [])
+    assert module.execute()
+    assert {file, line} = module.location()
     assert file == __ENV__.file
     assert line
     refute called(UI.warn(:_))
   end
 
-  test_with_mock "task/2 redefining a task shows a warning", UI, [], warn: fn _string -> :ok end do
+  test_with_mock "task/2 redefining a task shows a warning", UI, [],
+    warn: fn _string -> :ok end do
     use Bootleg.DSL
 
     task(:task_redefine_a, do: true)

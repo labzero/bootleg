@@ -24,8 +24,6 @@ defmodule SSHError do
   end
 
   defp output_format(output) do
-    output
-    |> Enum.map(fn {type, msg} -> format(Atom.to_string(type), msg) end)
-    |> Enum.join()
+    Enum.map_join(output, fn {type, msg} -> format(Atom.to_string(type), msg) end)
   end
 end

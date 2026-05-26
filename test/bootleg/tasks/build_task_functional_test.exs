@@ -67,9 +67,7 @@ defmodule Bootleg.Tasks.BuildTaskFunctionalTest do
         assert [{:ok, _, 0, _}] =
                  remote(
                    :build,
-                   "[ -f /home/me/workspace_abs/_build/#{mix_env}/rel/#{app_name}/releases/#{
-                     app_version
-                   }/#{app_name}.tar.gz ]"
+                   "[ -f /home/me/workspace_abs/_build/#{mix_env}/rel/#{app_name}/releases/#{app_version}/#{app_name}.tar.gz ]"
                  )
 
         assert true == File.exists?(Path.join([File.cwd!(), "releases", release_name]))

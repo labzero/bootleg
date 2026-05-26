@@ -3,6 +3,8 @@ defmodule Bootleg.Role do
   @enforce_keys [:name, :hosts, :user]
   defstruct [:name, :hosts, :user, options: []]
 
+  @type t :: %__MODULE__{}
+
   alias Bootleg.Host
 
   def combine_hosts(%Bootleg.Role{} = role, hosts) do

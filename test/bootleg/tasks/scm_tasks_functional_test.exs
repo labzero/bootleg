@@ -41,7 +41,8 @@ defmodule Bootleg.Tasks.ScmTasksFunctionalTest do
     end)
   end
 
-  @tag skip: "stderr: fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
+  @tag skip:
+         "stderr: fatal: ambiguous argument 'master': unknown revision or path not in the working tree."
   test "'git_mode push' uploads source via git push", %{project_location: location} do
     # credo:disable-for-next-line Credo.Check.Consistency.MultiAliasImportRequireUse
     use Bootleg.DSL

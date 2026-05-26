@@ -1,4 +1,4 @@
-alias Bootleg.{UI, Config}
+alias Bootleg.{Config, UI}
 use Bootleg.DSL
 
 task :verify_repo_config do
@@ -80,7 +80,8 @@ task :remote_generate_release do
     ])
 
   UI.info("⚡ Creating Tarball...")
-  remote :build, cd: source_path  do
+
+  remote :build, cd: source_path do
     "tar -czf #{app_name}.tar.gz #{app_name}/"
   end
 end
@@ -94,6 +95,7 @@ task :clean do
 
   if locations != "" do
     UI.info("⚡ Removing #{locations}...")
+
     remote :build do
       "rm -rf #{locations}"
     end
@@ -156,7 +158,7 @@ task :reset_remote do
 end
 
 task :push_remote do
-  alias Bootleg.{SSH, Git}
+  alias Bootleg.{Git, SSH}
   refspec = config({:refspec, "master"})
   build_role = Config.get_role(:build)
 
@@ -199,9 +201,10 @@ task :push_remote do
     |> Enum.filter(fn v -> v end)
 
   git_env =
-    case Enum.count(git_ssh_options) > 0 do
-      true -> [{"GIT_SSH_COMMAND", "ssh #{Enum.join(git_ssh_options, " ")}"}]
-      false -> []
+    if Enum.empty?(git_ssh_options) do
+      []
+    else
+      [{"GIT_SSH_COMMAND", "ssh #{Enum.join(git_ssh_options, " ")}"}]
     end
 
   UI.info("⚡ Pushing new commits with git to: #{user_host_port}")

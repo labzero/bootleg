@@ -1,10 +1,10 @@
-alias Bootleg.{UI, Config}
+alias Bootleg.{Config, UI}
 use Bootleg.DSL
 
 task :local_build do
   invoke(:local_compile)
   invoke(:local_generate_release)
-  invoke(:local_copy_release)
+  invoke(:copy_release)
 end
 
 task :local_compile do
@@ -38,29 +38,18 @@ task :local_generate_release do
 
   File.cd!(source_path, fn ->
     UI.info("[local] mix release " <> Enum.join(release_args, " "))
-    System.cmd("mix", ["release"] ++ release_args, env: [{"MIX_ENV", mix_env}], into: IO.stream(:stdio, :line))
+
+    System.cmd("mix", ["release"] ++ release_args,
+      env: [{"MIX_ENV", mix_env}],
+      into: IO.stream(:stdio, :line)
+    )
 
     rel_dir = Path.join(source_path, "_build/#{mix_env}/rel")
     UI.info("[local] tar -czvf #{app_name}.tar.gz #{app_name}/")
-    System.cmd("tar", ["-czvf", "#{app_name}.tar.gz", "#{app_name}/"], cd: rel_dir, into: IO.stream(:stdio, :line))
-  end)
-end
 
-task :local_copy_release do
-  mix_env = config({:mix_env, "prod"})
-  source_path = config({:ex_path, File.cwd!()})
-  app_name = Config.app()
-  app_version = Config.version()
-
-  archive_path =
-    Path.join(
-      source_path,
-      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
+    System.cmd("tar", ["-czvf", "#{app_name}.tar.gz", "#{app_name}/"],
+      cd: rel_dir,
+      into: IO.stream(:stdio, :line)
     )
-
-  local_archive_folder = Path.join([File.cwd!(), "releases"])
-  File.mkdir_p!(local_archive_folder)
-  File.cp!(archive_path, Path.join(local_archive_folder, "#{app_version}.tar.gz"))
-
-  UI.info("Saved: releases/#{app_version}.tar.gz")
+  end)
 end
