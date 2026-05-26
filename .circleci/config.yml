@@ -1,6 +1,6 @@
 version: 2.1
 
-default_version: &default_version 1.6.6
+default_version: &default_version 1.18.4
 default_steps: &default_steps
   - run: mix test --exclude functional
   - store_test_results:
@@ -116,17 +116,11 @@ workflows:
   all_versions:
     jobs:
       - build:
-          name: "Test in Elixir 1.6.6"
-          version: 1.6.6
+          name: "Test in Elixir 1.18.4"
+          version: 1.18.4
       - build:
-          name: "Test in Elixir 1.8.2"
-          version: 1.8.2
-      - build:
-          name: "Test in Elixir 1.9.0"
-          version: 1.9.0
-      - build:
-          name: "Test in Elixir 1.10.4"
-          version: 1.10.4
+          name: "Test in Elixir 1.19.5"
+          version: 1.19.5
   code_quality:
     jobs:
       - build:
