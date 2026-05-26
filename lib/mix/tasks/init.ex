@@ -16,6 +16,7 @@ defmodule Mix.Tasks.Bootleg.Init do
     Generator.create_file(Env.deploy_config(), deploy_file_text())
     Generator.create_directory(Env.deploy_config_dir())
     Generator.create_file(production_file_path, production_file_text())
+    :ok
   end
 
   Generator.embed_text(:deploy_file, """
