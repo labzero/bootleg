@@ -1,6 +1,8 @@
 defmodule Bootleg.SSH do
   @moduledoc "Provides SSH related tools for use in `Bootleg.Strategies`."
 
+  require Logger
+
   alias SSHKit.Context
   alias SSHKit.Host, as: SSHKitHost
   alias SSHKit.SSH, as: SSHKitSSH
@@ -201,13 +203,14 @@ defmodule Bootleg.SSH do
           {buffer, partial_buffer, data} =
             buffer_complete_lines(data, :stdout, buffer, partial_buffer)
 
-          UI.puts_recv(host, String.trim_trailing(data))
+          Logger.debug(fn -> "[#{host.name}] #{String.trim_trailing(data)}" end)
           {buffer, status, partial_buffer}
 
         {:data, _, 1, data} ->
-          {buffer, partial_buffer, _} =
+          {buffer, partial_buffer, data} =
             buffer_complete_lines(data, :stderr, buffer, partial_buffer)
 
+          Logger.debug(fn -> "[#{host.name}][stderr] #{String.trim_trailing(data)}" end)
           {buffer, status, partial_buffer}
 
         {:exit_status, _, code} ->
