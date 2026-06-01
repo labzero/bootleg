@@ -3,7 +3,7 @@ FROM bitwalker/alpine-elixir:latest
 # Set up an Alpine Linux machine running an SSH server.
 # Autogenerate missing host keys.
 
-RUN apk add --update --no-cache openssh sudo git perl-utils bash
+RUN apk add --update --no-cache openssh sudo git perl-utils bash tar
 RUN ssh-keygen -A
 RUN printf "PermitUserEnvironment yes\n" >> /etc/ssh/sshd_config
 

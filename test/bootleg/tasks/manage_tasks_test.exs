@@ -21,6 +21,7 @@ defmodule Bootleg.Tasks.ManageTasksTest do
     capture_io(fn ->
       conn = SSH.init(:app)
       SSH.run!(conn, "install-app build_me")
+      SSH.run!(conn, "ln -sfn . current")
       send(self(), {:connection, conn})
     end)
 

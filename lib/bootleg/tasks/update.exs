@@ -9,7 +9,7 @@ task :update do
 end
 
 task :stop_silent do
-  nodetool = "bin/#{Config.app()}"
+  nodetool = "current/bin/#{Config.app()}"
 
   remote :app do
     "#{nodetool} describe && (#{nodetool} stop || true)"

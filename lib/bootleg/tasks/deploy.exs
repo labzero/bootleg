@@ -30,24 +30,35 @@ end
 task :upload_release do
   remote_path = "#{Config.app()}.tar.gz"
   local_archive_folder = "#{File.cwd!()}/releases"
-  local_path = Path.join(local_archive_folder, "#{Config.version()}.tar.gz")
-  UI.info("Uploading release archive")
+
+  tar_ball =
+    "ls -t #{local_archive_folder} | head -1"
+    |> System.shell()
+    |> elem(0)
+    |> String.trim_trailing()
+
+  local_path = Path.join(local_archive_folder, tar_ball)
+  UI.info("⚡ Uploading release archive #{tar_ball}")
   upload(:app, local_path, remote_path)
 end
 
-# credo:disable-for-next-line Credo.Check.Design.TagTODO
-# TODO: Prepare for Rollback
-# * create releases/ directory
-# * fetch timestamp
-# * unpack into releases/[timestamp]
-# * create revisions.log file
-# * create shared/ directory
-#
 task :unpack_release do
-  remote_path = "#{Config.app()}.tar.gz"
-  UI.info("Unpacking release archive: #{remote_path}")
+  app = Config.app()
+  remote_path = "#{app}.tar.gz"
+  keep_releases = Config.get_role(:app).options[:keep_releases]
+  UI.info("⚡ Unpacking release archive: #{remote_path}")
 
   remote :app do
-    "tar -zxf #{remote_path}"
+    "mkdir -p releases/"
+    "tar -zxf #{remote_path} -C releases/"
+    "ls -td releases/*/ | head -1 | xargs -I{} ln -sfn {} current"
+    "rm #{remote_path}"
+    "touch --reference current/bin/#{app} current/bin/#{app}"
+  end
+
+  if keep_releases do
+    remote :app do
+      "ls -1dt releases/*/ | tail -n +#{keep_releases + 1} | xargs -I{} rm -rf {}"
+    end
   end
 end

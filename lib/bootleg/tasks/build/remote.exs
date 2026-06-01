@@ -81,8 +81,11 @@ task :remote_generate_release do
 
   UI.info("⚡ Creating Tarball...")
 
+  time_stamp = System.os_time(:millisecond)
+
   remote :build, cd: source_path do
-    "tar -czf #{app_name}.tar.gz #{app_name}/"
+    "mv #{app_name}/ #{time_stamp}/"
+    "tar -czf #{time_stamp}.tar.gz #{time_stamp}/"
   end
 end
 
@@ -128,24 +131,21 @@ end
 task :download_release do
   mix_env = config({:mix_env, "prod"})
   source_path = config({:ex_path, ""})
-  app_name = Config.app()
-  app_version = Config.version()
 
   remote_path =
     Path.join(
       source_path,
-      "_build/#{mix_env}/rel/#{app_name}.tar.gz"
+      "_build/#{mix_env}/rel/*.tar.gz"
     )
 
   local_archive_folder = "#{File.cwd!()}/releases"
-  local_path = Path.join(local_archive_folder, "#{app_version}.tar.gz")
 
   UI.info("⚡ Downloading release archive")
   File.mkdir_p!(local_archive_folder)
 
-  download(:build, remote_path, local_path)
+  download(:build, remote_path, local_archive_folder)
 
-  UI.info("⚡ Saved: releases/#{app_version}.tar.gz")
+  UI.info("⚡ Saved in releases/")
 end
 
 task :reset_remote do
