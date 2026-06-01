@@ -26,6 +26,7 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
           "mkdir -p releases/2/"
           "ln -s releases/2/ current"
         end
+
         assert_raise SSHError, fn -> invoke(:rollback) end
       end)
     end)
@@ -35,14 +36,19 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
     File.cd!("test/fixtures", fn ->
       capture_io(fn ->
         remote :app do
-          "mkdir -p releases/1/"
+          "mkdir -p releases/1/bin/"
+          "touch releases/1/bin/my_app"
           "sleep 1"
-          "mkdir -p releases/2/"
+          "mkdir -p releases/2/bin"
+          "touch releases/2/bin/my_app"
           "ln -s releases/2/ current"
         end
-        assert [{:ok, [stdout: "releases/2/"], 0, _}] = remote(:app, "ls -lh current | sed 's/.* //' | tr -d '\n'")
+        current_release = "ls -lh current | sed 's/.* //' | tr -d '\n'"
+        assert [{:ok, [stdout: "releases/2/"], 0, _}] = remote(:app, current_release)
+
         invoke(:rollback)
-        assert [{:ok, [stdout: "releases/1/"], 0, _}] = remote(:app, "ls -lh current | sed 's/.* //' | tr -d '\n'")
+
+        assert [{:ok, [stdout: "releases/1/"], 0, _}] = remote(:app, current_release)
       end)
     end)
   end
@@ -51,14 +57,18 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
     File.cd!("test/fixtures", fn ->
       capture_io(fn ->
         remote :app do
-          "mkdir -p releases/1/"
+          "mkdir -p releases/1/bin/"
+          "touch releases/1/bin/my_app"
           "sleep 1"
-          "mkdir -p releases/2/"
+          "mkdir -p releases/2/bin/"
+          "touch releases/2/bin/my_app"
           "ln -s releases/2/ current"
         end
+
         invoke(:rollback)
-        assert [{:ok, [stdout: "releases/1/"], 0, _}] =
-        remote(:app, "ls -1dt releases/*/ | tr -d '\n'")
+
+        list_releases = "ls -1dt releases/*/ | tr -d '\n'"
+        assert [{:ok, [stdout: "releases/1/"], 0, _}] = remote(:app, list_releases)
       end)
     end)
   end
