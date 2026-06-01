@@ -48,5 +48,18 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
     end)
   end
 
-  test "rollback/1 removes the rolled back release"
+  test "rollback/1 removes the rolled back release" do
+    File.cd!("test/fixtures", fn ->
+      capture_io(fn ->
+        remote :app do
+          "mkdir -p releases/1/"
+          "mkdir -p releases/2/"
+          "ln -s releases/2/ current"
+        end
+        invoke(:rollback)
+      assert [{:ok, [stdout: "releases/1/"], 0, _}] =
+        remote(:app, "ls -1dt releases/*/ | tr -d '\n'")
+      end)
+    end)
+  end
 end
