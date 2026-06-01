@@ -56,7 +56,8 @@ defmodule Bootleg.Tasks.DeployTaskFunctionalTest do
     File.cd!("test/fixtures", fn ->
       capture_io(fn ->
         release_name = "#{Config.version()}.tar.gz"
-        assert [{:ok, _, 0, _}] = remote(:app, "[ -f /project/test/fixtures/releases/#{release_name} ]")
+        release_fixture_exists = "[ -f /project/test/fixtures/releases/#{release_name} ]"
+        assert [{:ok, _, 0, _}] = remote(:app, release_fixture_exists)
         invoke(:deploy)
         assert [{:ok, _, 0, _}] = remote(:app, "[ -L current ]")
         assert [{:ok, _, 0, _}] = remote(:app, "[ -f current/release.txt ]")
