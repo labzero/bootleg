@@ -43,6 +43,7 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
           "touch releases/2/bin/my_app"
           "ln -s releases/2/ current"
         end
+
         current_release = "ls -lh current | sed 's/.* //' | tr -d '\n'"
         assert [{:ok, [stdout: "releases/2/"], 0, _}] = remote(:app, current_release)
 
