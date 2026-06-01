@@ -30,10 +30,11 @@ end
 task :upload_release do
   remote_path = "#{Config.app()}.tar.gz"
   local_archive_folder = "#{File.cwd!()}/releases"
-  tar_ball = "ls -t #{local_archive_folder} | head -1"
-             |> System.shell()
-             |> elem(0)
-             |> String.trim_trailing()
+  tar_ball =
+    "ls -t #{local_archive_folder} | head -1"
+    |> System.shell()
+    |> elem(0)
+    |> String.trim_trailing()
   local_path = Path.join(local_archive_folder, tar_ball)
   UI.info("⚡ Uploading release archive #{tar_ball}")
   upload(:app, local_path, remote_path)

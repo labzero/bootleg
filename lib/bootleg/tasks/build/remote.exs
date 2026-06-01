@@ -82,6 +82,7 @@ task :remote_generate_release do
   UI.info("⚡ Creating Tarball...")
 
   time_stamp = System.os_time(:millisecond)
+
   remote :build, cd: source_path do
     "mv #{app_name}/ #{time_stamp}/"
     "tar -czf #{time_stamp}.tar.gz #{time_stamp}/"
