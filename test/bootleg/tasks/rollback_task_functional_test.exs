@@ -36,6 +36,7 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
       capture_io(fn ->
         remote :app do
           "mkdir -p releases/1/"
+          "sleep 1"
           "mkdir -p releases/2/"
           "ln -s releases/2/ current"
         end
@@ -53,6 +54,7 @@ defmodule Bootleg.Tasks.RollbackTaskFunctionalTest do
       capture_io(fn ->
         remote :app do
           "mkdir -p releases/1/"
+          "sleep 1"
           "mkdir -p releases/2/"
           "ln -s releases/2/ current"
         end

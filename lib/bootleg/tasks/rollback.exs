@@ -12,8 +12,9 @@ task :rollback do
   #
   remote :app do
     "test $(ls -1d releases/*/ 2>/dev/null | wc -l) -ge 2 || (echo 'No previous release to roll back to' && exit 1)"
-    "ls -1dt releases/*/ | tail -2 | head -1 | xargs -I{} ln -sfn {} current"
-    "ls -1dt releases/*/ | tail -1 | xargs -I{} rm -rf {}"
+    "ls -1dtr releases/*/ | tail -2 | head -1 | xargs -I{} ln -sfn {} current"
+    "ls -1dtr releases/*/ | tail -1 | xargs -I{} rm -rf {}"
+    "touch --reference current/bin/#{app} current/bin/#{app}"
   end
 
   UI.info("⏪ #{app} rolled back")
