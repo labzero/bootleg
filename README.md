@@ -68,13 +68,14 @@ role :app, ["app1.example.com", "app2.example.com"],
 ```
 
 
-### Build, deploy and start your application   
-Now you can proceed to build, deploy and start your application:
+### Build, deploy and start your application
+Now you can proceed to build, deploy, start and rollback your application:
 
 ```
 mix bootleg.build
 mix bootleg.deploy
 mix bootleg.start
+mix bootleg.rollback
 ```
 This example was for building on a remote build server and deploying to one or more remote application servers, but Bootleg supports several other [build](https://hexdocs.pm/bootleg/config/build.html) and [deployment strategies](https://hexdocs.pm/bootleg/config/deploy.html).
 
